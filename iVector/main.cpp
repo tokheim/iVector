@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
 	cout << "in " << inFileListDir << " base " << inBaseDir << " out " << outLocation << " h " << height << " w " << width << " s " << seed;
 
 	
-	testAll();
+	testAll(width);
 
 	string breaker;
 	getline(cin, breaker);

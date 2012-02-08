@@ -119,10 +119,10 @@ void iVectTests() {
 }
 
 //System dependent
-void speedTests() {
+void speedTests(int width) {
 	#ifndef _WIN32
-	int width = 50;
 	int height = 50653;
+	int updateNum = 5;
 
 	cout << "\n\n--Speedtest--\n\n";
 	struct timeval startTime;
@@ -142,20 +142,22 @@ void speedTests() {
 	cout << "Setup " << height << "x" << width << " feature space, " << time << " seconds\n";
 	
 	gettimeofday(&startTime, NULL);
-	updateiVector(traindocs[0], space);
+	for (int i = 0; i < updateNum; i++) {
+		updateiVector(traindocs[i], space);
+	}
 	gettimeofday(&stopTime, NULL);
 	time = stopTime.tv_sec-startTime.tv_sec+((stopTime.tv_usec-startTime.tv_usec)/MICROS_IN_S);
-	cout << "Update 1 iVector, " << time << "s, update whole set, " << time*traindocs.size() << " s.\n";
+	cout << "Update " << updateNum << " iVectors, " << time << "s, update whole set, " << time/updateNum*traindocs.size() << " s.\n";
 	#endif
 }
 
 
 
-void testAll() {
+void testAll(int width) {
 	vectorTests();
 	matrixTests();
 	iVectTests();
-	speedTests();
+	speedTests(width);
 
 	string breaker;
 	getline(cin, breaker);

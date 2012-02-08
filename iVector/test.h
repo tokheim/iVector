@@ -14,6 +14,6 @@
 
 using namespace std;
 
-void testAll();
+void testAll(int width);
 
 #endif
