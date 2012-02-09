@@ -120,6 +120,58 @@ double calcTotalLikelihoodExcludeInf(vector<Document> & documents, FeatureSpace 
 	}
 	return totLikelihood;
 }
+//Calculates both b vector (b=jacobian*ivector-gradient) and jacobian for iVectors at once
+void setUpSystem(double * b, double ** jacobian, Document & document, FeatureSpace & space, double denominator) {
+	for (int row = 0; row < space.height; row++) {
+		double gammaVal = document.getGammaValue(row);
+		if (space.mVector[row] == MINUS_INF && gammaVal == 0.0) {
+			continue;
+		}
+		double phiPart = calcPhi(space, document.iVector, row, denominator)*document.gammaSum;
+		double gradweight = gammaVal - phiPart;
+		double jacweight = phiPart;
+		if (gradweight > 0.0) {
+			jacweight = gammaVal;
+		}
+		for (int i = 0; i < space.width; i++) {
+			b[i] -= gradweight*space.tMatrix[row][i];
+			for (int j = 0; j < space.width; j++) {
+				jacobian[i][j] -= space.tMatrix[row][i]*space.tMatrix[row][j]*jacweight;
+			}
+		}
+	}
+	for (int i = 0; i < space.width; i++) {
+		for (int j = 0; j < space.width; j++) {
+			b[i] += jacobian[i][j]*document.iVector[j];
+		}
+	}
+}
+//Calculates both b vector (b=jacobian*iVector-gradient) and jacobian for rows of t at once
+void setUpSystem(double *b, double ** jacobian, vector<Document> & documents, FeatureSpace & space, int row, double * denominators) {
+	for (unsigned int n = 0; n < documents.size(); n++) {
+		double gammaVal = documents[n].getGammaValue(row);
+		double phiPart = calcPhi(space, documents[n].iVector, row, denominators[n])*documents[n].gammaSum;
+		double gradweight = gammaVal - phiPart;
+		double jacweight = phiPart;
+		if (gradweight > 0.0) {
+			jacweight = gammaVal;
+		}
+		for (int i = 0; i < space.width; i++) {
+			b[i] -= gradweight*documents[n].iVector[i];
+			for (int j = 0; j < space.width; j++) {
+				jacobian[i][j] -= documents[n].iVector[i]*documents[n].iVector[j]*jacweight;
+			}
+		}
+	}
+	for (int i = 0; i < space.width; i++) {
+		for (int j = 0; j < space.width; j++) {
+			b[i] += jacobian[i][j]*space.tMatrix[row][j];
+		}
+	}
+}
+
+
+
 //Calculates b in linear system Ax=b from x=oldVector - jacobian^-1*gradient
 double * calcBVector(double * oldVector, double *gradient, double ** jacobian, int dim) {
 	double * b = new double[dim];
@@ -206,8 +258,11 @@ double * calcTGradient(vector<Document> & documents, FeatureSpace & space, doubl
 double * calciVectGradient(Document & document, FeatureSpace & space, double denominator) {
 	double * gradient = initializeVector(space.width);
 	for (int row = 0; row < space.height; row++) {
-		double weight = document.getGammaValue(row) - document.gammaSum * calcPhi(space, document.iVector, row, denominator);
-		scaleAndAddVector(gradient, space.tMatrix[row], weight, space.width);
+		double gammaVal = document.getGammaValue(row);
+		if (space.mVector[row] != MINUS_INF || document.getGammaValue(row) != 0.0) {
+			double weight = document.getGammaValue(row) - document.gammaSum * calcPhi(space, document.iVector, row, denominator);
+			scaleAndAddVector(gradient, space.tMatrix[row], weight, space.width);
+		}
 	}
 	return gradient;
 }
@@ -233,7 +288,9 @@ double ** approxtRowJacobian(vector<Document> & documents, FeatureSpace & space,
 double ** approxiVectorJacobian(Document & document, FeatureSpace & space,  double denominator) {
 	double ** jacobian = initializeMatrix(space.width, space.width);
 	for (int row = 0; row < space.height; row++) {
-		calcJacobianSumStep(jacobian, document, space, row, denominator, space.tMatrix[row]);
+		if (space.mVector[row] != MINUS_INF || document.getGammaValue(row) != 0.0) {
+			calcJacobianSumStep(jacobian, document, space, row, denominator, space.tMatrix[row]);
+		}
 	}
 	return jacobian;
 }
@@ -241,6 +298,16 @@ double ** approxiVectorJacobian(Document & document, FeatureSpace & space,  doub
 void updateiVector(Document & document, FeatureSpace & space) {
 	document.oldiVector = document.iVector;
 	double denominator = calcPhiDenominator(space, document.iVector);
+	
+	/*
+	//new
+	double * b = initializeVector(space.width);
+	double ** jacobian = initializeMatrix(space.width, space.width);
+	setUpSystem(b, jacobian, document, space, denominator);
+	int * p = lupDecompose(jacobian, space.width);
+	document.iVector = lupSolve(jacobian, b, p, space.width);
+	*/
+	
 	double * gradient = calciVectGradient(document, space, denominator);
 	if (!isZeroVector(gradient, space.width)) {//If gradient is zero then update is unneccessary/mathematically illegal
 		double ** jacobian = approxiVectorJacobian(document, space, denominator);
@@ -258,18 +325,28 @@ void updateiVectors(vector<Document> & documents, FeatureSpace & space) {
 void updatetRow(vector<Document> & documents, FeatureSpace & space, int row, double * denominators) {
 	space.oldtMatrix[row] = space.tMatrix[row];
 	if (space.mVector[row] != MINUS_INF) {//If mVector is trained on a superset of "documents" then the old values should still be a solution
+		double * b = initializeVector(space.width);
+		double ** jacobian = initializeMatrix(space.width, space.width);
+		setUpSystem(b, jacobian, documents, space, row, denominators);
+		int * p = lupDecompose(jacobian, space.width);
+		space.tMatrix[row] = lupSolve(jacobian, b, p, space.width);
+
+		/*
 		double * gradient = calcTGradient(documents, space, denominators, row);
 		double ** jacobian = approxtRowJacobian(documents, space, denominators, row);
 		space.tMatrix[row] = calcNewtonStep(space.tMatrix[row], gradient, jacobian, space.width);
+		*/
 	}
 }
 void updatetRows(vector<Document> & documents, FeatureSpace & space) {
 	double * denominators = calcAllPhiDenominators(space, documents);
-	//printVector(denominators, 2, "Denominators");
 	for (int row = 0; row < space.height; row++) {
 		updatetRow(documents, space, row, denominators);
 	}
 }
+
+
+
 
 bool recursiveiVectorUpdateCheck(Document & document, FeatureSpace & space, double oldLikelihood, int attempts) {
 	if (attempts <= MAX_REDUCE_STEPSIZE_ATTEMPTS) {
