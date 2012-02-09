@@ -122,7 +122,44 @@ double calcTotalLikelihoodExcludeInf(vector<Document> & documents, FeatureSpace 
 }
 //Calculates both b vector (b=jacobian*ivector-gradient) and jacobian for iVectors at once
 void setUpSystem(double * b, double ** jacobian, Document & document, FeatureSpace & space, double denominator) {
+	int docIndex = 0;
 	for (int row = 0; row < space.height; row++) {
+		double gradweight;
+		double jacweight;
+		if (document.gammaList[docIndex].first == row) {// gamma for row exists
+			double phiPart = calcPhi(space, document.iVector, row, denominator)*document.gammaSum;
+			gradweight = document.gammaList[docIndex].second - phiPart;
+			jacweight = phiPart;
+			if (document.gammaList[docIndex].second > phiPart) {
+				jacweight = document.gammaList[docIndex].second;
+			}
+			if (docIndex < document.uniqueGammas -1) {
+				docIndex++;
+			}
+		}
+		else if (space.mVector[row] != MINUS_INF) {// gamma for row is zero
+			jacweight = calcPhi(space, document.iVector, row, denominator)*document.gammaSum;
+			gradweight = -jacweight;
+		}
+		else {
+			continue;
+		}
+		for (int i = 0; i < space.width; i++) {
+			b[i] -= gradweight*space.tMatrix[row][i];
+			for (int j = 0; j < space.width; j++) {
+				jacobian[i][j] -= space.tMatrix[row][i]*space.tMatrix[row][j]*jacweight;
+			}
+		}
+	}
+	for (int i = 0; i < space.width; i++) {
+		for (int j = 0; j < space.width; j++) {
+			b[i] += jacobian[i][j]*document.iVector[j];
+		}
+	}
+
+
+
+	/*for (int row = 0; row < space.height; row++) {
 		double gammaVal = document.getGammaValue(row);
 		if (space.mVector[row] == MINUS_INF && gammaVal == 0.0) {
 			continue;
@@ -144,7 +181,7 @@ void setUpSystem(double * b, double ** jacobian, Document & document, FeatureSpa
 		for (int j = 0; j < space.width; j++) {
 			b[i] += jacobian[i][j]*document.iVector[j];
 		}
-	}
+	}*/
 }
 //Calculates both b vector (b=jacobian*iVector-gradient) and jacobian for rows of t at once
 void setUpSystem(double *b, double ** jacobian, vector<Document> & documents, FeatureSpace & space, int row, double * denominators) {
@@ -259,8 +296,8 @@ double * calciVectGradient(Document & document, FeatureSpace & space, double den
 	double * gradient = initializeVector(space.width);
 	for (int row = 0; row < space.height; row++) {
 		double gammaVal = document.getGammaValue(row);
-		if (space.mVector[row] != MINUS_INF || document.getGammaValue(row) != 0.0) {
-			double weight = document.getGammaValue(row) - document.gammaSum * calcPhi(space, document.iVector, row, denominator);
+		if (space.mVector[row] != MINUS_INF || gammaVal != 0.0) {
+			double weight = gammaVal - document.gammaSum * calcPhi(space, document.iVector, row, denominator);
 			scaleAndAddVector(gradient, space.tMatrix[row], weight, space.width);
 		}
 	}
@@ -299,15 +336,17 @@ void updateiVector(Document & document, FeatureSpace & space) {
 	document.oldiVector = document.iVector;
 	double denominator = calcPhiDenominator(space, document.iVector);
 	
-	/*
+	
 	//new
 	double * b = initializeVector(space.width);
 	double ** jacobian = initializeMatrix(space.width, space.width);
 	setUpSystem(b, jacobian, document, space, denominator);
 	int * p = lupDecompose(jacobian, space.width);
 	document.iVector = lupSolve(jacobian, b, p, space.width);
-	*/
 	
+	
+	/*
+	//old
 	double * gradient = calciVectGradient(document, space, denominator);
 	if (!isZeroVector(gradient, space.width)) {//If gradient is zero then update is unneccessary/mathematically illegal
 		double ** jacobian = approxiVectorJacobian(document, space, denominator);
@@ -316,6 +355,7 @@ void updateiVector(Document & document, FeatureSpace & space) {
 	else {
 		std::cout << "Warning, iVector gradient is zero";
 	}
+	*/
 }
 void updateiVectors(vector<Document> & documents, FeatureSpace & space) {
 	for (unsigned int i = 0; i < documents.size(); i++) {

@@ -74,6 +74,14 @@ void iVectTests() {
 	for (unsigned int i = 0; i<documents.size(); i++) {
 		cout << " " << documents[i].getGammaValue(1);
 	} 
+	/*cout << "\nFeaturelists:\n";
+	for (unsigned int i = 0; i<documents.size(); i++) {
+		for (int j = 0; j < documents[i].uniqueGammas; j++) {
+			cout << documents[i].gammaList[j].first << " ";
+		}
+		cout << "\n";
+	}*/
+
 	FeatureSpace * space = new FeatureSpace(5, 3, documents, 23);
 	printMatrix(space->tMatrix, 5, 3, "5x3 Random tMatrix:");
 	

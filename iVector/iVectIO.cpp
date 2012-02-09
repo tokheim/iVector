@@ -1,6 +1,6 @@
 #include "iVectIO.h"
 
-typedef pair <int, double> I_D_PAIR;
+//typedef pair <int, double> I_D_PAIR;
 typedef pair <string, int> S_I_PAIR;
 
 //Language->Languageid

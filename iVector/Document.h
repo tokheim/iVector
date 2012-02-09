@@ -15,6 +15,8 @@ typedef __gnu_cxx::hash_map<int, double> HASH_I_D;
 
 using namespace std;
 
+typedef pair <int, double> I_D_PAIR;
+
 struct Document {
 	int languageClass;
 	double * iVector;
@@ -26,6 +28,9 @@ struct Document {
 	void calcGammaSum();
 	void setupIvectors(int dim);
 	double getGammaValue(int feature);
+
+	I_D_PAIR * gammaList;
+	int uniqueGammas;
 };
 void useOldiVectors(vector<Document> &documents);
 void resetiVectors(vector<Document> &documents, int dim);
