@@ -1,22 +1,23 @@
 #include "log.h"
 
-void printVector(double * vector, int length) {
-	for (int i = 0; i < length; i++) {
-		std::cout << vector[i] << " ";
+
+void printVector(vector<double> &vect) {
+	for (unsigned int i = 0; i < vect.size(); i++) {
+		std::cout << vect[i] << " ";
 	}
 	std::cout << "\n";
 }
-void printVector(double * vector, int length, string title) {
+void printVector(vector<double> &vect, string title) {
 	cout << "\n" << title << " ";
-	printVector(vector, length);
+	printVector(vect);
 }
 
-void printMatrix(double ** matrix, int height, int width) {
-	for (int i = 0; i < height; i++) {
-		printVector(matrix[i], width);
+void printMatrix(vector< vector<double> > &matrix) {
+	for (unsigned int i = 0; i < matrix.size(); i++) {
+		printVector(matrix[i]);
 	}
 }
-void printMatrix(double ** matrix, int height, int width, string title) {
+void printMatrix(vector< vector<double> > &matrix, string title) {
 	cout << "\n" << title << "\n";
-	printMatrix(matrix, height, width);
+	printMatrix(matrix);
 }

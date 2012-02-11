@@ -19,8 +19,8 @@ typedef pair <int, double> I_D_PAIR;
 
 struct Document {
 	int languageClass;
-	double * iVector;
-	double * oldiVector;
+	vector<double> iVector;
+	vector<double> oldiVector;
 	double gammaSum;
 	double lastLikelihood;
 	HASH_I_D gamma;
@@ -28,9 +28,6 @@ struct Document {
 	void calcGammaSum();
 	void setupIvectors(int dim);
 	double getGammaValue(int feature);
-
-	I_D_PAIR * gammaList;
-	int uniqueGammas;
 };
 void useOldiVectors(vector<Document> &documents);
 void resetiVectors(vector<Document> &documents, int dim);

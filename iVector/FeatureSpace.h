@@ -7,14 +7,14 @@
 using namespace std;
 
 struct FeatureSpace {
-	double * mVector;
-	double ** tMatrix;
-	double ** oldtMatrix;
-	int height;
-	int width;
+	vector<double> mVector;
+	vector< vector<double> > tMatrix;
+	vector< vector<double> > oldtMatrix;
+	unsigned int height;
+	unsigned int width;
 
-	FeatureSpace(int height, int width, vector<Document> & documents, unsigned int seed);
-	FeatureSpace(int height, int width, double ** tMatrix, vector<Document> & documents);
+	FeatureSpace(unsigned int height, unsigned int width, vector<Document> & documents, unsigned int seed);
+	FeatureSpace(vector< vector<double> > tMatrix, vector<Document> & documents);
 	void generatetMatrix(unsigned int seed);
 	void generatemVector(vector<Document> & documents);
 };

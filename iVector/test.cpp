@@ -15,7 +15,7 @@ const static string TEST_SPEED_BASEDIR = "";
 const static double MICROS_IN_S = 1000000;
 
 void vectorTests() {
-	
+	/*
 	cout << "--vector tests--\n\n";
 	double a[] = {2.0, 5.0, 1.0};
 	printVector(a, 3, "a = ");
@@ -28,27 +28,35 @@ void vectorTests() {
 	printVector(avgVector(a, b, 3), 3, "(a+b)/2 = ");
 	scaleAndAddVector(b, a, 5.0, 3);
 	printVector(b, 3, "a*5+b = ");
+	*/
 }
 void matrixTests() {
 	/*
 	Ax = b should give x-values [-1.4, 2.2, 0.6]
 	*/
 	cout << "\n\n--matrix tests-- \n\n";
-	double ** matrix = new double * [3];
-	double row0[] = {1, 2, 0};
-	double row1[] = {3, 4, 4};
-	double row2[] = {5, 6, 3};
-	matrix[0] = row0;
-	matrix[1] = row1;
-	matrix[2] = row2;
-	
-	printMatrix(initializeMatrix(2, 2), 2, 2, "Initialized 2x2 matrix");
+	vector< vector<double> > matrix(3, vector<double>(3));
+	matrix[0][0] = 1;
+	matrix[0][1] = 2;
+	matrix[0][2] = 0;
+	matrix[1][0] = 3;
+	matrix[1][1] = 4;
+	matrix[1][2] = 4;
+	matrix[2][0] = 5;
+	matrix[2][1] = 6;
+	matrix[2][2] = 3;
 
-	double bvector[] = {3, 7, 8};
-	printMatrix(matrix, 3, 3, "A:");
-	printVector(bvector, 3, "b-vector: ");
-	int * p = lupDecompose(matrix, 3);
-	printVector(lupSolve(matrix, bvector, p, 3), 3, "Ax = b -> x = ");
+	vector<double> bvector(3);
+	bvector[0] = 3;
+	bvector[1] = 7;
+	bvector[2] = 8;
+	
+	vector<int> p(3);
+
+	printMatrix(matrix, "A:");
+	printVector(bvector, "b-vector: ");
+	lupDecompose(matrix, p);
+	printVector(lupSolve(matrix, bvector, p), "Ax = b -> x = ");
 }
 
 
@@ -81,47 +89,52 @@ void iVectTests() {
 		}
 		cout << "\n";
 	}*/
-
-	FeatureSpace * space = new FeatureSpace(5, 3, documents, 23);
-	printMatrix(space->tMatrix, 5, 3, "5x3 Random tMatrix:");
 	
-	double ** tMatrix = new double * [5];
-	double row0[] = {1, 2, 1};
-	double row1[] = {1, 0, 1};
-	double row2[] = {0, 1, 1};
-	double row3[] = {1, 0, 0};
-	double row4[] = {2, 1, 0};
-	tMatrix[0] = row0;
-	tMatrix[1] = row1;
-	tMatrix[2] = row2;
-	tMatrix[3] = row3;
-	tMatrix[4] = row4;
+	FeatureSpace space(5, 3, documents, 23);
+	printMatrix(space.tMatrix, "5x3 Random tMatrix:");
+	
+	vector< vector<double> > tMatrix(5, vector<double>(3));
+	tMatrix[0][0] = 1;
+	tMatrix[0][1] = 2;
+	tMatrix[0][2] = 1;
+	tMatrix[1][0] = 1;
+	tMatrix[1][1] = 0;
+	tMatrix[1][2] = 1;
+	tMatrix[2][0] = 0;
+	tMatrix[2][1] = 1;
+	tMatrix[2][2] = 1;
+	tMatrix[3][0] = 1;
+	tMatrix[3][1] = 0;
+	tMatrix[3][2] = 0;
+	tMatrix[4][0] = 2;
+	tMatrix[4][1] = 1;
+	tMatrix[4][2] = 0;
 
-	space = new FeatureSpace(5, 3, tMatrix, documents);
-	printMatrix(space->tMatrix, 5, 3, "5x3 codeset tMatrix:");
-	printVector(space->mVector, 5, "mVector:");
+	space = FeatureSpace(tMatrix, documents);
+	printMatrix(space.tMatrix, "5x3 codeset tMatrix:");
+	printVector(space.mVector, "mVector:");
 
-	updateiVectors(documents, * space);
+	updateiVectors(documents, space);
 	
 	cout << "\nInitial iVector update values:\n";
 	for (unsigned int i = 0; i < documents.size(); i++) {
 		cout << i << ": ";
-		printVector(documents[i].iVector, 3);
+		printVector(documents[i].iVector);
 	}
 	
-	updatetRows(documents, * space);
-	printMatrix(space->tMatrix, 5, 3, "tMatrix update:");
-	updateiVectors(documents, * space);
+	updatetRows(documents, space);
+	printMatrix(space.tMatrix, "tMatrix update:");
+	updateiVectors(documents, space);
 	cout << "\nSecond iVector update values:\n";
 	for (unsigned int i = 0; i < documents.size(); i++) {
 		cout << i << ": ";
-		printVector(documents[i].iVector, 3);
+		printVector(documents[i].iVector);
 	}
-	cout << "\nTotal likelihood1 (1) = "<<calcTotalLikelihood(documents, * space);
-	updatetRows(documents, * space);
-	cout << "\nTotal likelihood (1.5) = "<<calcTotalLikelihood(documents, * space);
-	updateiVectors(documents, * space);
-	cout << "\nTotal likelihood (2) = "<<calcTotalLikelihood(documents, * space);
+	cout << "\nTotal likelihood1 (1) = "<<calcTotalLikelihood(documents, space);
+	updatetRows(documents, space);
+	cout << "\nTotal likelihood (1.5) = "<<calcTotalLikelihood(documents, space);
+	updateiVectors(documents, space);
+	cout << "\nTotal likelihood (2) = "<<calcTotalLikelihood(documents, space);
 
 	writeDocuments(documents, TEST_OUT_LOC, 3);
 }
