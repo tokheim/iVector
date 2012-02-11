@@ -18,8 +18,8 @@ double calcPhi(FeatureSpace & space, vector<double> &iVector, int row, double de
 
 void setUpSystem(vector<double> & b, vector< vector<double> > & jacobian, Document & document, FeatureSpace & space, double denominator);
 void setUpSystem(vector<double> &b, vector< vector<double> > & jacobian, vector<Document> & documents, FeatureSpace & space, int row, vector<double> denominators);
-void lupDecompose(vector< vector<double> > & a, vector<int> & p);
-vector<double> lupSolve(vector< vector<double> > &LU, vector<double> & b, vector<int> p);
+void lupDecompose(vector< vector<double> > & a);
+vector<double> lupSolve(vector< vector<double> > &LU, vector<double> & b);
 
 double calcUtteranceLikelihood(Document & document, FeatureSpace & space);
 double calcTotalLikelihood(vector<Document> & documents, FeatureSpace & space);

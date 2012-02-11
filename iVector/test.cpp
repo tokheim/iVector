@@ -51,12 +51,12 @@ void matrixTests() {
 	bvector[1] = 7;
 	bvector[2] = 8;
 	
-	vector<int> p(3);
+	//vector<int> p(3);
 
 	printMatrix(matrix, "A:");
 	printVector(bvector, "b-vector: ");
-	lupDecompose(matrix, p);
-	printVector(lupSolve(matrix, bvector, p), "Ax = b -> x = ");
+	lupDecompose(matrix);
+	printVector(lupSolve(matrix, bvector), "Ax = b -> x = ");
 }
 
 

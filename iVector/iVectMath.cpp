@@ -91,31 +91,38 @@ double calcTotalLikelihoodExcludeInf(vector<Document> & documents, FeatureSpace 
 }
 //Calculates both b vector (b=jacobian*ivector-gradient) and jacobian for iVectors at once
 void setUpSystem(vector<double> & b, vector< vector<double> > & jacobian, Document & document, FeatureSpace & space, double denominator) {
+	size_t width = space.width;
+	double * tRow;
+	double * jacRow;
 	for (unsigned int row = 0; row < space.height; row++) {
 		double gammaVal = document.getGammaValue(row);
 		if (space.mVector[row] == MINUS_INF && gammaVal == 0.0) {
 			continue;
 		}
+		tRow = &space.tMatrix[row][0];
+
 		double phiPart = calcPhi(space, document.iVector, row, denominator)*document.gammaSum;
 		double gradweight = gammaVal - phiPart;
 		double jacweight = phiPart;
 		if (gradweight > 0.0) {
 			jacweight = gammaVal;
 		}
-		for (unsigned int i = 0; i < space.width; i++) {
-			b[i] -= gradweight*space.tMatrix[row][i];
-			for (unsigned int j = i; j < space.width; j++) {
-				jacobian[i][j] -= space.tMatrix[row][i]*space.tMatrix[row][j]*jacweight;
+		for (size_t i = 0; i < width; i++) {
+			b[i] += gradweight*tRow[i];
+			phiPart = tRow[i]*jacweight;
+			jacRow = &jacobian[i][0];
+			for (size_t j = i; j < width; j++) {
+				jacRow[j] += tRow[j]*phiPart;
 			}
 		}
 	}
-	for (unsigned int i = 0; i < space.width; i++) {
-		for (unsigned int j = 0; j < i; j++) {
+	for (size_t i = 0; i < width; i++) {
+		for (size_t j = 0; j < i; j++) {
 			jacobian[i][j] = jacobian[j][i];
 		}
-		for (unsigned int j = 0; j < space.width; j++) {
-			b[i] += jacobian[i][j]*document.iVector[j];
-		}
+		//for (size_t j = 0; j < width; j++) {
+		//	b[i] += jacobian[i][j]*document.iVector[j];
+		//}
 	}
 }
 //Calculates both b vector (b=jacobian*iVector-gradient) and jacobian for rows of t at once
@@ -129,9 +136,9 @@ void setUpSystem(vector<double> &b, vector< vector<double> > & jacobian, vector<
 			jacweight = gammaVal;
 		}
 		for (unsigned int i = 0; i < space.width; i++) {
-			b[i] -= gradweight*documents[n].iVector[i];
+			b[i] += gradweight*documents[n].iVector[i];
 			for (unsigned int j = i; j < space.width; j++) {
-				jacobian[i][j] -= documents[n].iVector[i]*documents[n].iVector[j]*jacweight;
+				jacobian[i][j] += documents[n].iVector[i]*documents[n].iVector[j]*jacweight;
 			}
 		}
 	}
@@ -139,19 +146,19 @@ void setUpSystem(vector<double> &b, vector< vector<double> > & jacobian, vector<
 		for (unsigned int j = 0; j < i; j++) {
 			jacobian[i][j] = jacobian[j][i];
 		}
-		for (unsigned int j = 0; j < space.width; j++) {
-			b[i] += jacobian[i][j]*space.tMatrix[row][j];
-		}
+		//for (unsigned int j = 0; j < space.width; j++) {
+		//	b[i] += jacobian[i][j]*space.tMatrix[row][j];
+		//}
 	}
 }
 //Decomposes matrix a, returns permutation p, used to solve linear systems (cormen section 28.3)
-void lupDecompose(vector< vector<double> > & a, vector<int> & p) {
-	unsigned int dim = p.size();
-	for (unsigned int i = 0; i < dim; i++) {
+void lupDecompose(vector< vector<double> > & a) {
+	unsigned int dim = a.size();
+	/*for (unsigned int i = 0; i < dim; i++) {
 		p[i] = i;
-	}
+	}*/
 	for (unsigned int k = 0; k < dim; k++) {
-		double max = 0.0;
+		/*double max = 0.0;
 		int newrow = -1;
 		for (unsigned int i = k; i < dim; i++) {
 			if (fabs(a[i][k]) > max) {
@@ -173,7 +180,7 @@ void lupDecompose(vector< vector<double> > & a, vector<int> & p) {
 			double temp = a[k][i];
 			a[k][i] = a[newrow][i];
 			a[newrow][i] = temp;
-		}
+		}*/
 		for (unsigned int i = k+1; i< dim; i++) {
 			a[i][k] = a[i][k]/a[k][k];
 			for (unsigned int j = k+1; j < dim; j++) {
@@ -183,11 +190,12 @@ void lupDecompose(vector< vector<double> > & a, vector<int> & p) {
 	}
 }
 //Solves lup-decomposed linear systems
-vector<double> lupSolve(vector< vector<double> > &LU, vector<double> & b, vector<int> p) {
-	unsigned int dim = p.size();
+vector<double> lupSolve(vector< vector<double> > &LU, vector<double> & b) {
+	unsigned int dim = b.size();
 	vector<double> x(dim);
 	for (unsigned int i = 0; i < dim; i++) {
-		x[i] = b[p[i]];
+		//x[i] = b[p[i]];
+		x[i] = b[i];
 		for (unsigned int j = 0; j < i; j++) {
 			x[i] -= LU[i][j] * x[j];
 		}
@@ -206,10 +214,10 @@ void updateiVector(Document & document, FeatureSpace & space) {
 	double denominator = calcPhiDenominator(space, document.iVector);
 	vector<double> b(space.width, 0.0);
 	vector< vector<double> > jacobian(space.width, vector<double>(space.width, 0.0));
-	vector<int> p(space.width);
 	setUpSystem(b, jacobian, document, space, denominator);
-	lupDecompose(jacobian, p);
-	document.iVector = lupSolve(jacobian, b, p);
+	lupDecompose(jacobian);
+	document.iVector = lupSolve(jacobian, b);
+	addVectors(document.iVector, document.oldiVector);
 }
 void updateiVectors(vector<Document> & documents, FeatureSpace & space) {
 	for (unsigned int i = 0; i < documents.size(); i++) {
@@ -223,8 +231,9 @@ void updatetRow(vector<Document> & documents, FeatureSpace & space, int row, vec
 		vector< vector<double> > jacobian(space.width, vector<double>(space.width, 0.0));
 		vector<int> p(space.width);
 		setUpSystem(b, jacobian, documents, space, row, denominators);
-		lupDecompose(jacobian, p);
-		space.tMatrix[row] = lupSolve(jacobian, b, p);
+		lupDecompose(jacobian);
+		space.tMatrix[row] = lupSolve(jacobian, b);
+		addVectors(space.tMatrix[row], space.oldtMatrix[row]);
 
 	}
 }
@@ -271,12 +280,11 @@ bool recursivetRowUpdateCheck(vector<Document> & documents, FeatureSpace & space
 	return false;
 }
 
-/*
+
 Since it might be possible that the update steps are too great, this updater will constraint the
 update step if the total likelihood after update has decreased. False is returned if it is unable
 to increase likelihood
-*/
-/*
+
 bool updatetRowsCheckStep(vector<Document> & documents, FeatureSpace & space) {
 	double oldTotLikelihood = calcTotalLikelihood(documents, space);
 	updatetRows(documents, space);
