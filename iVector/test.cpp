@@ -56,7 +56,8 @@ void matrixTests() {
 	printMatrix(matrix, "A:");
 	printVector(bvector, "b-vector: ");
 	lupDecompose(matrix);
-	printVector(lupSolve(matrix, bvector), "Ax = b -> x = ");
+	vector<double> x = lupSolve(matrix, bvector);
+	printVector(x, "Ax = b -> x = ");
 }
 
 
