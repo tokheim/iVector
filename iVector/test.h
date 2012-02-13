@@ -6,6 +6,7 @@
 #include "FeatureSpace.h"
 #include <iostream>
 #include "iVectIO.h"
+#include "iVectThread.h"
 
 //Only for unix based
 #ifndef _WIN32

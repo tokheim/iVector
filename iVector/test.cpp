@@ -115,7 +115,7 @@ void iVectTests() {
 	printMatrix(space.tMatrix, "5x3 codeset tMatrix:");
 	printVector(space.mVector, "mVector:");
 
-	updateiVectors(documents, space);
+	updateiVectors(documents, space, 2);
 	
 	cout << "\nInitial iVector update values:\n";
 	for (unsigned int i = 0; i < documents.size(); i++) {
@@ -123,7 +123,7 @@ void iVectTests() {
 		printVector(documents[i].iVector);
 	}
 	
-	updatetRows(documents, space);
+	updatetRows(documents, space, 2);
 	printMatrix(space.tMatrix, "tMatrix update:");
 	updateiVectors(documents, space);
 	cout << "\nSecond iVector update values:\n";
