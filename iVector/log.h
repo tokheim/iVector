@@ -2,12 +2,14 @@
 #define LOG_H
 
 #include <iostream>
+#include <vector>
 #include <string>
+
 using namespace std;
 
-void printVector(double * vector, int length);
-void printVector(double * vector, int length, string title);
-void printMatrix(double ** matrix, int height, int width);
-void printMatrix(double ** matrix, int height, int width, string title);
+void printVector(vector<double> &vect);
+void printVector(vector<double> &vect, string title);
+void printMatrix(vector< vector<double> > &matrix);
+void printMatrix(vector< vector<double> > &matrix, string title);
 
 #endif
