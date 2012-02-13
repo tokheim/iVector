@@ -137,11 +137,11 @@ void iVectTests() {
 	updateiVectors(documents, space);
 	cout << "\nTotal likelihood (2) = "<<calcTotalLikelihood(documents, space);
 
-	writeDocuments(documents, TEST_OUT_LOC, 3);
+	writeDocuments(documents, TEST_OUT_LOC);
 }
 
 //System dependent
-void speedTests(int width) {
+void speedTests(int width, int threads) {
 	#ifndef _WIN32
 	int height = 50653;
 	int updateNum = 5;
@@ -156,6 +156,8 @@ void speedTests(int width) {
 	gettimeofday(&stopTime, NULL);
 	time = stopTime.tv_sec-startTime.tv_sec+((stopTime.tv_usec-startTime.tv_usec)/MICROS_IN_S);
 	cout << "Fetch " << traindocs.size() << " iVectors, " << time << " seconds\n";
+    
+    int docSize = traindocs.size();
 	
 	gettimeofday(&startTime, NULL);
 	FeatureSpace space(height, width, traindocs, 23);
@@ -170,16 +172,28 @@ void speedTests(int width) {
 	gettimeofday(&stopTime, NULL);
 	time = stopTime.tv_sec-startTime.tv_sec+((stopTime.tv_usec-startTime.tv_usec)/MICROS_IN_S);
 	cout << "Update " << updateNum << " iVectors, " << time << "s, update whole set, " << time/updateNum*traindocs.size() << " s.\n";
+    
+    
+    while (traindocs.size() > updateNum*threads) {
+        traindocs.pop_back();
+    }
+    
+    gettimeofday(&startTime, NULL);
+    updateiVectors(traindocs, space, threads);
+    gettimeofday(&stopTime, NULL);
+    time = stopTime.tv_sec-startTime.tv_sec+((stopTime.tv_usec-startTime.tv_usec)/MICROS_IN_S);
+	cout << "Update " << updateNum*threads << " iVectors with " << threads << " threads, " << time << "s, update whole set, " << time/updateNum*docSize/threads << " s.\n";
+    
 	#endif
 }
 
 
 
-void testAll(int width) {
+void testAll(int width, int threads) {
 	vectorTests();
 	matrixTests();
 	iVectTests();
-	speedTests(width);
+	speedTests(width, threads);
 
 	string breaker;
 	getline(cin, breaker);

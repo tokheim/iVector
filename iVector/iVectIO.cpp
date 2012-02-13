@@ -94,15 +94,15 @@ vector<Document> fetchDocumentsFromFileList(int speechSet, string fileListDir, s
 }
 
 
-void writeDocument(ofstream & outFile, Document & document, int dim) {
+void writeDocument(ofstream & outFile, Document & document) {
 	outFile << document.languageClass;
-	for (int i = 0; i < dim; i++) {
+	for (unsigned int i = 0; i < document.iVector.size(); i++) {
 		outFile << " " << (i+1) << ":" << document.iVector[i];
 	}
 	outFile << "\n";
 }
 
-void writeDocuments(vector<Document> & documents, string fullPath, int dim) {
+void writeDocuments(vector<Document> & documents, string fullPath) {
 	ofstream outFile;
 	outFile.open(fullPath.c_str());
 	if (!outFile.is_open()) {
@@ -110,7 +110,7 @@ void writeDocuments(vector<Document> & documents, string fullPath, int dim) {
 		exit(1);
 	}
 	for (unsigned int i = 0; i < documents.size(); i++) {
-		writeDocument(outFile, documents[i], dim);
+		writeDocument(outFile, documents[i]);
 	}
 }
 

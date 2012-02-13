@@ -1,5 +1,6 @@
 #include <iostream>
 #include "test.h"
+#include "iVectTrain.h"
 #include <string>
 #include <math.h>
 using namespace std;
@@ -11,6 +12,7 @@ const static string PARAM_TRIGRAM_COUNT = "-C";
 const static string PARAM_IVECT_COUNT = "-r";
 const static string PARAM_SEED = "-s";
 const static string PARAM_LIMIT_FEATURE = "-L";
+const static string PARAM_THREADS = "-t";
 
 const static string DEF_IN_FILELIST_DIR = "./other/";
 const static string DEF_IN_BASE_DIR = "";
@@ -18,6 +20,7 @@ const static string DEF_OUT_LOC = "./iVectors/";
 const static int DEF_TRIGRAM_COUNT = 50653;
 const static int DEF_IVECT_DIM = 50;
 const static int DEF_SEED = 23;
+const static int DEF_THREADS = 8;
 const static bool DEF_LIMIT_FEATURE = true;
 
 const static string HELP_TEXT = "Lorem ipsum dolor est";
@@ -44,6 +47,7 @@ int main(int argc, char *argv[]) {
 	int height = DEF_TRIGRAM_COUNT;
 	int width = DEF_IVECT_DIM;
 	int seed = DEF_SEED;
+    int threads = DEF_THREADS;
 	bool limitFeature = DEF_LIMIT_FEATURE;
 	
 	if (argc > 1 && (string(argv[1]) == "?" || string(argv[2]) == "-?")) {
@@ -70,13 +74,16 @@ int main(int argc, char *argv[]) {
 		else if (paramName == PARAM_SEED) {
 			setPositiveValue(paramName, argv[i+1], &seed);
 		}
+        else if (paramName == PARAM_THREADS) {
+            setPositiveValue(paramName, argv[i+1], &threads);
+        }
 		else if (paramName == "?" || paramName == "-?") {
 			cout << HELP_TEXT;
 			return 0;
 		}
 		else if (paramName == PARAM_LIMIT_FEATURE) {
-			limitFeature = true;
-			i--;//For loop jumps two spaces
+			string paramValue = string(argv[i+1]);
+            limitFeature = paramValue=="true" || paramValue=="1" || paramValue=="True";
 		}
 		else {
 			printCommandError(paramName);
@@ -85,9 +92,9 @@ int main(int argc, char *argv[]) {
 	cout << "in " << inFileListDir << " base " << inBaseDir << " out " << outLocation << " h " << height << " w " << width << " s " << seed;
 
 	
-	testAll(width);
-
-	string breaker;
-	getline(cin, breaker);
+	//testAll(width, threads);
+    trainiVectors(inFileListDir, inBaseDir, outLocation, height, width, seed, limitFeature, threads);
+    
+    
 	return 0;
 }

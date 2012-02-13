@@ -28,6 +28,6 @@ const static int TRAIN_AND_DEVSET = 4;
 vector<Document> fetchDocumentsFromFileList(int speechSet, string fileListDir, string baseDir, int dim, bool limitFeature);
 void fetchDocumentsFromFileList(vector<Document> & documents, string fullPath, string baseDir, int dim, int languageCol, int fileNameCol, int featureNameCol, int featureValueCol);
 //vector<Document> fetchDocuments(int speechSet, string speechPath, int dim);
-void writeDocuments(vector<Document> & documents, string fullPath, int dim);
+void writeDocuments(vector<Document> & documents, string fullPath);
 
 #endif

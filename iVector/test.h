@@ -15,6 +15,6 @@
 
 using namespace std;
 
-void testAll(int width);
+void testAll(int width, int threads);
 
 #endif

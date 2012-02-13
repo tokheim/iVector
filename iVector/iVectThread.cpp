@@ -17,9 +17,9 @@ void updateiVectorRange(vector<Document> &documents, FeatureSpace &space) {
 			}
 		}
 		if (next >= 0) {
-			cout << "Thread starting document " << next << "\n";
+			//cout << "Thread starting document " << next << "\n";
 			updateiVector(documents[next], space);
-			cout << "Thread ended document " << next << "\n";
+			//cout << "Thread ended document " << next << "\n";
 		}
 	}
 }
@@ -44,9 +44,9 @@ void updatetRowRange(vector<Document> &documents, FeatureSpace &space, vector<do
 			}
 		}
 		if (next >= 0) {
-			cout << "Thread starting row " << next << "\n";
+			//cout << "Thread starting row " << next << "\n";
 			updatetRow(documents, space, next, denominators);
-			cout << "Thread ending row " << next << "\n";
+			//cout << "Thread ending row " << next << "\n";
 		}
 	}
 }
