@@ -6,3 +6,5 @@ iVector/Debug/*
 iVector/iVector.vcproj
 iVector/iVector.vcproj.Stihn.Tokminator.user
 test/*
+project/*
+.DS_Store
