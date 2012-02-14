@@ -25,6 +25,7 @@ struct Document {
 	double lastLikelihood;
 	HASH_I_D gamma;
 	Document (int languageClass, HASH_I_D & gamma, int dim);
+    Document ();
 	void calcGammaSum();
 	void setupIvectors(int dim);
 	double getGammaValue(int feature);

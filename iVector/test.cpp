@@ -173,8 +173,23 @@ void speedTests(int width, int threads) {
 	time = stopTime.tv_sec-startTime.tv_sec+((stopTime.tv_usec-startTime.tv_usec)/MICROS_IN_S);
 	cout << "Update " << updateNum << " iVectors, " << time << "s, update whole set, " << time/updateNum*traindocs.size() << " s.\n";
     
+    gettimeofday(&startTime, NULL);
+    vector<double> denominators = calcAllPhiDenominators(space, traindocs);
+    gettimeofday(&stopTime, NULL);
+	time = stopTime.tv_sec-startTime.tv_sec+((stopTime.tv_usec-startTime.tv_usec)/MICROS_IN_S);
+	cout << "Calculate all phi denominators, " << time << "s\n";
     
-    while (traindocs.size() > updateNum*threads) {
+    gettimeofday(&startTime, NULL);
+	for (int i = 0; i < updateNum; i++) {
+		updatetRow(traindocs, space, i, denominators);
+	}
+	gettimeofday(&stopTime, NULL);
+	time = stopTime.tv_sec-startTime.tv_sec+((stopTime.tv_usec-startTime.tv_usec)/MICROS_IN_S);
+	cout << "Update " << updateNum << " rows of t, " << time << "s, update whole set, " << time/updateNum*space.height << " s.\n";
+    
+    
+    
+    while (traindocs.size() > width) {
         traindocs.pop_back();
     }
     
@@ -182,8 +197,20 @@ void speedTests(int width, int threads) {
     updateiVectors(traindocs, space, threads);
     gettimeofday(&stopTime, NULL);
     time = stopTime.tv_sec-startTime.tv_sec+((stopTime.tv_usec-startTime.tv_usec)/MICROS_IN_S);
-	cout << "Update " << updateNum*threads << " iVectors with " << threads << " threads, " << time << "s, update whole set, " << time/updateNum*docSize/threads << " s.\n";
+	cout << "Update " << width << " iVectors with " << threads << " threads, " << time << "s, update whole set, " << time/width*docSize << " s.\n";
     
+    gettimeofday(&startTime, NULL);
+    calcTotalLikelihood(traindocs, space);
+    gettimeofday(&stopTime, NULL);
+    time = stopTime.tv_sec-startTime.tv_sec+((stopTime.tv_usec-startTime.tv_usec)/MICROS_IN_S);
+    cout << "Calculated likelihood for " << width << " documents in " << time << "s, calc for whole set, " << time/width*docSize << "s.\n";
+    
+    
+    gettimeofday(&startTime, NULL);
+    updatetRows(traindocs, space, threads);
+    gettimeofday(&stopTime, NULL);
+    time = stopTime.tv_sec-startTime.tv_sec+((stopTime.tv_usec-startTime.tv_usec)/MICROS_IN_S);
+    cout << "Updated all t-rows with " << width << "iVectors using " << threads << " threads in " << time << "s, approx for whole set, " << time/width*docSize;
 	#endif
 }
 

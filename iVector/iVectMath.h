@@ -17,12 +17,13 @@ vector<double> calcAllPhiDenominators(FeatureSpace & space, vector<Document> & d
 double calcPhi(FeatureSpace & space, vector<double> &iVector, int row, double denominator);
 
 void setUpSystem(vector<double> & b, vector< vector<double> > & jacobian, Document & document, FeatureSpace & space, double denominator);
-void setUpSystem(vector<double> &b, vector< vector<double> > & jacobian, vector<Document> & documents, FeatureSpace & space, int row, vector<double> denominators);
+void setUpSystem(vector<double> &b, vector< vector<double> > & jacobian, vector<Document> & documents, FeatureSpace & space, int row, vector<double> & denominators);
 void lupDecompose(vector< vector<double> > & a);
 vector<double> lupSolve(vector< vector<double> > &LU, vector<double> & b);
 
 double calcUtteranceLikelihood(Document & document, FeatureSpace & space);
 double calcTotalLikelihood(vector<Document> & documents, FeatureSpace & space);
+double calcUtteranceLikelihoodExcludeInf(Document & document, FeatureSpace & space);
 double calcTotalLikelihoodExcludeInf(vector<Document> & documents, FeatureSpace & space);
 void updateiVector(Document & document, FeatureSpace & space);
 void updatetRow(vector<Document> & documents, FeatureSpace & space, int row, vector<double> & denominators);

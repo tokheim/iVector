@@ -78,14 +78,24 @@ double calcTotalLikelihood(vector<Document> & documents, FeatureSpace & space) {
 	}
 	return likelihood;
 }
+double calcUtteranceLikelihoodExcludeInf(Document & document, FeatureSpace & space) {
+    double likelihood = 0.0;
+    double denominator = calcPhiDenominator(space, document.iVector);
+    HASH_I_D::iterator it;
+    for (it = document.gamma.begin(); it != document.gamma.end(); ++it) {
+        double phi = calcPhi(space, document.iVector, it->first, denominator);
+        if (log(phi) > MINUS_INF) {
+            likelihood += it->second * log(phi);
+        }
+    }
+    return likelihood;
+}
+
 double calcTotalLikelihoodExcludeInf(vector<Document> & documents, FeatureSpace & space) {
 	double totLikelihood = 0.0;
 	double likelihood;
 	for (unsigned int i = 0; i < documents.size(); i++) {
-		likelihood = calcUtteranceLikelihood(documents[i], space);
-		if (likelihood > MINUS_INF) {
-			totLikelihood += likelihood;
-		}
+		calcUtteranceLikelihoodExcludeInf(documents[i], space);
 	}
 	return totLikelihood;
 }
@@ -94,7 +104,8 @@ void setUpSystem(vector<double> & b, vector< vector<double> > & jacobian, Docume
 	size_t width = space.width;
 	double * tRow;
 	double * jacRow;
-	for (unsigned int row = 0; row < space.height; row++) {
+    size_t height = space.height;
+	for (size_t row = 0; row < height; row++) {
 		double gammaVal = document.getGammaValue(row);
 		if (space.mVector[row] == MINUS_INF && gammaVal == 0.0) {
 			continue;
@@ -116,24 +127,29 @@ void setUpSystem(vector<double> & b, vector< vector<double> > & jacobian, Docume
 			}
 		}
 	}
-	for (size_t i = 0; i < width; i++) {
+	for (size_t i = 1; i < width; i++) {
 		for (size_t j = 0; j < i; j++) {
 			jacobian[i][j] = jacobian[j][i];
 		}
 	}
 }
 //Calculates both b vector (b=jacobian*iVector-gradient) and jacobian for rows of t at once
-void setUpSystem(vector<double> &b, vector< vector<double> > & jacobian, vector<Document> & documents, FeatureSpace & space, int row, vector<double> denominators) {
+void setUpSystem(vector<double> &b, vector< vector<double> > & jacobian, vector<Document> & documents, FeatureSpace & space, int row, vector<double> &denominators) {
 	size_t width = space.width;
+    size_t docSize = documents.size();
 	double * iVector;
 	double * jacRow;
-	for (unsigned int n = 0; n < documents.size(); n++) {
+    double gammaVal;
+    double phiPart;
+    double gradweight;
+    double jacweight;
+	for (size_t n = 0; n < docSize; n++) {
 		iVector = &documents[n].iVector[0];
 
-		double gammaVal = documents[n].getGammaValue(row);
-		double phiPart = calcPhi(space, documents[n].iVector, row, denominators[n])*documents[n].gammaSum;
-		double gradweight = gammaVal - phiPart;
-		double jacweight = phiPart;
+		gammaVal = documents[n].getGammaValue(row);
+		phiPart = calcPhi(space, documents[n].iVector, row, denominators[n])*documents[n].gammaSum;
+		gradweight = gammaVal - phiPart;
+		jacweight = phiPart;
 		if (gradweight > 0.0) {
 			jacweight = gammaVal;
 		}
@@ -146,7 +162,7 @@ void setUpSystem(vector<double> &b, vector< vector<double> > & jacobian, vector<
 			}
 		}
 	}
-	for (unsigned int i = 0; i < space.width; i++) {
+	for (unsigned int i = 1; i < width; i++) {
 		for (unsigned int j = 0; j < i; j++) {
 			jacobian[i][j] = jacobian[j][i];
 		}
@@ -154,12 +170,18 @@ void setUpSystem(vector<double> &b, vector< vector<double> > & jacobian, vector<
 }
 //Decomposes matrix a, used to solve linear systems (cormen section 28.3)
 void lupDecompose(vector< vector<double> > & a) {
-	unsigned int dim = a.size();
-	for (unsigned int k = 0; k < dim; k++) {
-		for (unsigned int i = k+1; i< dim; i++) {
-			a[i][k] = a[i][k]/a[k][k];
-			for (unsigned int j = k+1; j < dim; j++) {
-				a[i][j] = a[i][j]-a[i][k]*a[k][j];
+	size_t dim = a.size();
+    double *ai;
+    double *aik;
+    double *ak;
+	for (size_t k = 0; k < dim; k++) {
+		ak = &a[k][0];
+        for (size_t i = k+1; i< dim; i++) {
+			ai = &a[i][0];
+            aik = &a[i][k];
+            *aik = *aik/ak[k];
+			for (size_t j = k+1; j < dim; j++) {
+				ai[j] -= *aik * ak[j];
 			}
 		}
 	}
@@ -203,7 +225,6 @@ void updatetRow(vector<Document> & documents, FeatureSpace & space, int row, vec
 	if (space.mVector[row] != MINUS_INF) {//If mVector is trained on a superset of "documents" then the old values should still be a solution
 		vector<double> b(space.width, 0.0);
 		vector< vector<double> > jacobian(space.width, vector<double>(space.width, 0.0));
-		vector<int> p(space.width);
 		setUpSystem(b, jacobian, documents, space, row, denominators);
 		lupDecompose(jacobian);
 		space.tMatrix[row] = lupSolve(jacobian, b);

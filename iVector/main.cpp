@@ -92,8 +92,8 @@ int main(int argc, char *argv[]) {
 	cout << "in " << inFileListDir << " base " << inBaseDir << " out " << outLocation << " h " << height << " w " << width << " s " << seed;
 
 	
-	//testAll(width, threads);
-    trainiVectors(inFileListDir, inBaseDir, outLocation, height, width, seed, limitFeature, threads);
+	testAll(width, threads);
+    //trainiVectors(inFileListDir, inBaseDir, outLocation, height, width, seed, limitFeature, threads);
     
     
 	return 0;

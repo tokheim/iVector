@@ -1,10 +1,9 @@
 #include "iVectThread.h"
 
 using namespace std;
+
 boost::mutex counterMutex;
 unsigned int takenFrom;
-
-
 
 void updateiVectorRange(vector<Document> &documents, FeatureSpace &space) {
 	while (takenFrom < documents.size()) {
@@ -61,3 +60,18 @@ void updatetRows(std::vector<Document> &documents, FeatureSpace & space, int num
 	}
 	threads.join_all();
 }
+/*void calcLikelihoodRange(vector<Document> &documents, FeatureSpace &space, ) {
+    while (takenFrom < space.height) {
+        int next = -1;
+    }
+}
+
+void calcTotalLikelihoodExcludeInf(vector<Document> &documents, FeatureSpace &space, int numOfThreads) {
+    takenFrom = 0;
+    boost::thread_group threads;
+    for (int i = 0; i < numOfThreads; i++) {
+        boost::thread * thread = new boost::thread(calcLikelihoodRange, boost::ref(documents), boost::ref(space));
+        threads.add_thread(thread);
+    }
+    threads.join_all();
+}*/

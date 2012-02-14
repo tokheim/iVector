@@ -10,6 +10,9 @@ Document::Document(int languageClass, HASH_I_D & gamma, int dim) {
 	calcGammaSum();
 	setupIvectors(dim);
 }
+Document::Document() {
+    
+}
 
 void Document::setupIvectors(int dim) {
 	iVector.clear();
