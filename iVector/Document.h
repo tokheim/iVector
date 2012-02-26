@@ -31,5 +31,5 @@ struct Document {
 	double getGammaValue(int feature);
 };
 void useOldiVectors(vector<Document> &documents);
-void resetiVectors(vector<Document> &documents, int dim);
+void resetiVectors(vector<Document> &documents);
 #endif

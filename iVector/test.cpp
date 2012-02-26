@@ -143,7 +143,7 @@ void iVectTests() {
 //System dependent
 void speedTests(int width, int threads) {
 	#ifndef _WIN32
-	int height = 50653;
+	int height = 35937;
 	int updateNum = 5;
 
 	cout << "\n\n--Speedtest--\n\n";

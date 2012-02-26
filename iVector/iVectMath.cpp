@@ -93,9 +93,8 @@ double calcUtteranceLikelihoodExcludeInf(Document & document, FeatureSpace & spa
 
 double calcTotalLikelihoodExcludeInf(vector<Document> & documents, FeatureSpace & space) {
 	double totLikelihood = 0.0;
-	double likelihood;
 	for (unsigned int i = 0; i < documents.size(); i++) {
-		calcUtteranceLikelihoodExcludeInf(documents[i], space);
+		totLikelihood += calcUtteranceLikelihoodExcludeInf(documents[i], space);
 	}
 	return totLikelihood;
 }
@@ -157,7 +156,7 @@ void setUpSystem(vector<double> &b, vector< vector<double> > & jacobian, vector<
 			b[i] += gradweight*iVector[i];
 			phiPart = iVector[i]*jacweight;
 			jacRow = &jacobian[i][0];
-			for (unsigned int j = i; j < width; j++) {
+			for (size_t j = i; j < width; j++) {
 				jacRow[j] += iVector[j]*phiPart;
 			}
 		}

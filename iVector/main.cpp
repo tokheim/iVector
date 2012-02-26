@@ -17,7 +17,7 @@ const static string PARAM_THREADS = "-t";
 const static string DEF_IN_FILELIST_DIR = "./other/";
 const static string DEF_IN_BASE_DIR = "";
 const static string DEF_OUT_LOC = "./iVectors/";
-const static int DEF_TRIGRAM_COUNT = 50653;
+const static int DEF_TRIGRAM_COUNT = 35937;
 const static int DEF_IVECT_DIM = 50;
 const static int DEF_SEED = 23;
 const static int DEF_THREADS = 8;
@@ -50,10 +50,6 @@ int main(int argc, char *argv[]) {
     int threads = DEF_THREADS;
 	bool limitFeature = DEF_LIMIT_FEATURE;
 	
-	if (argc > 1 && (string(argv[1]) == "?" || string(argv[2]) == "-?")) {
-		cout << HELP_TEXT;
-		return 0;
-	}
 	for (int i = 1; i < argc-1; i+=2) {
 		string paramName = string(argv[i]);
 		if (paramName == PARAM_IN_FILELIST_DIR) {
@@ -89,7 +85,7 @@ int main(int argc, char *argv[]) {
 			printCommandError(paramName);
 		}
 	}
-	cout << "in " << inFileListDir << " base " << inBaseDir << " out " << outLocation << " h " << height << " w " << width << " s " << seed;
+	cout << "in " << inFileListDir << " base " << inBaseDir << " out " << outLocation << " h " << height << " w " << width << " s " << seed << "\n";
 
 	
 	testAll(width, threads);
