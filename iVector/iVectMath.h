@@ -25,8 +25,13 @@ double calcUtteranceLikelihood(Document & document, FeatureSpace & space);
 double calcTotalLikelihood(vector<Document> & documents, FeatureSpace & space);
 double calcUtteranceLikelihoodExcludeInf(Document & document, FeatureSpace & space);
 double calcTotalLikelihoodExcludeInf(vector<Document> & documents, FeatureSpace & space);
+double calcAvgEucledianDistance(vector<Document> & documents);
 void updateiVector(Document & document, FeatureSpace & space);
 void updatetRow(vector<Document> & documents, FeatureSpace & space, int row, vector<double> & denominators);
+
+void updateiVectorCheckLike(Document & document, FeatureSpace & space);
+void updateiVectorCheckLike(vector<Document> & documents, FeatureSpace & space);
+
 
 void updateiVectors(vector<Document> & documents, FeatureSpace & space);
 void updatetRows(vector<Document> & documents, FeatureSpace & space);
