@@ -17,7 +17,8 @@ void updateiVectorRange(vector<Document> &documents, FeatureSpace &space) {
 		}
 		if (next >= 0) {
 			//cout << "Thread starting document " << next << "\n";
-			updateiVector(documents[next], space);
+			//updateiVector(documents[next], space);
+			updateiVectorCheckStep(documents[next], space);
 			//cout << "Thread ended document " << next << "\n";
 		}
 	}

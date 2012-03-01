@@ -33,6 +33,14 @@ double eucledianDistance(vector<double> &vectora, vector<double> &vectorb) {
 	}
 	return distance;
 }
+double calcAvgEucledianDistance(vector<Document> documents) {
+	double distance = 0;
+	for (unsigned int i = 0; i < documents.size; i++) {
+		distance += eucledianDistance(documents[i].iVector, documents[i].oldiVector);
+	}
+	return distance/documents.size();
+}
+
 //usefull if the newton rapshon update steps are too big
 void avgVector(vector<double> &saveToVector, vector<double> &unchangedVector) {
 	for (unsigned int i = 0; i < saveToVector.size(); i++) {
@@ -238,50 +246,25 @@ void updatetRows(vector<Document> & documents, FeatureSpace & space) {
 	}
 }
 
-
-
-
-
-/*
-bool recursiveiVectorUpdateCheck(Document & document, FeatureSpace & space, double oldLikelihood, int attempts) {
-	if (attempts <= MAX_REDUCE_STEPSIZE_ATTEMPTS) {
-		if (oldLikelihood > calcUtteranceLikelihood(document, space)) {
-			document.iVector = avgVector(document.iVector, document.oldiVector, space.width);
-			return recursiveiVectorUpdateCheck(document, space, oldLikelihood, attempts+1);
-		}
-		return true;
+void recursiveiVectorUpdateCheck(Document & document, FeatureSpace & space, double oldLikelihood, int attempts) {
+	if (oldLikelihood > calcUtteranceLikelihoodExcludeInf(document, space) && attempts < MAX_REDUCE_STEPSIZE_ATTEMPTS) {
+		avgVector(document.iVector, document.oldiVector);
+		recursiveiVectorUpdateCheck(document, space, oldLikelihood, attempts+1);
 	}
-	return false;
+	else if (attempts >= MAX_REDUCE_STEPSIZE_ATTEMPTS) {//Could not find a better iVector, so use the old one
+		document.iVector = document.oldiVector;
+	}
+	//Else: the set iVector is better than the old one, do nothing
+}
+//Ensure that the update step of an iVector doesn't cause the likelihood to decrease
+void updateiVectorCheckLike(Document & document, FeatureSpace & space) {
+	double oldLikelihood = calcUtteranceLikelihoodExcludeInf(document, space);//could be changed from T-matrix updates
+	updateiVector(document);
+	recursiveiVectorUpdateCheck(document, space, oldLikelihood, 0);
 }
 
-void updateiVectorsCheckStep(vector<Document> & documents, FeatureSpace & space) {
-	for (unsigned int n = 0; n < documents.size(); n++) {
-		double oldLikelihood = calcUtteranceLikelihood(documents[n], space);
-		updateiVector(documents[n], space);
-		recursiveiVectorUpdateCheck(documents[n], space, oldLikelihood, 0);
+void updateiVectorCheckLike(vector<Document> & documents, FeatureSpace & space) {
+	for (unsigned int i = 0; i < documents.size(); i++) {
+		updateiVectorCheckLike(documents[i], space);
 	}
 }
-bool recursivetRowUpdateCheck(vector<Document> & documents, FeatureSpace & space, double oldTotLikelihood, int attempts) {
-	if (attempts <= MAX_REDUCE_STEPSIZE_ATTEMPTS) {
-		if (oldTotLikelihood > calcTotalLikelihood(documents, space)) {
-			for (int row = 0; row < space.height; row++) {
-				space.tMatrix[row] = avgVector(space.tMatrix[row], space.oldtMatrix[row], space.width);
-			}
-			return recursivetRowUpdateCheck(documents, space, oldTotLikelihood, attempts+1);
-		}
-		return true;
-	}
-	return false;
-}
-
-
-Since it might be possible that the update steps are too great, this updater will constraint the
-update step if the total likelihood after update has decreased. False is returned if it is unable
-to increase likelihood
-
-bool updatetRowsCheckStep(vector<Document> & documents, FeatureSpace & space) {
-	double oldTotLikelihood = calcTotalLikelihood(documents, space);
-	updatetRows(documents, space);
-	return recursivetRowUpdateCheck(documents, space, oldTotLikelihood, 0);
-}
-*/

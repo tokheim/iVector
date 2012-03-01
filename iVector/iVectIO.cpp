@@ -4,14 +4,14 @@
 typedef pair <string, int> S_I_PAIR;
 
 //Language->Languageid
-const static S_I_PAIR LANGUAGES[] = {S_I_PAIR("ARABIC_EGYPT", 1), S_I_PAIR("ENG_GENRL", 2), S_I_PAIR("ENG_SOUTH", 2), S_I_PAIR("FARSI", 3),
-	S_I_PAIR("FRENCH_CAN", 4), S_I_PAIR("GERMAN", 5), S_I_PAIR("HINDI", 6), S_I_PAIR("JAPANESE", 7), S_I_PAIR("KOREAN", 8), S_I_PAIR("MANDARIN_M", 9), 
-	S_I_PAIR("MANDARIN_T", 9), S_I_PAIR("SPANISH", 10), S_I_PAIR("SPANISH_CAR", 10), S_I_PAIR("TAMIL", 11), S_I_PAIR("VIETNAMESE", 12) };
+const static S_I_PAIR LANGUAGES[] = {S_I_PAIR("ARABIC_EGYPT", 1), S_I_PAIR("ENG_GENRL", 2), S_I_PAIR("ENG_SOUTH", 3), S_I_PAIR("FARSI", 4),
+	S_I_PAIR("FRENCH_CAN", 5), S_I_PAIR("GERMAN", 6), S_I_PAIR("HINDI", 7), S_I_PAIR("JAPANESE", 8), S_I_PAIR("KOREAN", 9), S_I_PAIR("MANDARIN_M", 10), 
+	S_I_PAIR("MANDARIN_T", 11), S_I_PAIR("SPANISH", 12), S_I_PAIR("SPANISH_CAR", 13), S_I_PAIR("TAMIL", 14), S_I_PAIR("VIETNAMESE", 15) };
 const static int NUMBER_OF_LANGUAGES = 15;//full = 15
 //const static string TRANS_EXTENSION = ".txt";
 //const static string TRANS_SEARCH_PATTERN = "*"+TRANS_EXTENSION;
 //const static string SPEECH_SETS[] = {"train_raw", "devtest_raw", "evltest_raw"};
-const static string SET_INPUTFILE_NAMES[] = {"train_list.txt", "devtest_list.txt", "evltest_list.txt"};
+const static string SET_INPUTFILE_NAMES[] = {"train_list.txt", "devtest_list.txt", "evltest_list.txt", "nist_list.txt"};
 
 
 //Very basic string splitting (no regards to double spaces and such)
