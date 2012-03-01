@@ -141,10 +141,10 @@ void iVectTests() {
 }
 
 //System dependent
-void speedTests(int width, int threads) {
+void speedTests(unsigned int width, int threads) {
 	#ifndef _WIN32
 	int height = 35937;
-	int updateNum = 5;
+	unsigned int updateNum = 5;
 
 	cout << "\n\n--Speedtest--\n\n";
 	struct timeval startTime;
@@ -166,7 +166,7 @@ void speedTests(int width, int threads) {
 	cout << "Setup " << height << "x" << width << " feature space, " << time << " seconds\n";
 	
 	gettimeofday(&startTime, NULL);
-	for (int i = 0; i < updateNum; i++) {
+	for (unsigned int i = 0; i < updateNum; i++) {
 		updateiVector(traindocs[i], space);
 	}
 	gettimeofday(&stopTime, NULL);
@@ -180,7 +180,7 @@ void speedTests(int width, int threads) {
 	cout << "Calculate all phi denominators, " << time << "s\n";
     
     gettimeofday(&startTime, NULL);
-	for (int i = 0; i < updateNum; i++) {
+	for (unsigned int i = 0; i < updateNum; i++) {
 		updatetRow(traindocs, space, i, denominators);
 	}
 	gettimeofday(&stopTime, NULL);

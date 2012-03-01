@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include "document.h"
+#include "FeatureSpace.h"
 
 
 /*
@@ -29,5 +30,7 @@ vector<Document> fetchDocumentsFromFileList(int speechSet, string fileListDir, s
 void fetchDocumentsFromFileList(vector<Document> & documents, string fullPath, string baseDir, int dim, int languageCol, int fileNameCol, int featureNameCol, int featureValueCol);
 //vector<Document> fetchDocuments(int speechSet, string speechPath, int dim);
 void writeDocuments(vector<Document> & documents, string fullPath);
+FeatureSpace readSpace(string fullPath);
+void writeSpace(FeatureSpace & space, string fullPath);
 
 #endif

@@ -161,8 +161,8 @@ void setUpSystem(vector<double> &b, vector< vector<double> > & jacobian, vector<
 			}
 		}
 	}
-	for (unsigned int i = 1; i < width; i++) {
-		for (unsigned int j = 0; j < i; j++) {
+	for (size_t i = 1; i < width; i++) {
+		for (size_t j = 0; j < i; j++) {
 			jacobian[i][j] = jacobian[j][i];
 		}
 	}

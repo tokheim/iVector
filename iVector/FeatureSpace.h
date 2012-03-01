@@ -15,6 +15,7 @@ struct FeatureSpace {
 
 	FeatureSpace(unsigned int height, unsigned int width, vector<Document> & documents, unsigned int seed);
 	FeatureSpace(vector< vector<double> > tMatrix, vector<Document> & documents);
+	FeatureSpace(vector< vector<double> > tMatrix, vector<double> mVector);
 	void generatetMatrix(unsigned int seed);
 	void generatemVector(vector<Document> & documents);
 };

@@ -17,6 +17,14 @@ FeatureSpace::FeatureSpace(vector< vector<double> > tMatrix, vector<Document> & 
 	this->oldtMatrix = tMatrix;
 	generatemVector(documents);
 }
+FeatureSpace::FeatureSpace(vector< vector<double> > tMatrix, vector<double> mVector) {
+	height = tMatrix.size();
+	width = tMatrix[0].size();
+	this->tMatrix = tMatrix;
+	this->oldtMatrix = tMatrix;
+	this->mVector = mVector;
+}
+
 
 void FeatureSpace::generatetMatrix(unsigned int seed) {
 	srand(seed);

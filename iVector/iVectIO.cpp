@@ -92,6 +92,51 @@ vector<Document> fetchDocumentsFromFileList(int speechSet, string fileListDir, s
 	}		
 	return documents;
 }
+void writeSpace(FeatureSpace & space, string fullPath) {
+	ofstream outFile;
+	outFile.open(fullPath.c_str());
+	if (!outFile.is_open()) {
+		cerr << "Unable to write to file " << fullPath;
+		exit(1);
+	}
+	outFile << space.mVector[0];
+	for (unsigned int i = 1; i < space.height; i++) {
+		outFile << " " << space.mVector[i];
+	}
+	
+	for (unsigned int i = 0; i < space.height; i++) {
+		outFile << "\n" << space.tMatrix[i][0];
+		for (unsigned int j = 1; j < space.width; j++) {
+			outFile << " " << space.tMatrix[i][j];
+		}
+	}
+	outFile.close();
+}
+FeatureSpace readSpace(string fullPath) {
+	ifstream inFile;
+	inFile.open(fullPath.c_str());
+	if (!inFile.is_open()) {
+		cerr << "Unable to open file " << fullPath;
+	}
+	vector< vector<double> > tMatrix;
+	string line;
+	getline(inFile, line);
+	vector<string> splitLine = splitString(line, ' ');
+	vector<double> mVector(splitLine.size());
+	for (unsigned int i = 0; i < splitLine.size(); i++) {
+		mVector[i] = atof(splitLine[i].c_str());
+	}
+	while (getline(inFile, line)) {
+		splitLine = splitString(line, ' ');
+		vector<double> row(splitLine.size());
+		for (unsigned int i = 0; i < splitLine.size(); i++) {
+			row[i] = atof(splitLine[i].c_str());
+		}
+		tMatrix.push_back(row);
+	}
+	inFile.close();
+	return FeatureSpace(tMatrix, mVector);
+}
 
 
 void writeDocument(ofstream & outFile, Document & document) {
@@ -112,6 +157,7 @@ void writeDocuments(vector<Document> & documents, string fullPath) {
 	for (unsigned int i = 0; i < documents.size(); i++) {
 		writeDocument(outFile, documents[i]);
 	}
+	outFile.close();
 }
 
 
