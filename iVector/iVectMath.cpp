@@ -33,9 +33,9 @@ double eucledianDistance(vector<double> &vectora, vector<double> &vectorb) {
 	}
 	return distance;
 }
-double calcAvgEucledianDistance(vector<Document> documents) {
+double calcAvgEucledianDistance(vector<Document> & documents) {
 	double distance = 0;
-	for (unsigned int i = 0; i < documents.size; i++) {
+	for (unsigned int i = 0; i < documents.size(); i++) {
 		distance += eucledianDistance(documents[i].iVector, documents[i].oldiVector);
 	}
 	return distance/documents.size();
@@ -259,7 +259,7 @@ void recursiveiVectorUpdateCheck(Document & document, FeatureSpace & space, doub
 //Ensure that the update step of an iVector doesn't cause the likelihood to decrease
 void updateiVectorCheckLike(Document & document, FeatureSpace & space) {
 	double oldLikelihood = calcUtteranceLikelihoodExcludeInf(document, space);//could be changed from T-matrix updates
-	updateiVector(document);
+	updateiVector(document, space);
 	recursiveiVectorUpdateCheck(document, space, oldLikelihood, 0);
 }
 

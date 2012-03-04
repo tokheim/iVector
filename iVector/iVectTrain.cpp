@@ -22,7 +22,7 @@ string intToString(int n) {
 
 string doubleToString(double num) {
 	stringstream ss;
-	ss << n;
+	ss << num;
 	return ss.str();
 }
 
@@ -81,14 +81,13 @@ void branchtTraining(vector<Document> & traindocs, vector<Document> & devtestdoc
 	updateiVectors(devtestdocs, space, threads);
 	printTimeMsg("Done devtest docs init");
 	int steps = 0;
-	bool doneSave = false;
 
 	while (steps++ < MAX_TRAIN_STEPS) {
-		printTimeMsg(string("---Start step ") + intToString(steps) + string("---\n");
+		printTimeMsg(string("---Start step ") + intToString(steps) + string("---\n"));
 		doUpdateIteration(traindocs, devtestdocs, space, threads);
 		printTimeMsg("---Start branch---\n");
 
-		extractiVectors(traindocs, devtestdocs, space, threads, outLoc+string("it")+intToString(steps));
+		extractiVectors(traindocs, devtestdocs, testdocs, space, threads, outLoc+string("it")+intToString(steps));
 	}
 }
 
@@ -111,7 +110,7 @@ void traintMatrix(vector<Document> & traindocs, vector<Document> & devtestdocs, 
 	
 	//while (newLikelihood > oldLikelihood && steps++ < MAX_STEPS) {
     while (steps++ < MAX_TRAIN_STEPS) {
-		printTimeMsg(string("---Start step ") + intToString(steps) + string("---\n");
+		printTimeMsg(string("---Start step ") + intToString(steps) + string("---\n"));
 		oldLikelihood = newLikelihood;
 		
 		newLikelihood = doUpdateIteration(traindocs, devtestdocs, space, threads);
@@ -129,17 +128,17 @@ void traintMatrix(vector<Document> & traindocs, vector<Document> & devtestdocs, 
 }
 
 void doUpdateIteration(vector<Document> & traindocs, vector<Document> & devtestdocs, vector<Document> & testdocs, FeatureSpace & space, int threads) {
-	updateiVectors(traindocs, optimalSpace, threads);
+	updateiVectors(traindocs, space, threads);
 	printTimeMsg("Train updated");
-	updateiVectors(devtestdocs, optimalSpace, threads);
+	updateiVectors(devtestdocs, space, threads);
 	printTimeMsg("Devtest updated");
-	updateiVectors(testdocs, optimalSpace, threads);
+	updateiVectors(testdocs, space, threads);
 	printTimeMsg("Evltest updated");
 
 	//Strictly unneccessary but nice to see
-	printTimeMsg(string("Train likelihood ")+doubleToString(calcTotalLikelihoodExcludeInf(traindocs, optimalSpace)/traindocs.size()));
-	printTimeMsg(string("Devtest likelihood ")+doubleToString(calcTotalLikelihoodExcludeInf(devtestdocs, optimalSpace)/devtestdocs.size()));
-	printTimeMsg(string("Evltest likelihood ")+doubleToString(calcTotalLikelihoodExcludeInf(testdocs, optimalSpace)/testdocs.size()));
+	printTimeMsg(string("Train likelihood ")+doubleToString(calcTotalLikelihoodExcludeInf(traindocs, space)/traindocs.size()));
+	printTimeMsg(string("Devtest likelihood ")+doubleToString(calcTotalLikelihoodExcludeInf(devtestdocs, space)/devtestdocs.size()));
+	printTimeMsg(string("Evltest likelihood ")+doubleToString(calcTotalLikelihoodExcludeInf(testdocs, space)/testdocs.size()));
 	
 	printTimeMsg(string("Train distance") + doubleToString(calcAvgEucledianDistance(traindocs)));
 	printTimeMsg(string("Devtest distance") + doubleToString(calcAvgEucledianDistance(devtestdocs)));

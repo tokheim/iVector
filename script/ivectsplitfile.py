@@ -10,10 +10,12 @@ import math
 
 
 devtargetmicros = 30 * 10000000;#Target microseconds of each file for devtest data
-timeslack = 0.1
-
+devtimeslack = 0.1
 devtargetFiles = 100#Target number of devtest files per language
+
 traintargetFiles = 250#Target number of train files per language
+traintimeslack = 0.4
+
 numoffilesinlanguage = 120
 
 languages = [ 'ARABIC_EGYPT', 'ENG_GENRL', 'ENG_SOUTH', 'FARSI', 'FRENCH_CAN', 'GERMAN', 'HINDI', 'JAPANESE', 'KOREAN', 'MANDARIN_M', 'MANDARIN_T', 'SPANISH', 'SPANISH_CAR', 'TAMIL', 'VIETNAMESE' ]
@@ -38,23 +40,36 @@ def insertSorted(docfile, doclist):
             return
     doclist.append(docfile)
 
+def writefile(fullpath, linelist, toindex):
+    linelist.reverse()
+    outfile = open(fullpath, 'w')
+    for i in range(toindex):
+        outfile.write(linelist.pop())
+    outfile.close()
+    linelist.reverse()
+
 
 def splitfile(docfile, outdir, targetlength, targetslack):
-    infile = open(docfile.path+docfile.filename)
+    infile = open(docfile.path+docfile.fname)
     linelist = []
     lastpauseindex = 0
     lastpausetime = 0
     lastsplittime = 0
     num = 0
+    outbase = outdir+docfile.fname.replace('.rec', '')+'_'
     for line in infile:
         splitline = line.split(' ')
         if len(splitline) > 3:
             if isSilence(splitline[2]) or isNoise(splitline[2]):
                 if lastsplittime > targetlength and lastsplittime - targetlength < targetlength - lastpausetime:
                     #This is the optimal splitting time
+                    writefile(outbase+str(num)+'.txt', linelist, len(linelist))
+                    lastsplittime = 0
                     num+=1
                 elif lastsplittime > targetlength and lastpausetime > (1-targetslack)*targetlength:
                     #Already found optimal splitting time
+                    writefile(outbase+str(num)+'.txt', linelist, lastpauseindex)
+                    lastsplittime -= lastpausetime
                     num+=1
                 lastpauseindex = len(linelist)
                 linelist.append(line)
@@ -62,16 +77,23 @@ def splitfile(docfile, outdir, targetlength, targetslack):
             else:
                 if lastsplittime > (1+targetslack)*targetlength and lastpausetime > (1-targetslack)*targetlength:
                     #Already found optimal splitting time
+                    writefile(outbase+str(num)+'.txt', linelist, lastpauseindex)
+                    lastpauseindex = 0
+                    lastsplittime -= lastpausetime
+                    lastpausetime = 0
                     num+=1
                 elif lastsplittime > (1+targetslack)*targetlength:
                     #No pause within slack, force split here
+                    writefile(outbase+str(num)+'.txt', linelist, len(linelist))
                     lastpauseindex = 0
                     lastpausetime = 0
+                    lastsplittime = 0
                     num+=1
                 linelist.append(line)
                 lastsplittime += int(splitline[1])-int(splitline[0])
     if (lastsplittime > (1-targetslack)*targetlength):
         #Last part of file is long enough to be included
+        writefile(outbase+str(num)+'.txt', linelist, len(linelist))
         num+=1
     return num
     
@@ -88,10 +110,11 @@ for language in languages:
     for subdir in subdirs:
         trandir = './CallFriend/' + language + '/transcripts/' + subdir + '/'
         for filename in os.listdir(trandir):
-            filepath = trandir+filename
+            if not filename.endswith('.rec'):
+                continue
             
             #Find the length of each file
-            infile = open(filepath, 'r')
+            infile = open(trandir+filename, 'r')
             length = 0
             for line in infile:
                 splitline = line.split(' ')
@@ -111,9 +134,17 @@ for language in languages:
                     docfile = dfile
                     break
         fileListArray.remove(docfile)
-        numFiles += splitfile(docfile, dev_outdir, devtargetmicros, timeslack)
+        numFiles += splitfile(docfile, dev_outdir, devtargetmicros, devtimeslack)
+        print 'Written '+str(numFiles)+' devtest files for '+language
         
-    
+    timeleft = 0
+    for docfile in fileListArray:
+        timeleft += docfile.length
     #Make train files
-    
-        
+    numFiles = 0.0
+    while len(fileListArray) > 0:
+        docfile = fileListArray.pop()
+        splits = max(round((traintargetFiles-numFiles)*docfile.length/(timeleft+1)), 1)
+        numFiles += splitfile(docfile, train_outdir, docfile.length/splits, traintimeslack)
+        timeleft -= docfile.length
+        print str(len(fileListArray))+' files for '+language+' remaining, currently split to '+str(numFiles)+' files'

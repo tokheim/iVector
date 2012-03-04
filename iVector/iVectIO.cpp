@@ -11,7 +11,7 @@ const static int NUMBER_OF_LANGUAGES = 15;//full = 15
 //const static string TRANS_EXTENSION = ".txt";
 //const static string TRANS_SEARCH_PATTERN = "*"+TRANS_EXTENSION;
 //const static string SPEECH_SETS[] = {"train_raw", "devtest_raw", "evltest_raw"};
-const static string SET_INPUTFILE_NAMES[] = {"train_list.txt", "devtest_list.txt", "evltest_list.txt", "nist_list.txt"};
+const static string SET_INPUTFILE_NAMES[] = {"train_list.txt", "devtest_list.txt", "nist_list.txt"};
 
 
 //Very basic string splitting (no regards to double spaces and such)
@@ -80,16 +80,7 @@ vector<Document> fetchDocumentsFromFileList(int speechSet, string fileListDir, s
 	if (limitFeature) {
 		featureValueCol = 2;
 	}
-	if (speechSet < 3) {//Normal CallFriend set
-		fetchDocumentsFromFileList(documents, fileListDir+SET_INPUTFILE_NAMES[speechSet], baseDir, dim, 0, 1, 0, featureValueCol);
-	}
-	else if (speechSet == NISTSET) {//FileListDir is supposed to point directly to file
-		fetchDocumentsFromFileList(documents, fileListDir, baseDir, dim, 4, 0, 0, featureValueCol);
-	}
-	else if (speechSet == TRAIN_AND_DEVSET) {
-		fetchDocumentsFromFileList(documents, fileListDir+SET_INPUTFILE_NAMES[TRAINSET], baseDir, dim, 0, 1, 0, featureValueCol);
-		fetchDocumentsFromFileList(documents, fileListDir+SET_INPUTFILE_NAMES[DEVSET], baseDir, dim, 0, 1, 0, featureValueCol);
-	}		
+	fetchDocumentsFromFileList(documents, fileListDir+SET_INPUTFILE_NAMES[speechSet], baseDir, dim, 0, 1, 0, featureValueCol);	
 	return documents;
 }
 void writeSpace(FeatureSpace & space, string fullPath) {
