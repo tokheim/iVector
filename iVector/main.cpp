@@ -85,12 +85,7 @@ int main(int argc, char *argv[]) {
 			printCommandError(paramName);
 		}
 	}
-	cout << "in " << inFileListDir << " base " << inBaseDir << " out " << outLocation << " h " << height << " w " << width << " s " << seed << "\n";
-	
-	int i = 10;
-	for (;  i--;) {
-		cout << i << " ";
-	}
+	cout << "in " << inFileListDir << " base " << inBaseDir << " out " << outLocation << " h " << height << " w " << width << " s " << seed << " limit " << limitFeature << "\n";
 	
 	testAll(width, threads);
     //trainiVectors(inFileListDir, inBaseDir, outLocation, height, width, seed, limitFeature, threads);
