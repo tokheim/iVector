@@ -103,10 +103,10 @@ for line in keyfile:
         continue
     splitline = line.split(' ')
     vectorize(nistindir, nistoutdir, splitline[0]+'.rec')
-    alldocs.append(DocInfo(nistoutdir+splitline[0]+'.rec', splitline[1]))
+    alldocs.append(DocInfo(nistoutdir+splitline[0]+'.txt', splitline[1]))
 outfile = open(outfilelistnames[2], 'w')
 for doc in alldocs:
-    outfile.write(doc.lang+' '+nistoutdir+doc.fname+'\n')
+    outfile.write(doc.lang+' '+doc.fname+'\n')
     
 
 print 'Finished, total number of unigrams: '+str(numofunigrams)+', trigrams: '+str(math.pow(numofunigrams, 3))
