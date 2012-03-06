@@ -9,7 +9,8 @@
 #include "iVectIO.h"
 #include "iVectThread.h"
 #include "log.h"
+#include <vector>
 
-void trainiVectors(string inFileList, string baseDir, string outLoc, int height, int width, unsigned int seed, bool limitFeature, int threads);
+void trainiVectors(std::string inFileList, std::string baseDir, std::string outLoc, int height, int width, unsigned int seed, bool limitFeature, int threads);
 
 #endif

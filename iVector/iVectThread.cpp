@@ -1,4 +1,5 @@
 #include "iVectThread.h"
+#include <boost/numeric/ublas/vector.hpp>
 
 using namespace std;
 
@@ -33,7 +34,7 @@ void updateiVectors(vector<Document> &documents, FeatureSpace &space, int numOfT
 	}
 	threads.join_all();
 }
-void updatetRowRange(vector<Document> &documents, FeatureSpace &space, vector<double> &denominators) {
+void updatetRowRange(vector<Document> &documents, FeatureSpace &space, boost::numeric::ublas::vector<double> &denominators) {
 	while (takenFrom < space.height) {
 		int next = -1;
 		{
@@ -53,7 +54,7 @@ void updatetRowRange(vector<Document> &documents, FeatureSpace &space, vector<do
 
 void updatetRows(std::vector<Document> &documents, FeatureSpace & space, int numOfThreads) {
 	takenFrom = 0;
-	vector<double> denominators = calcAllPhiDenominators(space, documents);
+	boost::numeric::ublas::vector<double> denominators = calcAllPhiDenominators(space, documents);
 	boost::thread_group threads;
 	for (int i = 0; i < numOfThreads; i++) {
 		boost::thread * thread = new boost::thread(updatetRowRange, boost::ref(documents), boost::ref(space), boost::ref(denominators));
@@ -61,18 +62,3 @@ void updatetRows(std::vector<Document> &documents, FeatureSpace & space, int num
 	}
 	threads.join_all();
 }
-/*void calcLikelihoodRange(vector<Document> &documents, FeatureSpace &space, ) {
-    while (takenFrom < space.height) {
-        int next = -1;
-    }
-}
-
-void calcTotalLikelihoodExcludeInf(vector<Document> &documents, FeatureSpace &space, int numOfThreads) {
-    takenFrom = 0;
-    boost::thread_group threads;
-    for (int i = 0; i < numOfThreads; i++) {
-        boost::thread * thread = new boost::thread(calcLikelihoodRange, boost::ref(documents), boost::ref(space));
-        threads.add_thread(thread);
-    }
-    threads.join_all();
-}*/

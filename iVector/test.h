@@ -7,13 +7,12 @@
 #include <iostream>
 #include "iVectIO.h"
 #include "iVectThread.h"
+#include <vector>
 
 //Only for unix based
 #ifndef _WIN32
 #include <sys/time.h>
 #endif
-
-using namespace std;
 
 void testAll(int width, int threads);
 

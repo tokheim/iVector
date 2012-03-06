@@ -2,17 +2,14 @@
 #define LOG_H
 
 #include <iostream>
-#include <vector>
 #include <string>
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
 
-using namespace std;
-
-void printVector(vector<double> &vect);
-void printVector(vector<double> &vect, string title);
-void printMatrix(vector< vector<double> > &matrix);
-void printMatrix(vector< vector<double> > &matrix, string title);
+void printVector(boost::numeric::ublas::vector<double> &vect, std::string title);
+void printMatrix(boost::numeric::ublas::matrix<double> &matrix, std::string title);
 void resetClock();
-void printTimeMsg(string msg);
-void printMsg(string msg);
+void printTimeMsg(std::string msg);
+void printMsg(std::string msg);
 
 #endif

@@ -1,4 +1,9 @@
 #include "iVectIO.h"
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/matrix_proxy.hpp>
+
+using namespace std;
 
 //typedef pair <int, double> I_D_PAIR;
 typedef pair <string, int> S_I_PAIR;
@@ -90,15 +95,15 @@ void writeSpace(FeatureSpace & space, string fullPath) {
 		cerr << "Unable to write to file " << fullPath;
 		exit(1);
 	}
-	outFile << space.mVector[0];
+	outFile << space.mVector(0);
 	for (unsigned int i = 1; i < space.height; i++) {
-		outFile << " " << space.mVector[i];
+		outFile << " " << space.mVector(i);
 	}
 	
 	for (unsigned int i = 0; i < space.height; i++) {
-		outFile << "\n" << space.tMatrix[i][0];
+		outFile << "\n" << space.tMatrix(i, 0);
 		for (unsigned int j = 1; j < space.width; j++) {
-			outFile << " " << space.tMatrix[i][j];
+			outFile << " " << space.tMatrix(i, j);
 		}
 	}
 	outFile.close();
@@ -109,21 +114,22 @@ FeatureSpace readSpace(string fullPath) {
 	if (!inFile.is_open()) {
 		cerr << "Unable to open file " << fullPath;
 	}
-	vector< vector<double> > tMatrix;
+	boost::numeric::ublas::matrix<double> tMatrix;
 	string line;
 	getline(inFile, line);
 	vector<string> splitLine = splitString(line, ' ');
-	vector<double> mVector(splitLine.size());
+	boost::numeric::ublas::vector<double> mVector(splitLine.size());
 	for (unsigned int i = 0; i < splitLine.size(); i++) {
-		mVector[i] = atof(splitLine[i].c_str());
+		mVector(i) = atof(splitLine[i].c_str());
 	}
 	while (getline(inFile, line)) {
 		splitLine = splitString(line, ' ');
-		vector<double> row(splitLine.size());
+		boost::numeric::ublas::vector<double> row(splitLine.size());
 		for (unsigned int i = 0; i < splitLine.size(); i++) {
-			row[i] = atof(splitLine[i].c_str());
+			row(i) = atof(splitLine[i].c_str());
 		}
-		tMatrix.push_back(row);
+		tMatrix.resize(tMatrix.size1()+1, splitLine.size(), true);//Should be preallocated, but is currently not used anyways
+		boost::numeric::ublas::matrix_row<boost::numeric::ublas::matrix<double> > (tMatrix, tMatrix.size1()-1) = row;
 	}
 	inFile.close();
 	return FeatureSpace(tMatrix, mVector);
@@ -133,7 +139,7 @@ FeatureSpace readSpace(string fullPath) {
 void writeDocument(ofstream & outFile, Document & document) {
 	outFile << document.languageClass;
 	for (unsigned int i = 0; i < document.iVector.size(); i++) {
-		outFile << " " << (i+1) << ":" << document.iVector[i];
+		outFile << " " << (i+1) << ":" << document.iVector(i);
 	}
 	outFile << "\n";
 }

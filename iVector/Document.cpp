@@ -1,8 +1,6 @@
 #include "Document.h"
 #include "iVectMath.h"
 
-
-
 Document::Document(int languageClass, HASH_I_D & gamma, int dim) {
 	this->languageClass = languageClass;
 	lastLikelihood = -DBL_MAX;
@@ -15,9 +13,10 @@ Document::Document() {
 }
 
 void Document::setupIvectors(int dim) {
+	iVector.resize(dim, false);
+	oldiVector.resize(dim, false);
 	iVector.clear();
-	iVector.resize(dim, 0.0);
-	oldiVector = iVector;
+	oldiVector.clear();
 }
 
 void Document::calcGammaSum() {
@@ -35,12 +34,12 @@ double Document::getGammaValue(int feature) {
 		return 0.0;
 	}
 }
-void useOldiVectors(vector<Document> &documents) {
+void useOldiVectors(std::vector<Document> &documents) {
 	for (unsigned int i = 0; i < documents.size(); i++) {
 		documents[i].iVector = documents[i].oldiVector;
 	}
 }
-void resetiVectors(vector<Document> &documents) {
+void resetiVectors(std::vector<Document> &documents) {
 	for (unsigned int i = 0; i < documents.size(); i++) {
 		documents[i].setupIvectors(documents[0].iVector.size());
 	}

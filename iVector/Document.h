@@ -2,7 +2,8 @@
 #define DOCUMENT_H
 #include <string>
 #include <float.h>
-
+#include <boost/numeric/ublas/vector.hpp>
+#include <vector>
 
 //OS specific (windows or unix-based assumed)
 #ifdef _WIN32
@@ -13,14 +14,12 @@ typedef stdext::hash_map<int, double> HASH_I_D;
 typedef __gnu_cxx::hash_map<int, double> HASH_I_D;
 #endif
 
-using namespace std;
-
-typedef pair <int, double> I_D_PAIR;
+typedef std::pair <int, double> I_D_PAIR;
 
 struct Document {
 	int languageClass;
-	vector<double> iVector;
-	vector<double> oldiVector;
+	boost::numeric::ublas::vector<double> iVector;
+	boost::numeric::ublas::vector<double> oldiVector;
 	double gammaSum;
 	double lastLikelihood;
 	HASH_I_D gamma;
@@ -30,6 +29,6 @@ struct Document {
 	void setupIvectors(int dim);
 	double getGammaValue(int feature);
 };
-void useOldiVectors(vector<Document> &documents);
-void resetiVectors(vector<Document> &documents);
+void useOldiVectors(std::vector<Document> &documents);
+void resetiVectors(std::vector<Document> &documents);
 #endif

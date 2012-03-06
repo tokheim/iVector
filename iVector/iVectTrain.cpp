@@ -59,14 +59,13 @@ double doUpdateIteration(vector<Document> & traindocs, vector<Document> & devtes
 	updateiVectors(devtestdocs, space, threads);
 	printTimeMsg("Updated devtest iVectors");
 	double newLikelihood = calcTotalLikelihoodExcludeInf(devtestdocs, space);
-	printTimeMsg("Calc likelihood");
 	
 	//Nice to print but strictly unneccessary
 	printTimeMsg(string("Train likelihood ")+doubleToString(calcTotalLikelihoodExcludeInf(traindocs, space)/traindocs.size()));
 	printTimeMsg(string("Devtest likelihood ")+doubleToString(newLikelihood/devtestdocs.size()));
 	
-	printTimeMsg(string("Train distance ")+doubleToString(calcAvgEucledianDistance(traindocs)));
-	printTimeMsg(string("Devtest distance ")+doubleToString(calcAvgEucledianDistance(devtestdocs)));
+	printTimeMsg(string("Train distance ")+doubleToString(calcAvgEuclideanDistance(traindocs)));
+	printTimeMsg(string("Devtest distance ")+doubleToString(calcAvgEuclideanDistance(devtestdocs)));
 	
 
 	return newLikelihood;
@@ -140,9 +139,9 @@ void doUpdateIteration(vector<Document> & traindocs, vector<Document> & devtestd
 	printTimeMsg(string("Devtest likelihood ")+doubleToString(calcTotalLikelihoodExcludeInf(devtestdocs, space)/devtestdocs.size()));
 	printTimeMsg(string("Evltest likelihood ")+doubleToString(calcTotalLikelihoodExcludeInf(testdocs, space)/testdocs.size()));
 	
-	printTimeMsg(string("Train distance") + doubleToString(calcAvgEucledianDistance(traindocs)));
-	printTimeMsg(string("Devtest distance") + doubleToString(calcAvgEucledianDistance(devtestdocs)));
-	printTimeMsg(string("Test distance") + doubleToString(calcAvgEucledianDistance(testdocs)));
+	printTimeMsg(string("Train distance") + doubleToString(calcAvgEuclideanDistance(traindocs)));
+	printTimeMsg(string("Devtest distance") + doubleToString(calcAvgEuclideanDistance(devtestdocs)));
+	printTimeMsg(string("Test distance") + doubleToString(calcAvgEuclideanDistance(testdocs)));
 }
 
 //Currently copies list of documents for usage with branching

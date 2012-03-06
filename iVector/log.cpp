@@ -1,9 +1,12 @@
 #include "log.h"
+#include <boost/numeric/ublas/io.hpp>
 
 #ifndef _WIN32
 #include <sys/time.h>
 struct timeval startTime;
 #endif
+
+using namespace boost::numeric::ublas;
 
 const static double MICROS_IN_S = 1000000;
 
@@ -12,40 +15,26 @@ void resetClock() {
 	gettimeofday(&startTime, NULL);
 	#endif
 }
-void printMsg(string msg) {
-	cout << msg << "\n";
-	cout.flush();
+void printMsg(std::string msg) {
+	std::cout << msg << "\n";
+	std::cout.flush();
 }
-void printTimeMsg(string msg) {
+void printTimeMsg(std::string msg) {
 	#ifndef _WIN32
 	struct timeval stopTime;
 	gettimeofday(&stopTime, NULL);
 	double time = stopTime.tv_sec-startTime.tv_sec+((stopTime.tv_usec-startTime.tv_usec)/MICROS_IN_S);
-	cout << time << " - ";
+	std::cout << time << " - ";
 	#endif
-	cout << msg << "\n";
-	cout.flush();
+	std::cout << msg << "\n";
+	std::cout.flush();
 }
 
 
-
-void printVector(vector<double> &vect) {
-	for (unsigned int i = 0; i < vect.size(); i++) {
-		std::cout << vect[i] << " ";
-	}
-	std::cout << "\n";
-}
-void printVector(vector<double> &vect, string title) {
-	cout << "\n" << title << " ";
-	printVector(vect);
+void printVector(vector<double> &vect, std::string title) {
+	std::cout << "\n" << title << " " << vect << "\n";
 }
 
-void printMatrix(vector< vector<double> > &matrix) {
-	for (unsigned int i = 0; i < matrix.size(); i++) {
-		printVector(matrix[i]);
-	}
-}
-void printMatrix(vector< vector<double> > &matrix, string title) {
-	cout << "\n" << title << "\n";
-	printMatrix(matrix);
+void printMatrix(matrix<double> &matrix, std::string title) {
+	std::cout << "\n" << title << "\n" << matrix << "\n";
 }

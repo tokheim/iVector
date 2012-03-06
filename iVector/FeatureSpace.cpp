@@ -1,25 +1,25 @@
 #include "FeatureSpace.h"
 
-
+using namespace boost::numeric::ublas;
 
 //const static unsigned int SEED = 23;
 
-FeatureSpace::FeatureSpace(unsigned int height, unsigned int width, vector<Document> & documents, unsigned int seed) {
+FeatureSpace::FeatureSpace(unsigned int height, unsigned int width, std::vector<Document> & documents, unsigned int seed) {
 	this->height = height;
 	this->width = width;
 	generatetMatrix(seed);
 	generatemVector(documents);
 }
-FeatureSpace::FeatureSpace(vector< vector<double> > tMatrix, vector<Document> & documents) {
-	height = tMatrix.size();
-	width = tMatrix[0].size();
+FeatureSpace::FeatureSpace(matrix<double> tMatrix, std::vector<Document> & documents) {
+	height = tMatrix.size1();
+	width = tMatrix.size2();
 	this->tMatrix = tMatrix;
 	this->oldtMatrix = tMatrix;
 	generatemVector(documents);
 }
-FeatureSpace::FeatureSpace(vector< vector<double> > tMatrix, vector<double> mVector) {
-	height = tMatrix.size();
-	width = tMatrix[0].size();
+FeatureSpace::FeatureSpace(matrix<double> tMatrix, vector<double> mVector) {
+	height = tMatrix.size1();
+	width = tMatrix.size2();
 	this->tMatrix = tMatrix;
 	this->oldtMatrix = tMatrix;
 	this->mVector = mVector;
@@ -28,25 +28,25 @@ FeatureSpace::FeatureSpace(vector< vector<double> > tMatrix, vector<double> mVec
 
 void FeatureSpace::generatetMatrix(unsigned int seed) {
 	srand(seed);
-	tMatrix.resize(height);
+	tMatrix.resize(height, width, false);
 	for (unsigned int i = 0; i < height; i++) {
-		tMatrix[i].resize(width);
 		for (unsigned int j = 0; j < width; j++) {
-			tMatrix[i][j] = (((double) rand())/RAND_MAX-0.5);
+			tMatrix(i, j) = (((double) rand())/RAND_MAX-0.5);
 		}
 	}
-	oldtMatrix = tMatrix;//Should copy the values
+	oldtMatrix = tMatrix;
 }
-//Endre iterator
-void FeatureSpace::generatemVector(vector<Document> & documents) {
-	mVector.resize(height, 0.0);
+
+void FeatureSpace::generatemVector(std::vector<Document> & documents) {
+	mVector.resize(height, false);
+	mVector.clear();
 	HASH_I_D::iterator it;
 	for (unsigned int i = 0; i < documents.size(); i++) {
 		for (it = documents[i].gamma.begin(); it != documents[i].gamma.end(); ++it) {
-			mVector[it->first] += it->second;
+			mVector(it->first) += it->second;
 		}
 	}
 	for (unsigned int i = 0; i < height; i++) {
-		mVector[i] = log(mVector[i]/documents.size());
+		mVector(i) = log(mVector(i)/documents.size());
 	}
 }
