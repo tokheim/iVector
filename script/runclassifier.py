@@ -2,6 +2,12 @@
 Created on Feb 22, 2012
 
 @author: Tokminator
+
+Language/dialect mapping:
+If a language has two dialects, then 
+
+Prove train med -e 0.001 for bedre resultat
+
 '''
 import sys
 import os
@@ -11,9 +17,10 @@ import subprocess
 
 #Setup
 optionsValues = ''
+regressionValue = 1#Use regression by default
 
 sphereSquareConstant = 1.0
-resultPath = './res.txt'
+resultPath = './res.txt'#NOT USED
 tempDir = './ivecttemp/'
 modelDir = './svmmodels/'
 tempTrainFileName = 'a'
@@ -25,9 +32,11 @@ gridPath = './gridliblinear.py'
 
 trainSymbol = '-t'
 testSymbol = '-e'
-resultsSymbol = '-r'
+resultsSymbol = '-r'#NOT USED
 optionsSymbol = '-o'
-numLanguages = 12
+regressionSymbol = '-r'
+numLanguages = 13#Actual number of languages, not including dialects
+
 
 trainVectors = [];
 testVectors = [];
@@ -148,12 +157,65 @@ def readConfAndScale(fullPath, iList):
         stdevs[i] = float(varLine[i])
     shiftMean(iList, means)
     scale(iList, stdevs)
+
+def readHardResults(resultPath, testList, numLanguages):
+    #Check results (Hard value)
+    guess = [ [0 for i in range(numLanguages)] for i in range(numLanguages)]
+    inFile = open(resultPath, 'r')
+    i = 0
+    for line in inFile:
+        guess[(int(testList[i].lang)-1)%numLanguages][(int(line)-1)%numLanguages] += 1
+        i+=1
+    inFile.close()
+    
+    tot = 0
+    correct = 0.0
+    for i in range(len(guess)):
+        print str(guess[i])
+        tot += sum(guess[i])
+        correct += guess[i][i]
+    
+    print 'Correct '+str(correct/tot)+'%'
+    return correct/tot
+    
+def readSoftResults(resultPath, testList, numLanguages):
+    #1 line: labels 1 2 3 ...
+    #next lines: <guessed class> <prob1> <prob2> <prob3> <prob4> <prob5>...
+    pmissgiventarget = [0.0]*numLanguages
+    pfalsealarmgivennontarget = [0.0]*numLanguages
+    targets = [0]*numLanguages
+    
+    i = 0
+    inFile = open(resultPath, 'r')
+    for line in inFile.readlines()[1:]:#Ignore first line
+        splitLine = line.split()
+        prob = [0.0]*numLanguages
+        for j in range(1, len(splitLine)):
+            prob[(j-1)%numLanguages] += float(splitLine[j])#Some dialects mapped to same language so +=
+        for j in range(len(prob)):
+            if j == (int(testList[i].lang)-1)%numLanguages:#Is target language
+                pmissgiventarget[j] += 1-prob[j]
+                targets[j]+=1
+            else:
+                pfalsealarmgivennontarget[j] += prob[j]
+        i+=1
+        
+    inFile.close()
+    
+    cdettot = 0.0
+    for i in range(numLanguages):
+        cdet = (pmissgiventarget[i]/targets[i]+pfalsealarmgivennontarget[i]/(len(testList)-targets[i]))/2
+        print str(i)+' C_det: '+str(cdet)
+        cdettot += cdet
+    print 'Avg C_det: '+str(cdettot/numLanguages)
+    return cdettot/numLanguages
     
 def main():
     trainPaths = []
     global optionsValues
     global trainVectors
     global testVectors
+    global regressionValue
     #Read input parameters
     for i in range(1, len(sys.argv), 2):
         if sys.argv[i] == trainSymbol:
@@ -165,11 +227,16 @@ def main():
             resultPath = sys.argv[i+1]
         elif sys.argv[i] == optionsSymbol:
             optionsValues = sys.argv[i+1]
+        elif sys.argv[i] == regressionSymbol:
+            regressionValue = int(sys.argv[i+1])
     trainPaths.sort()
     outname = ''.join(trainPaths).replace('/', '').replace('.','')
+    if regressionValue:
+        outname += 'r'
+        
     
     #Force recalculation of model
-    #os.system('rm '+modelDir+outname+'.model')
+    os.system('rm '+modelDir+outname+'.model')
     
     os.system('mkdir '+tempDir)
     if not (os.path.exists(modelDir+outname+'.model') and os.path.exists(modelDir+outname+'.conf')):
@@ -197,7 +264,10 @@ def main():
         print 'Sets saved'
         c_value = gridSearch(tempDir+tempTrainFileName)
         print 'Gridsearch finished'
-        os.system('train '+optionsValues+' -c '+c_value+' '+tempDir+tempTrainFileName+' '+modelDir+outname+'.model')
+        if not regressionValue:
+            os.system('train '+optionsValues+' -c '+c_value+' '+tempDir+tempTrainFileName+' '+modelDir+outname+'.model')
+        else:
+            os.system('train -s 0 '+optionsValues+' -c '+c_value+' '+tempDir+tempTrainFileName+' '+modelDir+outname+'.model')
         print 'Training finished'
     else:
         print 'Found previous model'
@@ -211,21 +281,16 @@ def main():
     
     #Write files
     writeIvectList(testVectors, tempDir+tempTestFileName)
-    os.system('predict '+tempDir+tempTestFileName+' '+modelDir+outname+'.model '+tempDir+tempResultFileName)
-    print 'Testing done'
+    if not regressionValue:
+        os.system('predict '+tempDir+tempTestFileName+' '+modelDir+outname+'.model '+tempDir+tempResultFileName)
+        print 'Testing done'
     
-    #Check results (Hard value)
-    guess = [ [0 for i in range(numLanguages)] for i in range(numLanguages)]
-    inFile = open(tempDir+tempResultFileName, 'r')
-    i = 0
-    for line in inFile:
-        guess[int(testVectors[i].lang)-1][int(line)-1] += 1
-        i+=1
-    inFile.close()
-    
-    
-    for i in range(len(guess)):
-        print str(guess[i])
+        readHardResults(tempDir+tempResultFileName, testVectors, numLanguages)
+    else:
+        os.system('predict -b 1 '+tempDir+tempTestFileName+' '+modelDir+outname+'.model '+tempDir+tempResultFileName)
+        print 'Testing done'
+        
+        readSoftResults(tempDir+tempResultFileName, testVectors, numLanguages)
     
     os.system('rm -r '+tempDir)
 main()
