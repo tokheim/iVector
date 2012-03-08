@@ -9,13 +9,16 @@ using namespace std;
 typedef pair <string, int> S_I_PAIR;
 
 //Language->Languageid
-const static S_I_PAIR LANGUAGES[] = {S_I_PAIR("ARABIC_EGYPT", 1), S_I_PAIR("ENG_GENRL", 2), S_I_PAIR("ENG_SOUTH", 3), S_I_PAIR("FARSI", 4),
-	S_I_PAIR("FRENCH_CAN", 5), S_I_PAIR("GERMAN", 6), S_I_PAIR("HINDI", 7), S_I_PAIR("JAPANESE", 8), S_I_PAIR("KOREAN", 9), S_I_PAIR("MANDARIN_M", 10), 
-	S_I_PAIR("MANDARIN_T", 11), S_I_PAIR("SPANISH", 12), S_I_PAIR("SPANISH_CAR", 13), S_I_PAIR("TAMIL", 14), S_I_PAIR("VIETNAMESE", 15) };
-const static int NUMBER_OF_LANGUAGES = 15;//full = 15
-//const static string TRANS_EXTENSION = ".txt";
-//const static string TRANS_SEARCH_PATTERN = "*"+TRANS_EXTENSION;
-//const static string SPEECH_SETS[] = {"train_raw", "devtest_raw", "evltest_raw"};
+//const static S_I_PAIR LANGUAGES[] = {S_I_PAIR("ARABIC_EGYPT", 1), S_I_PAIR("ENG_GENRL", 2), S_I_PAIR("ENG_SOUTH", 3), S_I_PAIR("FARSI", 4),
+//	S_I_PAIR("FRENCH_CAN", 5), S_I_PAIR("GERMAN", 6), S_I_PAIR("HINDI", 7), S_I_PAIR("JAPANESE", 8), S_I_PAIR("KOREAN", 9), S_I_PAIR("MANDARIN_M", 10), 
+//	S_I_PAIR("MANDARIN_T", 11), S_I_PAIR("SPANISH", 12), S_I_PAIR("SPANISH_CAR", 13), S_I_PAIR("TAMIL", 14), S_I_PAIR("VIETNAMESE", 15) };
+const static S_I_PAIR LANGUAGES[] = {S_I_PAIR("ENG_GENRL", 1), S_I_PAIR("SPANISH", 2), S_I_PAIR("MANDARIN_M", 3), S_I_PAIR("FARSI", 4),
+	S_I_PAIR("FRENCH_CAN", 5), S_I_PAIR("GERMAN", 6), S_I_PAIR("HINDI", 7), S_I_PAIR("JAPANESE", 8), S_I_PAIR("KOREA", 9), S_I_PAIR("TAMIL", 10),
+	S_I_PAIR("VIETNAMESE", 11), S_I_PAIR("ARABIC_EGYPT", 12), S_I_PAIR("ENG_SOUTH", 14), S_I_PAIR("SPANISH_CAR", 15), S_I_PAIR("MANDARIN_T", 16),
+	S_I_PAIR("ENGLISH", 1), S_I_PAIR("MANDARIN", 3), S_I_PAIR("FRENCH", 5), S_I_PAIR("ARABIC", 12)};
+const static int OUT_OF_SET_LANG_NUM = 13;
+const static int LANG_LIST_LENGTH = 19;
+
 const static string SET_INPUTFILE_NAMES[] = {"train_list.txt", "devtest_list.txt", "nist_list.txt"};
 
 
@@ -33,12 +36,12 @@ vector<string> splitString(string & s, char splitsign) {
 	return svect;
 }
 int getLanguageClass(string & language) {
-	for (int i = 0; i < NUMBER_OF_LANGUAGES; i++) {
+	for (int i = 0; i < LANG_LIST_LENGTH; i++) {
 		if (LANGUAGES[i].first == language) {
 			return LANGUAGES[i].second;
 		}
 	}
-	return -1;
+	return OUT_OF_SET_LANG_NUM;
 }
 
 Document readDocument(int languageClass, string & fullpath, int dim, int featureNameCol, int featureValueCol) {
