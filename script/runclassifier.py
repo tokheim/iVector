@@ -18,6 +18,7 @@ import subprocess
 #Setup
 optionsValues = ''
 regressionValue = 1#Use regression by default
+c_value = '-1'
 
 sphereSquareConstant = 1.0
 resultPath = './res.txt'#NOT USED
@@ -35,8 +36,9 @@ testSymbol = '-e'
 resultsSymbol = '-q'#NOT USED
 optionsSymbol = '-o'
 regressionSymbol = '-r'
+regularizationSymbol = '-c'
 numLanguages = 13#Actual number of languages, not including dialects
-
+ignoreLastLanguage = 0#Ignore out of set language
 
 trainVectors = [];
 testVectors = [];
@@ -171,9 +173,10 @@ def readHardResults(resultPath, testList, numLanguages):
     tot = 0
     correct = 0.0
     for i in range(len(guess)):
-        print str(guess[i])
-        tot += sum(guess[i])
-        correct += guess[i][i]
+        if not (ignoreLastLanguage and i == numLanguages-1):
+            print str(guess[i])
+            tot += sum(guess[i])
+            correct += guess[i][i]
     
     print 'Correct '+str(correct/tot)+'%'
     return correct/tot
@@ -219,6 +222,7 @@ def main():
     global trainVectors
     global testVectors
     global regressionValue
+    global c_value
     #Read input parameters
     for i in range(1, len(sys.argv), 2):
         if sys.argv[i] == trainSymbol:
@@ -232,9 +236,10 @@ def main():
             optionsValues = sys.argv[i+1]
         elif sys.argv[i] == regressionSymbol:
             regressionValue = int(sys.argv[i+1])
-            print 'Regression '+sys.argv[i+1]
+        elif sys.argv[i] == regularizationSymbol:
+            c_value = sys.argv[i+1]
     trainPaths.sort()
-    outname = ''.join(trainPaths).replace('/', '').replace('.','')
+    outname = ''.join(trainPaths).replace('/', '').replace('.','')+c_value
     if regressionValue:
         outname += 'r'
         
@@ -266,8 +271,10 @@ def main():
         writeScale(means, stdevs, modelDir+outname+'.conf')
         writeIvectList(trainVectors, tempDir+tempTrainFileName)
         print 'Sets saved'
-        c_value = gridSearch(tempDir+tempTrainFileName)
-        print 'Gridsearch finished'
+        if float(c_value) > 0:
+            print 'Starting Gridsearch'
+            c_value = gridSearch(tempDir+tempTrainFileName)
+            print 'Gridsearch finished'
         if not regressionValue:
             os.system('train '+optionsValues+' -c '+c_value+' '+tempDir+tempTrainFileName+' '+modelDir+outname+'.model')
         else:

@@ -2,6 +2,7 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <boost/algorithm/string.hpp>
 
 using namespace std;
 
@@ -21,7 +22,7 @@ const static int LANG_LIST_LENGTH = 19;
 
 const static string SET_INPUTFILE_NAMES[] = {"train_list.txt", "devtest_list.txt", "nist_list.txt"};
 
-
+/*
 //Very basic string splitting (no regards to double spaces and such)
 vector<string> splitString(string & s, char splitsign) {
 	vector<string> svect;
@@ -34,7 +35,7 @@ vector<string> splitString(string & s, char splitsign) {
 	}
 	svect.push_back(s.substr(startpos));
 	return svect;
-}
+}*/
 int getLanguageClass(string & language) {
 	for (int i = 0; i < LANG_LIST_LENGTH; i++) {
 		if (LANGUAGES[i].first == language) {
@@ -56,7 +57,8 @@ Document readDocument(int languageClass, string & fullpath, int dim, int feature
 	string line;
 
 	while (getline(inFile, line)) {
-		vector<string> splitLine = splitString(line, ' ');
+		vector<string> splitLine;
+		boost::split(splitLine, line, boost::is_any_of("\t ")
 		int feature = atoi(splitLine[featureNameCol].c_str());
 		double value = atof(splitLine[featureValueCol].c_str());
 		featureMap.insert(I_D_PAIR(feature, value));
@@ -75,7 +77,8 @@ void fetchDocumentsFromFileList(vector<Document> & documents, string fullPath, s
 	}
 	string line;
 	while (getline(inFile, line)) {
-		vector<string> splitLine = splitString(line, ' ');
+		vector<string> splitLine;
+		boost::split(splitLine, line, boost::is_any_of("\t ")
 		int languageClass = getLanguageClass(splitLine[languageCol]);
 		string filePath = baseDir+splitLine[fileNameCol];
 		documents.push_back(readDocument(languageClass, filePath, dim, featureNameCol, featureValueCol));
@@ -120,13 +123,14 @@ FeatureSpace readSpace(string fullPath) {
 	boost::numeric::ublas::matrix<double> tMatrix;
 	string line;
 	getline(inFile, line);
-	vector<string> splitLine = splitString(line, ' ');
+	vector<string> splitLine;
+	boost::split(splitLine, line, boost::is_any_of("\t ")
 	boost::numeric::ublas::vector<double> mVector(splitLine.size());
 	for (unsigned int i = 0; i < splitLine.size(); i++) {
 		mVector(i) = atof(splitLine[i].c_str());
 	}
 	while (getline(inFile, line)) {
-		splitLine = splitString(line, ' ');
+		boost::split(splitLine, line, boost::is_any_of("\t ")
 		boost::numeric::ublas::vector<double> row(splitLine.size());
 		for (unsigned int i = 0; i < splitLine.size(); i++) {
 			row(i) = atof(splitLine[i].c_str());
