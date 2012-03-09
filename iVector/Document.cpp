@@ -26,8 +26,9 @@ void Document::calcGammaSum() {
 		gammaSum += it->second;
 	}
 }
-double Document::getGammaValue(int feature) {
-	HASH_I_D::iterator it = gamma.find(feature);
+const double Document::getGammaValue(int feature) {
+	HASH_I_D::const_iterator it = gamma.find(feature);
+	//HASH_I_D::iterator it = gamma.find(feature);
 	if (it != gamma.end()) {
 		return it->second;
 	} else {

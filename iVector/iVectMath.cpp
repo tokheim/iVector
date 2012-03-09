@@ -21,10 +21,6 @@ double calcAvgEuclideanDistance(std::vector<Document> & documents) {
 	}
 	return dist/documents.size();
 }
-//almost not neccessary
-vector<double> avgVector(vector<double> & va, vector<double> & vb) {
-	return (va+vb)/2;
-}
 
 double calcPhiDenominator(FeatureSpace & space, vector<double> & iVector) {
 	double denominator = 0.0;
@@ -86,29 +82,27 @@ double calcTotalLikelihoodExcludeInf(std::vector<Document> & documents, FeatureS
 	}
 	return totLikelihood;
 }
-
+//setup Ax=b for iVector updates
 void setUpSystem(vector<double> & gradient, symmetric_matrix<double> & jacobian, Document & document, FeatureSpace & space, double denominator) {
 	jacobian.clear();
 	gradient.clear();
-	for (unsigned int row = 0; row < space.height; row++) {
-		double gammaVal = document.getGammaValue(row);
-		if (space.mVector(row) == MINUS_INF) {
+	for (unsigned int trow = 0; trow < space.height; trow++) {
+		double gammaVal = document.getGammaValue(trow);
+		if (space.mVector(trow) == MINUS_INF) {
 			continue;
 		}
-		double phiPart = calcPhi(space, document.iVector, row, denominator)*document.gammaSum;
+		double phiPart = calcPhi(space, document.iVector, trow, denominator)*document.gammaSum;
 		double gradweight = gammaVal-phiPart;
 		double jacweight = phiPart;
 		if (gradweight > 0.0) {
 			jacweight = gammaVal;
 		}
-		matrix_row<matrix<double> > tRow(space.tMatrix, row);
-		gradient += gradweight*tRow;
-
-		symmetric_matrix<double> tempMat = jacweight*outer_prod(tRow, tRow);//for some reason this has to be temporary saved (might be because of symmetric checks)
-		jacobian += tempMat;
+		vector<double> tRow = row(space.tMatrix, trow);//evt. bruke row(space.tMatrix, trow)
+		noalias(gradient) += gradweight * tRow;
+		noalias(jacobian) += jacweight*outer_prod(tRow, tRow);
 	}
 }
-
+//Setup Ax=b for rows of T
 void setUpSystem(vector<double> & gradient, symmetric_matrix<double> & jacobian, std::vector<Document> & documents, FeatureSpace & space, unsigned int row, vector<double> & denominators) {
 	jacobian.clear();
 	gradient.clear();
@@ -120,8 +114,8 @@ void setUpSystem(vector<double> & gradient, symmetric_matrix<double> & jacobian,
 		if (gradweight > 0.0) {
 			jacweight = gammaVal;
 		}
-		gradient += gradweight*documents[n].iVector;
-		jacobian += jacweight*outer_prod(documents[n].iVector, documents[n].iVector);
+		noalias(gradient) += gradweight*documents[n].iVector;
+		noalias(jacobian) += jacweight*outer_prod(documents[n].iVector, documents[n].iVector);
 	}
 }
 void updateiVector(Document & document, FeatureSpace & space) {

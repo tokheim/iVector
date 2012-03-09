@@ -27,7 +27,7 @@ struct Document {
     Document ();
 	void calcGammaSum();
 	void setupIvectors(int dim);
-	double getGammaValue(int feature);
+	const double getGammaValue(int feature);
 };
 void useOldiVectors(std::vector<Document> &documents);
 void resetiVectors(std::vector<Document> &documents);
