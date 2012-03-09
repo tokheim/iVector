@@ -32,7 +32,7 @@ gridPath = './gridliblinear.py'
 
 trainSymbol = '-t'
 testSymbol = '-e'
-resultsSymbol = '-r'#NOT USED
+resultsSymbol = '-q'#NOT USED
 optionsSymbol = '-o'
 regressionSymbol = '-r'
 numLanguages = 13#Actual number of languages, not including dialects
@@ -229,6 +229,7 @@ def main():
             optionsValues = sys.argv[i+1]
         elif sys.argv[i] == regressionSymbol:
             regressionValue = int(sys.argv[i+1])
+            print 'Regression '+sys.argv[i+1]
     trainPaths.sort()
     outname = ''.join(trainPaths).replace('/', '').replace('.','')
     if regressionValue:
