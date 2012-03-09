@@ -204,7 +204,10 @@ def readSoftResults(resultPath, testList, numLanguages):
     
     cdettot = 0.0
     for i in range(numLanguages):
-        cdet = (pmissgiventarget[i]/targets[i]+pfalsealarmgivennontarget[i]/(len(testList)-targets[i]))/2
+        if targets[i] != 0:
+            cdet = (pmissgiventarget[i]/targets[i]+pfalsealarmgivennontarget[i]/(len(testList)-targets[i]))/2
+        else:
+            cdet = 0.5*pfalsealarmgivennontarget[i]/(len(testList)-targets[i])
         print str(i)+' C_det: '+str(cdet)
         cdettot += cdet
     print 'Avg C_det: '+str(cdettot/numLanguages)
