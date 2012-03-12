@@ -179,6 +179,7 @@ def readHardResults(resultPath, testList, numLanguages):
             correct += guess[i][i]
     
     print 'Correct '+str(correct/tot)+'%'
+    print str(correct/tot)
     return correct/tot
     
 def readSoftResults(resultPath, testList, numLanguages):
