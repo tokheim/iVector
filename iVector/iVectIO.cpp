@@ -58,7 +58,7 @@ Document readDocument(int languageClass, string & fullpath, int dim, int feature
 
 	while (getline(inFile, line)) {
 		vector<string> splitLine;
-		boost::split(splitLine, line, boost::is_any_of("\t ")
+		boost::split(splitLine, line, boost::is_any_of("\t "));
 		int feature = atoi(splitLine[featureNameCol].c_str());
 		double value = atof(splitLine[featureValueCol].c_str());
 		featureMap.insert(I_D_PAIR(feature, value));
@@ -78,7 +78,7 @@ void fetchDocumentsFromFileList(vector<Document> & documents, string fullPath, s
 	string line;
 	while (getline(inFile, line)) {
 		vector<string> splitLine;
-		boost::split(splitLine, line, boost::is_any_of("\t ")
+		boost::split(splitLine, line, boost::is_any_of("\t "));
 		int languageClass = getLanguageClass(splitLine[languageCol]);
 		string filePath = baseDir+splitLine[fileNameCol];
 		documents.push_back(readDocument(languageClass, filePath, dim, featureNameCol, featureValueCol));
@@ -124,13 +124,13 @@ FeatureSpace readSpace(string fullPath) {
 	string line;
 	getline(inFile, line);
 	vector<string> splitLine;
-	boost::split(splitLine, line, boost::is_any_of("\t ")
+	boost::split(splitLine, line, boost::is_any_of("\t "));
 	boost::numeric::ublas::vector<double> mVector(splitLine.size());
 	for (unsigned int i = 0; i < splitLine.size(); i++) {
 		mVector(i) = atof(splitLine[i].c_str());
 	}
 	while (getline(inFile, line)) {
-		boost::split(splitLine, line, boost::is_any_of("\t ")
+		boost::split(splitLine, line, boost::is_any_of("\t "));
 		boost::numeric::ublas::vector<double> row(splitLine.size());
 		for (unsigned int i = 0; i < splitLine.size(); i++) {
 			row(i) = atof(splitLine[i].c_str());
