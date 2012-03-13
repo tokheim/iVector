@@ -1,0 +1,64 @@
+it 0 bd 1: 0.405940594059
+Best it 0 bdtrain 1 bdtest 4: 0.413861386139
+it 0 bd 2: 0.407920792079
+Best it 0 bdtrain 2 bdtest 4: 0.415181518152
+it 0 bd 3: 0.411221122112
+Best it 0 bdtrain 3 bdtest 4: 0.415841584158
+it 0 bd 4: 0.413201320132
+Best it 0 bdtrain 4 bdtest 4: 0.413201320132
+it 1 bd 1: 0.863366336634
+Best it 1 bdtrain 1 bdtest 4: 0.873267326733
+it 1 bd 2: 0.871287128713
+Best it 1 bdtrain 2 bdtest 4: 0.877227722772
+it 1 bd 3: 0.878547854785
+Best it 1 bdtrain 3 bdtest 3: 0.878547854785
+it 1 bd 4: 0.879207920792
+Best it 1 bdtrain 4 bdtest 3: 0.879867986799
+it 2 bd 1: 0.887788778878
+Best it 2 bdtrain 1 bdtest 4: 0.903630363036
+it 2 bd 2: 0.893069306931
+Best it 2 bdtrain 2 bdtest 4: 0.901650165017
+it 2 bd 3: 0.897689768977
+Best it 2 bdtrain 3 bdtest 4: 0.903630363036
+it 2 bd 4: 0.90495049505
+Best it 2 bdtrain 4 bdtest 4: 0.90495049505
+it 3 bd 1: 0.889768976898
+Best it 3 bdtrain 1 bdtest 4: 0.899669966997
+it 3 bd 2: 0.901650165017
+Best it 3 bdtrain 2 bdtest 4: 0.907590759076
+it 3 bd 3: 0.906270627063
+Best it 3 bdtrain 3 bdtest 4: 0.908250825083
+it 3 bd 4: 0.911551155116
+Best it 3 bdtrain 4 bdtest 4: 0.911551155116
+it 4 bd 1: 0.895709570957
+Best it 4 bdtrain 1 bdtest 1: 0.895709570957
+it 4 bd 2: 0.90297029703
+Best it 4 bdtrain 2 bdtest 4: 0.906930693069
+it 4 bd 3: 0.905610561056
+Best it 4 bdtrain 3 bdtest 4: 0.909570957096
+it 4 bd 4: 0.910231023102
+Best it 4 bdtrain 4 bdtest 1: 0.912211221122
+it 5 bd 1: 0.89900990099
+Best it 5 bdtrain 1 bdtest 1: 0.89900990099
+it 5 bd 2: 0.89900990099
+Best it 5 bdtrain 2 bdtest 1: 0.908910891089
+it 5 bd 3: 0.903630363036
+Best it 5 bdtrain 3 bdtest 1: 0.914191419142
+it 5 bd 4: 0.910231023102
+Best it 5 bdtrain 4 bdtest 1: 0.914191419142
+it 6 bd 1: 0.895709570957
+Best it 6 bdtrain 1 bdtest 1: 0.895709570957
+it 6 bd 2: 0.906270627063
+Best it 6 bdtrain 2 bdtest 1: 0.914851485149
+it 6 bd 3: 0.903630363036
+Best it 6 bdtrain 3 bdtest 1: 0.916171617162
+it 6 bd 4: 0.903630363036
+Best it 6 bdtrain 4 bdtest 1: 0.918151815182
+it 7 bd 1: 0.902310231023
+Best it 7 bdtrain 1 bdtest 1: 0.902310231023
+it 7 bd 2: 0.910891089109
+Best it 7 bdtrain 2 bdtest 1: 0.918811881188
+it 7 bd 3: 0.904290429043
+Best it 7 bdtrain 3 bdtest 1: 0.916171617162
+it 7 bd 4: 0.90297029703
+Best it 7 bdtrain 4 bdtest 2: 0.912871287129

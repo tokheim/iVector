@@ -1,0 +1,187 @@
+in ./other/ base  out ./iVectors/new100/ h 35937 w 100 s 23 limit 1
+34.5577 - Fetched 3779 train docs
+37.9504 - Fetched 1515 devtest docs
+38.2198 - Done space setup
+238.135 - Done traindocs init
+318.285 - Done devtest docs init
+353.734 - Train likelihood -24489.8
+353.735 - Devtest likelihood -3153.53
+353.737 - ---Start step 1---
+
+568.768 - Updated t rows
+773.326 - Updated train iVectors
+862.885 - Updated devtest iVectors
+898.995 - Train avg likelihood -23903.8
+898.996 - Devtest avg likelihood -3077.1
+899 - Train avg distance 0.273368
+899.002 - Devtest avg distance 0.462396
+899.803 - Writing done
+899.804 - ---Start step 2---
+
+1135.21 - Updated t rows
+1344.03 - Updated train iVectors
+1424.6 - Updated devtest iVectors
+1460.07 - Train avg likelihood -23700.9
+1460.07 - Devtest avg likelihood -3041.82
+1460.07 - Train avg distance 0.147767
+1460.07 - Devtest avg distance 0.280195
+1460.81 - Writing done
+1460.81 - ---Start step 3---
+
+1672.66 - Updated t rows
+1873.46 - Updated train iVectors
+1953.75 - Updated devtest iVectors
+1989.18 - Train avg likelihood -23619.7
+1989.18 - Devtest avg likelihood -3029.85
+1989.19 - Train avg distance 0.0935323
+1989.19 - Devtest avg distance 0.189082
+1989.93 - Writing done
+1989.93 - ---Start step 4---
+
+2202.01 - Updated t rows
+2401.62 - Updated train iVectors
+2481.74 - Updated devtest iVectors
+2517.17 - Train avg likelihood -23573.5
+2517.18 - Devtest avg likelihood -3026.99
+2517.18 - Train avg distance 0.0701524
+2517.18 - Devtest avg distance 0.132121
+2517.92 - Writing done
+2517.92 - ---Start step 5---
+
+2729.57 - Updated t rows
+2930.3 - Updated train iVectors
+3010.38 - Updated devtest iVectors
+3045.82 - Train avg likelihood -23544
+3045.82 - Devtest avg likelihood -3032.13
+3045.82 - Train avg distance 0.0558479
+3045.82 - Devtest avg distance 0.0991942
+3046.56 - Writing done
+3046.56 - Overtrained, using previous t-Matrix;
+3046.57 - Finished t-training
+3049.06 - Fetched 1280 evltest docs
+3050.06 - Ready for reset loop
+
+
+
+3050.06 - --Start step 1--
+
+3249.55 - Train updated
+3329.79 - Devtest updated
+3397.29 - Evltest updated
+3423.15 - Train likelihood -23916.7
+3432.46 - Devtest likelihood -3087.45
+3440.26 - Evltest likelihood -2117.96
+3440.26 - Train distance0.295344
+3440.27 - Devtest distance0.346889
+3440.27 - Test distance0.37678
+3441.17 - docs saved
+3441.17 - --Start step 2--
+
+3640.79 - Train updated
+3720.56 - Devtest updated
+3788.1 - Evltest updated
+3814.03 - Train likelihood -23677.8
+3823.36 - Devtest likelihood -3044.98
+3831.18 - Evltest likelihood -2080.24
+3831.19 - Train distance0.249454
+3831.19 - Devtest distance0.275799
+3831.19 - Test distance0.337082
+3832.09 - docs saved
+3832.1 - --Start step 3--
+
+4031.43 - Train updated
+4111.54 - Devtest updated
+4178.86 - Evltest updated
+4204.7 - Train likelihood -23611.5
+4214 - Devtest likelihood -3030.4
+4221.79 - Evltest likelihood -2066.01
+4221.8 - Train distance0.138145
+4221.8 - Devtest distance0.164208
+4221.8 - Test distance0.225818
+4222.7 - docs saved
+4222.7 - --Start step 4--
+
+4423.01 - Train updated
+4502.64 - Devtest updated
+4569.96 - Evltest updated
+4595.83 - Train likelihood -23590.6
+4605.14 - Devtest likelihood -3025.01
+4612.94 - Evltest likelihood -2060.71
+4612.94 - Train distance0.0593052
+4612.95 - Devtest distance0.0858178
+4612.95 - Test distance0.119056
+4613.85 - docs saved
+4613.85 - --Start step 5--
+
+4813.21 - Train updated
+4893.26 - Devtest updated
+4960.58 - Evltest updated
+4986.64 - Train likelihood -23580.7
+4996.01 - Devtest likelihood -3022.42
+5003.87 - Evltest likelihood -2058.13
+5003.88 - Train distance0.0294312
+5003.88 - Devtest distance0.0508047
+5003.88 - Test distance0.0672665
+5004.78 - docs saved
+5004.78 - --Start step 6--
+
+5204.8 - Train updated
+5284.47 - Devtest updated
+5352.07 - Evltest updated
+5378.11 - Train likelihood -23575.1
+5387.48 - Devtest likelihood -3020.96
+5395.34 - Evltest likelihood -2056.63
+5395.35 - Train distance0.0192195
+5395.35 - Devtest distance0.0346617
+5395.36 - Test distance0.0447934
+5396.26 - docs saved
+5396.26 - --Start step 7--
+
+5598.5 - Train updated
+5678.51 - Devtest updated
+5745.96 - Evltest updated
+5772.01 - Train likelihood -23571.9
+5781.39 - Devtest likelihood -3020.06
+5789.25 - Evltest likelihood -2055.66
+5789.25 - Train distance0.0145026
+5789.25 - Devtest distance0.0256664
+5789.26 - Test distance0.0331102
+5790.16 - docs saved
+5790.17 - --Start step 8--
+
+5990.49 - Train updated
+6070.43 - Devtest updated
+6137.84 - Evltest updated
+6163.91 - Train likelihood -23570.1
+6173.3 - Devtest likelihood -3019.48
+6181.16 - Evltest likelihood -2055.01
+6181.17 - Train distance0.0113546
+6181.17 - Devtest distance0.0198856
+6181.17 - Test distance0.0259342
+6182.07 - docs saved
+6182.08 - --Start step 9--
+
+6382.05 - Train updated
+6462.29 - Devtest updated
+6529.74 - Evltest updated
+6555.81 - Train likelihood -23569
+6565.19 - Devtest likelihood -3019.09
+6573.06 - Evltest likelihood -2054.55
+6573.06 - Train distance0.00889544
+6573.07 - Devtest distance0.015825
+6573.07 - Test distance0.0209786
+6573.97 - docs saved
+6573.97 - --Start step 10--
+
+6773.69 - Train updated
+6854.01 - Devtest updated
+6921.36 - Evltest updated
+6947.23 - Train likelihood -23568.4
+6956.56 - Devtest likelihood -3018.82
+6964.38 - Evltest likelihood -2054.23
+6964.38 - Train distance0.00691942
+6964.38 - Devtest distance0.0128123
+6964.39 - Test distance0.0173092
+6965.27 - docs saved
+6965.28 - All done
+
