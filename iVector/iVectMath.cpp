@@ -88,7 +88,7 @@ void setUpSystem(vector<double> & gradient, symmetric_matrix<double> & jacobian,
 	gradient.clear();
 	for (unsigned int trow = 0; trow < space.height; trow++) {
 		double gammaVal = document.getGammaValue(trow);
-		if (space.mVector(trow) == MINUS_INF) {
+		if (space.mVector(trow) == MINUS_INF && gammaVal == 0.0) {//Gammaval??
 			continue;
 		}
 		double phiPart = calcPhi(space, document.iVector, trow, denominator)*document.gammaSum;
