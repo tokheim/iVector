@@ -104,6 +104,8 @@ for language in languages:
     train_outdir = './CallFriend/' + language + '/vectsplit/train/'
     dev_outdir = './CallFriend/' + language + '/vectsplit/devtest/'
     
+    os.system('rm -r '+train_outdir)
+    os.system('rm -r '+dev_outdir)
     os.system('mkdir -p '+train_outdir)
     os.system('mkdir -p '+dev_outdir)
     
