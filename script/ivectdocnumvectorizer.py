@@ -85,6 +85,7 @@ for i in range(len(setdir)):
     for language in languages:
         outdir = outbasedir.replace('?', language)+setdir[i]
         indir = inbasedir.replace('?', language)+setdir[i]
+        os.system('rm -r '+outdir)
         os.system('mkdir -p '+outdir)
         for filename in os.listdir(indir):
             vectorize(indir, outdir, filename)
