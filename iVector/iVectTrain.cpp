@@ -9,7 +9,7 @@ void branchTraining(vector<Document> & traindocs, vector<Document> & devtestdocs
 void traintMatrix(vector<Document> & traindocs, vector<Document> & devtestdocs, FeatureSpace & space, string outLoc, int threads);
 
 const int MAX_TRAIN_STEPS = 7;
-const int MAX_EXTRACT_STEPS = 4;
+const int MAX_EXTRACT_STEPS = 9;
 
 
 
@@ -40,14 +40,14 @@ void trainiVectors(string inFileList, string baseDir, string outLoc, int height,
 	FeatureSpace space(height, width, traindocs, seed);
 	printTimeMsg("Done space setup");
 
-	//traintMatrix(traindocs, devtestdocs, space, outLoc, threads);
+	traintMatrix(traindocs, devtestdocs, space, outLoc, threads);
 
 	vector<Document> testdocs = fetchDocumentsFromFileList(EVLSET, inFileList, baseDir, width, limitFeature);
 	printTimeMsg(string("Fetched ")+intToString(testdocs.size())+string(" evltest docs"));
 
-	branchTraining(traindocs, devtestdocs, testdocs, space, threads, outLoc);
+	//branchTraining(traindocs, devtestdocs, testdocs, space, outLoc, threads);
 
-	//extractiVectors(traindocs, devtestdocs, testdocs, space, threads, outLoc);
+	extractiVectors(traindocs, devtestdocs, testdocs, space, threads, outLoc);
 }
 
 //Update iteratation of both iVectors and t-matrix
