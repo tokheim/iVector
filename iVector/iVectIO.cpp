@@ -20,22 +20,8 @@ const static S_I_PAIR LANGUAGES[] = {S_I_PAIR("ENG_GENRL", 1), S_I_PAIR("SPANISH
 const static int OUT_OF_SET_LANG_NUM = 13;
 const static int LANG_LIST_LENGTH = 19;
 
-const static string SET_INPUTFILE_NAMES[] = {"train_list.txt", "devtest_list.txt", "nist_list.txt"};
+const static string SET_INPUTFILE_NAMES[] = {"train_list.txt", "devtest_list.txt", "nist_list.txt", "short_train_list.txt"};
 
-/*
-//Very basic string splitting (no regards to double spaces and such)
-vector<string> splitString(string & s, char splitsign) {
-	vector<string> svect;
-	size_t startpos = 0;
-	size_t endpos = s.find(splitsign);
-	while (endpos != string::npos) {
-		svect.push_back(s.substr(startpos, endpos-startpos));
-		startpos = endpos+1;
-		endpos = s.find(splitsign, startpos);
-	}
-	svect.push_back(s.substr(startpos));
-	return svect;
-}*/
 int getLanguageClass(string & language) {
 	for (int i = 0; i < LANG_LIST_LENGTH; i++) {
 		if (LANGUAGES[i].first == language) {
@@ -85,13 +71,13 @@ void fetchDocumentsFromFileList(vector<Document> & documents, string fullPath, s
 	}
 	inFile.close();
 }
-vector<Document> fetchDocumentsFromFileList(int speechSet, string fileListDir, string baseDir, int dim, bool limitFeature) {
+vector<Document> fetchDocumentsFromFileList(int speechSet, Configuration &config) {
 	vector<Document> documents;
 	int featureValueCol = 1;
-	if (limitFeature) {
+	if (config.limitFeatures) {
 		featureValueCol = 2;
 	}
-	fetchDocumentsFromFileList(documents, fileListDir+SET_INPUTFILE_NAMES[speechSet], baseDir, dim, 0, 1, 0, featureValueCol);	
+	fetchDocumentsFromFileList(documents, config.fileListInDir+SET_INPUTFILE_NAMES[speechSet], config.baseDir, config.width, 0, 1, 0, featureValueCol);	
 	return documents;
 }
 void writeSpace(FeatureSpace & space, string fullPath) {

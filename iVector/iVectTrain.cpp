@@ -27,27 +27,51 @@ string doubleToString(double num) {
 }
 
 
-
-
-
-void trainiVectors(string inFileList, string baseDir, string outLoc, int height, int width, unsigned int seed, bool limitFeature, int threads) {
+void shortTrainiVectors(Configuration config) {
 	resetClock();
 	//Set up tMatrix and iVectors
-	vector<Document> traindocs = fetchDocumentsFromFileList(TRAINSET, inFileList, baseDir, width, limitFeature);
+	printTimeMsg("--- USING SHORT TRAINING VECTORS ---");
+	vector<Document> traindocs = fetchDocumentsFromFileList(STRAINSET, config);
 	printTimeMsg(string("Fetched ")+intToString(traindocs.size())+string(" train docs"));
-	vector<Document> devtestdocs = fetchDocumentsFromFileList(DEVSET, inFileList, baseDir, width, limitFeature);
+	vector<Document> devtestdocs = fetchDocumentsFromFileList(DEVSET, config);
 	printTimeMsg(string("Fetched ")+intToString(devtestdocs.size())+string(" devtest docs"));
-	FeatureSpace space(height, width, traindocs, seed);
+	FeatureSpace space(config.height, config.width, traindocs, config.seed);
 	printTimeMsg("Done space setup");
 
-	traintMatrix(traindocs, devtestdocs, space, outLoc, threads);
+	traintMatrix(traindocs, devtestdocs, space, config.outLoc, config.threads);
+	
+	//Fetch the long training documents
+	traindocs = fetchDocumentsFromFileList(TRAINSET, config);
 
-	vector<Document> testdocs = fetchDocumentsFromFileList(EVLSET, inFileList, baseDir, width, limitFeature);
+	vector<Document> testdocs = fetchDocumentsFromFileList(EVLSET, config);
 	printTimeMsg(string("Fetched ")+intToString(testdocs.size())+string(" evltest docs"));
 
 	//branchTraining(traindocs, devtestdocs, testdocs, space, outLoc, threads);
 
-	extractiVectors(traindocs, devtestdocs, testdocs, space, threads, outLoc);
+	extractiVectors(traindocs, devtestdocs, testdocs, space, config.threads, config.outLoc);
+}
+
+
+
+
+void trainiVectors(Configuration config) {
+	resetClock();
+	//Set up tMatrix and iVectors
+	vector<Document> traindocs = fetchDocumentsFromFileList(TRAINSET, config);
+	printTimeMsg(string("Fetched ")+intToString(traindocs.size())+string(" train docs"));
+	vector<Document> devtestdocs = fetchDocumentsFromFileList(DEVSET, config);
+	printTimeMsg(string("Fetched ")+intToString(devtestdocs.size())+string(" devtest docs"));
+	FeatureSpace space(config.height, config.width, traindocs, config.seed);
+	printTimeMsg("Done space setup");
+
+	traintMatrix(traindocs, devtestdocs, space, config.outLoc, config.threads);
+
+	vector<Document> testdocs = fetchDocumentsFromFileList(EVLSET, config);
+	printTimeMsg(string("Fetched ")+intToString(testdocs.size())+string(" evltest docs"));
+
+	//branchTraining(traindocs, devtestdocs, testdocs, space, outLoc, threads);
+
+	extractiVectors(traindocs, devtestdocs, testdocs, space, config.threads, config.outLoc);
 }
 
 //Update iteratation of both iVectors and t-matrix

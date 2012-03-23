@@ -8,12 +8,13 @@
 #include "iVectIO.h"
 #include "iVectThread.h"
 #include <vector>
+#include "Configuration.h"
 
 //Only for unix based
 #ifndef _WIN32
 #include <sys/time.h>
 #endif
 
-void testAll(int width, int threads);
+void testAll(Configuration config);
 
 #endif

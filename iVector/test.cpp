@@ -2,6 +2,7 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 
+
 using namespace boost::numeric::ublas;
 
 #ifdef _WIN32
@@ -12,60 +13,9 @@ const static std::string TEST_OUT_LOC = "C:\\src\\cpp\\iVector\\testout\\results
 const static std::string TEST_BASEDIR_IN = "./test/";
 const static std::string TEST_FILELIST_IN = "./test/fileList.txt";
 const static std::string TEST_OUT_LOC = "./test/results.txt";
-const static std::string TEST_SPEED_FILELIST_LOC = "./other/";
-const static std::string TEST_SPEED_BASEDIR = "";
 #endif
 
 const static double MICROS_IN_S = 1000000;
-
-void vectorTests() {
-	/*
-	std::cout << "--vector tests--\n\n";
-	double a[] = {2.0, 5.0, 1.0};
-	printVector(a, 3, "a = ");
-	double b[] = {1.0, 3.0, 2.0};
-	printVector(b, 3, "b = ");
-	printVector(addVectors(a, b, 3), 3, "a+b = ");
-	std::cout << "a*b^T = " << multiplyVectors(a, b, 3) << "\n";
-	printVector(scaleVector(a, 5.0, 3), 3, "a*5 = ");
-	std::cout << "eucledianDist = " << eucledianDistance(a, b, 3) << "\n";
-	printVector(avgVector(a, b, 3), 3, "(a+b)/2 = ");
-	scaleAndAddVector(b, a, 5.0, 3);
-	printVector(b, 3, "a*5+b = ");
-	*/
-}
-void matrixTests() {
-	/*
-	Ax = b should give x-values [-1.4, 2.2, 0.6]
-	*/
-	/*
-	std::cout << "\n\n--matrix tests-- \n\n";
-	vector< vector<double> > matrix(3, vector<double>(3));
-	matrix[0][0] = 1;
-	matrix[0][1] = 2;
-	matrix[0][2] = 0;
-	matrix[1][0] = 3;
-	matrix[1][1] = 4;
-	matrix[1][2] = 4;
-	matrix[2][0] = 5;
-	matrix[2][1] = 6;
-	matrix[2][2] = 3;
-
-	vector<double> bvector(3);
-	bvector[0] = 3;
-	bvector[1] = 7;
-	bvector[2] = 8;
-	
-	//vector<int> p(3);
-
-	printMatrix(matrix, "A:");
-	printVector(bvector, "b-vector: ");
-	lupDecompose(matrix);
-	vector<double> x = lupSolve(matrix, bvector);
-	printVector(x, "Ax = b -> x = ");*/
-}
-
-
 
 void iVectTests() {
 	
@@ -130,9 +80,11 @@ void iVectTests() {
 }
 
 //System dependent
-void speedTests(unsigned int width, int threads) {
+void speedTests(Configuration config) {
 	#ifndef _WIN32
-	int height = 35937;
+	int height = config.height;
+	unsigned int width = config.width;
+	int threads = config.threads;
 	unsigned int updateNum = 5;
 
 	std::cout << "\n\n--Speedtest--\n\n";
@@ -141,7 +93,7 @@ void speedTests(unsigned int width, int threads) {
 	double time;
 
 	gettimeofday(&startTime, NULL);
-	std::vector<Document> traindocs = fetchDocumentsFromFileList(TRAINSET, TEST_SPEED_FILELIST_LOC, TEST_SPEED_BASEDIR, width, false);
+	std::vector<Document> traindocs = fetchDocumentsFromFileList(TRAINSET, config);
 	gettimeofday(&stopTime, NULL);
 	time = stopTime.tv_sec-startTime.tv_sec+((stopTime.tv_usec-startTime.tv_usec)/MICROS_IN_S);
 	std::cout << "Fetch " << traindocs.size() << " iVectors, " << time << " seconds\n";
@@ -205,11 +157,9 @@ void speedTests(unsigned int width, int threads) {
 
 
 
-void testAll(int width, int threads) {
-	vectorTests();
-	matrixTests();
+void testAll(Configuration config) {
 	iVectTests();
-	speedTests(width, threads);
+	speedTests(config);
 
 	std::string breaker;
 	getline(std::cin, breaker);
