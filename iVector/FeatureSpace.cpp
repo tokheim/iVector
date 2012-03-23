@@ -2,7 +2,10 @@
 
 using namespace boost::numeric::ublas;
 
-//const static unsigned int SEED = 23;
+/*
+This class holds the feature space that is used to extract iVectors. This includes the median vector (mVector) and the
+total variability matrix (tMatrix).  There are also methods to initialize these parameters
+*/
 
 FeatureSpace::FeatureSpace(unsigned int height, unsigned int width, std::vector<Document> & documents, unsigned int seed) {
 	this->height = height;

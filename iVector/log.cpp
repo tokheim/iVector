@@ -6,18 +6,24 @@
 struct timeval startTime;
 #endif
 
+/*
+Class for logging information
+*/
+
 using namespace boost::numeric::ublas;
 
 const static double MICROS_IN_S = 1000000;
 
+//This method resets the timer used to timestamp log transcriptions
 void resetClock() {
 	#ifndef _WIN32
 	gettimeofday(&startTime, NULL);
 	#endif
 }
+
 void printMsg(std::string msg) {
 	std::cout << msg << "\n";
-	std::cout.flush();
+	std::cout.flush(); //Performs flushing so that events are immediatly visible when pipeing logs to files
 }
 void printTimeMsg(std::string msg) {
 	#ifndef _WIN32
@@ -26,8 +32,7 @@ void printTimeMsg(std::string msg) {
 	double time = stopTime.tv_sec-startTime.tv_sec+((stopTime.tv_usec-startTime.tv_usec)/MICROS_IN_S);
 	std::cout << time << " - ";
 	#endif
-	std::cout << msg << "\n";
-	std::cout.flush();
+	printMsg(msg);
 }
 
 

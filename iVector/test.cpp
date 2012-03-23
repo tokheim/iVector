@@ -5,6 +5,10 @@
 
 using namespace boost::numeric::ublas;
 
+/*
+These methods are for testing the program. This includes both that the iVector/t-row updates are performed correctly, and estimations on the runtime
+*/
+
 #ifdef _WIN32
 const static std::string TEST_BASEDIR_IN = "C:\\src\\cpp\\iVector\\testin\\";
 const static std::string TEST_FILELIST_IN = "C:\\src\\cpp\\iVector\\testin\\filelist.txt";
@@ -17,6 +21,8 @@ const static std::string TEST_OUT_LOC = "./test/results.txt";
 
 const static double MICROS_IN_S = 1000000;
 
+
+//Validity tests of the iVector program using a preset set of documents
 void iVectTests() {
 	
 	std::vector<Document> documents;
@@ -79,7 +85,7 @@ void iVectTests() {
 	writeDocuments(documents, TEST_OUT_LOC);
 }
 
-//System dependent
+//A speedtest on actual data. This will mostly give an estimate of the total runtime.
 void speedTests(Configuration config) {
 	#ifndef _WIN32
 	int height = config.height;
@@ -156,7 +162,7 @@ void speedTests(Configuration config) {
 }
 
 
-
+//method for starting all tests.
 void testAll(Configuration config) {
 	iVectTests();
 	speedTests(config);

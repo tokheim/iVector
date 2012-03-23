@@ -2,6 +2,10 @@
 #include <sstream>
 using namespace std;
 
+/*
+This class  holds all the different options for iVector extraction.
+*/
+
 Configuration::Configuration() {
 	//Fill default values
 	fileListInDir = "./other/";

@@ -1,5 +1,9 @@
 #include "Document.h"
 #include "iVectMath.h"
+/*
+This class holds the information for a spoken document. This includes the original feature vector (gamma), the language class
+and the document's iVector. There is two iVectors so that the iterative algorithm can revert to the previous iVector.
+*/
 
 Document::Document(int languageClass, HASH_I_D & gamma, int dim) {
 	this->languageClass = languageClass;
@@ -19,6 +23,7 @@ void Document::setupIvectors(int dim) {
 	oldiVector.clear();
 }
 
+//Precalculates the first norm of the original feature vector
 void Document::calcGammaSum() {
 	gammaSum = 0;
 	HASH_I_D::iterator it;
@@ -26,6 +31,7 @@ void Document::calcGammaSum() {
 		gammaSum += it->second;
 	}
 }
+//Returns the value for the original feature (or zero if it doesn't exist in the sparse representation)
 const double Document::getGammaValue(int feature) {
 	HASH_I_D::const_iterator it = gamma.find(feature);
 	//HASH_I_D::iterator it = gamma.find(feature);

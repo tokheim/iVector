@@ -2,6 +2,10 @@
 
 #include <sstream>
 
+/*
+High level methods implementing the procedures for finding the best T-matrix, and extracting the iVectors from this matrix
+*/
+
 using namespace std;
 
 void extractiVectors(vector<Document> traindocs, vector<Document> devtestdocs, vector<Document> testdocs, FeatureSpace & space, int threads, string outLoc);
@@ -26,7 +30,7 @@ string doubleToString(double num) {
 	return ss.str();
 }
 
-
+//This method does not neccessarily use the same training documents for finding the T-matrix and extracting training iVectors
 void shortTrainiVectors(Configuration config) {
 	resetClock();
 	//Set up tMatrix and iVectors
@@ -53,7 +57,7 @@ void shortTrainiVectors(Configuration config) {
 
 
 
-
+//The method for training t, and extract iVectors from this matrix
 void trainiVectors(Configuration config) {
 	resetClock();
 	//Set up tMatrix and iVectors
@@ -116,7 +120,7 @@ void branchTraining(vector<Document> & traindocs, vector<Document> & devtestdocs
 
 
 
-//Returns best t-Matrix, but performs overtraining for viewing results
+//Finds the t-Matrix giving highest likelihood to devtest documents
 void traintMatrix(vector<Document> & traindocs, vector<Document> & devtestdocs, FeatureSpace & space, string outLoc, int threads) {
 	//Initially update all iVectors
 	updateiVectors(traindocs, space, threads);
@@ -150,6 +154,7 @@ void traintMatrix(vector<Document> & traindocs, vector<Document> & devtestdocs, 
 	printTimeMsg("Finished t-training");
 }
 
+//Do one update iteration on iVectors from train, dev and evaluation sets, and print results.
 void doUpdateIteration(vector<Document> & traindocs, vector<Document> & devtestdocs, vector<Document> & testdocs, FeatureSpace & space, int threads) {
 	updateiVectors(traindocs, space, threads);
 	printTimeMsg("Train updated");
@@ -168,7 +173,7 @@ void doUpdateIteration(vector<Document> & traindocs, vector<Document> & devtestd
 	printTimeMsg(string("Test distance") + doubleToString(calcAvgEuclideanDistance(testdocs)));
 }
 
-//Currently copies list of documents for usage with branching
+//Method for extracting iVectors from a given T-matrix. Saves iVectors after each iteration. Currently copies list of documents for usage with branching
 void extractiVectors(vector<Document> traindocs, vector<Document> devtestdocs, vector<Document> testdocs, FeatureSpace & space, int threads, string outLoc) {
 	
 	resetiVectors(traindocs);

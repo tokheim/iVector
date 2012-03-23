@@ -6,6 +6,10 @@
 #include <math.h>
 using namespace std;
 
+/*
+Theese methods are mostly for starting the program, parsing command options and displaying help/error information during initialization.
+*/
+
 const static string PARAM_IN_FILELIST_DIR = "-i";
 const static string PARAM_IN_BASE_DIR = "-b";
 const static string PARAM_OUT_LOC = "-o";

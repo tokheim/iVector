@@ -2,6 +2,10 @@
 #include <boost/numeric/ublas/vector.hpp>
 
 using namespace std;
+/*
+Wrapper to do the iterative newton-raphson updates in parallell.
+*/
+
 
 boost::mutex counterMutex;
 unsigned int takenFrom;
