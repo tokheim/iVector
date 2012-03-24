@@ -10,11 +10,12 @@ import math
 languages = [ 'ARABIC_EGYPT', 'ENG_GENRL', 'ENG_SOUTH', 'FARSI', 'FRENCH_CAN', 'GERMAN', 'HINDI', 'JAPANESE', 'KOREAN', 'MANDARIN_M', 'MANDARIN_T', 'SPANISH', 'SPANISH_CAR', 'TAMIL', 'VIETNAMESE' ]
 inbasedir = './CallFriend/?/vectsplit/'
 nistindir = './NIST/2003/lid03e1/transcripts/30/'
-setdir = ['train/', 'devtest/']
+setdir = ['train/', 'devtest/', 'shorttrain']
 outbasedir = './CallFriend/?/docnumvectors/'
 #NOT USED splitsymbol = '.'
 unigramlistin = './other/unigramList.txt'
-outfilelistnames = ['./other/train_list.txt', './other/devtest_list.txt', './other/nist_list.txt']
+#unigramlistin = './other/fullUnigramList.txt'
+outfilelistnames = ['./other/train_list.txt', './other/devtest_list.txt', './other/short_train_list.txt','./other/nist_list.txt']
 nistoutdir = './NIST/2003/lid03e1/docnumvectors/30/'
 nistkeyfile = '/talebase/data/speech_raw/NIST_LR/2003/docs/LID03_KEY.v3'
 #NOT USED - unigramlistout = './other/unigramlist.txt'
@@ -85,8 +86,8 @@ for i in range(len(setdir)):
     for language in languages:
         outdir = outbasedir.replace('?', language)+setdir[i]
         indir = inbasedir.replace('?', language)+setdir[i]
-        os.system('rm -r '+outdir)
         os.system('mkdir -p '+outdir)
+        os.system('rm '+outdir+'*.*')
         for filename in os.listdir(indir):
             vectorize(indir, outdir, filename)
             alldocs.append(DocInfo(outdir+filename, language))
@@ -98,6 +99,7 @@ for i in range(len(setdir)):
 alldocs = []
 keyfile = open(nistkeyfile, 'r')
 os.system('mkdir -p '+nistoutdir)
+os.system('rm '+nistoutdir+'*.*')
 for line in keyfile:
     splitline = line.split()
     if not os.path.isfile(nistindir+splitline[0]+'.rec'):
@@ -105,7 +107,7 @@ for line in keyfile:
     splitline = line.split(' ')
     vectorize(nistindir, nistoutdir, splitline[0]+'.rec')
     alldocs.append(DocInfo(nistoutdir+splitline[0]+'.txt', splitline[1]))
-outfile = open(outfilelistnames[2], 'w')
+outfile = open(outfilelistnames[3], 'w')
 for doc in alldocs:
     outfile.write(doc.lang+' '+doc.fname+'\n')
     

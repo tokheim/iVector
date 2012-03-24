@@ -77,6 +77,28 @@ void trainiVectors(Configuration config) {
 
 	extractiVectors(traindocs, devtestdocs, testdocs, space, config.threads, config.outLoc);
 }
+//Reset iVectors for each update iteration (Recursive check for likelihoods is not really neccessary)
+double doResetUpdateIteration(vector<Document> & traindocs, vector<Document> & devtestdocs, FeatureSpace & space, int threads) {
+	resetiVectors(traindocs);
+	updateiVectors(traindocs, space, threads);
+	printTimeMsg("Updated train iVectors");
+	resetiVectors(devtestdocs);
+	updatetRows(traindocs, space, threads);
+	printTimeMsg("Updated t rows");
+	updateiVectors(devtestdocs, space, threads);
+	printTimeMsg("Updated devtest iVectors");
+	double newLikelihood = calcTotalLikelihoodExcludeInf(devtestdocs, space);
+	
+	//Nice to print but strictly unneccessary
+	printTimeMsg(string("Train avg likelihood ")+doubleToString(calcTotalLikelihoodExcludeInf(traindocs, space)/traindocs.size()));
+	printTimeMsg(string("Devtest avg likelihood ")+doubleToString(newLikelihood/devtestdocs.size()));
+	
+	printTimeMsg(string("Train avg distance ")+doubleToString(calcAvgEuclideanDistance(traindocs)));
+	printTimeMsg(string("Devtest avg distance ")+doubleToString(calcAvgEuclideanDistance(devtestdocs)));
+	
+
+	return newLikelihood;
+}
 
 //Update iteratation of both iVectors and t-matrix
 double doUpdateIteration(vector<Document> & traindocs, vector<Document> & devtestdocs, FeatureSpace & space, int threads) {

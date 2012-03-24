@@ -13,6 +13,7 @@ devtargetmicros = 30 * 10000000;#Target microseconds of each file for devtest da
 devtimeslack = 0.1
 devtargetFiles = 100#Target number of devtest files per language
 
+shortTraintargetLength = 30
 traintargetFiles = 250#Target number of train files per language
 traintimeslack = 0.4
 
@@ -102,12 +103,17 @@ for language in languages:
     fileListArray = []
     
     train_outdir = './CallFriend/' + language + '/vectsplit/train/'
+    short_train_outdir = './CallFriend/'+language+ '/vectsplit/shorttrain/'
     dev_outdir = './CallFriend/' + language + '/vectsplit/devtest/'
     
-    os.system('rm -r '+train_outdir)
-    os.system('rm -r '+dev_outdir)
+    
     os.system('mkdir -p '+train_outdir)
     os.system('mkdir -p '+dev_outdir)
+    os.system('mkdir -p '+short_train_outdir)
+    os.system('rm '+train_outdir+'*.*')
+    os.system('rm '+dev_outdir+'*.*')
+    os.system('rm '+short_train_outdir+'*.*')
+    
     
     for subdir in subdirs:
         trandir = './CallFriend/' + language + '/transcripts/' + subdir + '/'
@@ -142,6 +148,15 @@ for language in languages:
     timeleft = 0
     for docfile in fileListArray:
         timeleft += docfile.length
+    
+    #Make short training files
+    numFiles = 0.0
+    shortList = list(fileListArray)
+    while len(shortList) > 0:
+        docfile = shortList.pop()
+        numFiles += splitfile(docfile, short_train_outdir, shortTraintargetLength, traintimeslack)
+        print str(len(shortList))+' short files for '+language+' remaining, currently split to '+str(numFiles)+' files'
+    
     #Make train files
     numFiles = 0.0
     while len(fileListArray) > 0:
