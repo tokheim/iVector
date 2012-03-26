@@ -33,7 +33,7 @@ gridPath = './gridliblinear.py'
 
 trainSymbol = '-t'
 testSymbol = '-e'
-resultsSymbol = '-q'#NOT USED
+resultsSymbol = '-R'#NOT USED
 optionsSymbol = '-o'
 regressionSymbol = '-r'
 regularizationSymbol = '-c'
@@ -120,21 +120,6 @@ def calcStdev(iList):
     for i in range(len(var)):
         var[i] = math.sqrt(var[i]/(len(iList)-1))
     return var
-    
-#Interfaces gridliblinear (From liblinears easy.py)
-def gridSearch(trainPath):
-    cmd = gridPath+' '+gridOptions+' '+trainPath
-    f = subprocess.Popen(cmd, shell = True, stdout = subprocess.PIPE)
-    line = ''
-    while True:
-        last_line = line
-        print 'GridSearch: '+line
-        line = f.stdout.readline()
-        if not line: break
-    #c,g,rate = map(float,last_line.split())
-    c = last_line.split()[0]
-    print 'C value parsed is '+c
-    return c
 
 #Saves means and stdevs
 def writeScale(means, stdevs, savePath):
@@ -160,13 +145,30 @@ def readConfAndScale(fullPath, iList):
     shiftMean(iList, means)
     scale(iList, stdevs)
 
-def readHardResults(resultPath, testList, numLanguages):
+#Interfaces gridliblinear (From liblinears easy.py)
+def gridSearch(trainPath):
+    cmd = gridPath+' '+gridOptions+' '+trainPath
+    f = subprocess.Popen(cmd, shell = True, stdout = subprocess.PIPE)
+    line = ''
+    while True:
+        last_line = line
+        print 'GridSearch: '+line
+        line = f.stdout.readline()
+        if not line: break
+    #c,g,rate = map(float,last_line.split())
+    c = last_line.split()[0]
+    print 'C value parsed is '+c
+    return c
+    
+
+def readHardResults(resultPath, testList, numLanguages, printResults):
     #Check results (Hard value)
     guess = [ [0 for i in range(numLanguages)] for i in range(numLanguages)]
     inFile = open(resultPath, 'r')
     i = 0
     for line in inFile:
-        guess[(int(testList[i].lang)-1)%numLanguages][(int(line)-1)%numLanguages] += 1
+        splitline = line.split(' ')
+        guess[(int(testList[i].lang)-1)%numLanguages][(int(splitline[0])-1)%numLanguages] += 1
         i+=1
     inFile.close()
     
@@ -174,35 +176,50 @@ def readHardResults(resultPath, testList, numLanguages):
     correct = 0.0
     for i in range(len(guess)):
         if not (ignoreLastLanguage and i == numLanguages-1):
-            print str(guess[i])
+            if printResults:
+                print str(guess[i])
             tot += sum(guess[i])
             correct += guess[i][i]
-    
-    print str(correct/tot)
+    if printResults:
+        print str(correct/tot)
     return correct/tot
-    
-def readSoftResults(resultPath, testList, numLanguages):
+
+def findCValue(trainPath, tempModelPath, testPath, tempResultPath, numLanguages, testList):
+    c_best = '-1'
+    cor_best = 0
+    c_values = [str(math.pow(2, i)) for i in range(-4, 2)]
+    for c_value in c_values:
+        os.system('train -s 0 '+optionsValues+' -c '+c_value+' '+trainPath+' '+tempModelPath)
+        os.system('predict '+testPath+' '+tempModelPath+'.model '+tempResultPath)
+        
+        res = readHardResults(tempResultPath, testList, numLanguages, 0)
+        if res > cor_best:
+            print 'c: '+c_value+' result: '+str(res)+' Currently best'
+            c_best = c_value
+            cor_best = res
+        else:
+            print 'c: '+c_value+' result: '+str(res)+' Not best'
+    print 'Regularizaiton search finished, best c '+c_best
+    return c_best
+        
+#Saves result vector for further processing
+def readSoftResults(tempResultPath, testList, numLanguages, resultPath):
     #1 line: labels 1 2 3 ...
     #next lines: <guessed class> <prob1> <prob2> <prob3> <prob4> <prob5>...
-    pmissgiventarget = [0.0]*numLanguages
-    pfalsealarmgivennontarget = [0.0]*numLanguages
-    targets = [0]*numLanguages
     
     i = 0
-    inFile = open(resultPath, 'r')
+    inFile = open(tempResultPath, 'r')
+
+    outFile = open(resultPath, 'w')
     for line in inFile.readlines()[1:]:#Ignore first line
         splitLine = line.split()
-        prob = [0.0]*numLanguages
+        outLine = str(testList[i].lang)
         for j in range(1, len(splitLine)):
-            prob[(j-1)%numLanguages] += float(splitLine[j])#Some dialects mapped to same language so +=
-        for j in range(len(prob)):
-            if j == (int(testList[i].lang)-1)%numLanguages:#Is target language
-                pmissgiventarget[j] += 1-prob[j]
-                targets[j]+=1
-            else:
-                pfalsealarmgivennontarget[j] += prob[j]
+            outLine += ' '+ splitLine[j]
+        outFile.write(outLine)
         i+=1
-        
+    
+    outFile.close()
     inFile.close()
     
     cdettot = 0.0
@@ -273,7 +290,7 @@ def main():
         print 'Sets saved'
         if float(c_value) > 0:
             print 'Starting Gridsearch'
-            c_value = gridSearch(tempDir+tempTrainFileName)
+            c_value = findCValue(tempDir+tempTrainFileName, tempDir+tempModelFileName, tempDir+tempTestFileName, tempDir+tempResultFileName, numLanguages, testVectors)
             print 'Gridsearch finished'
         if not regressionValue:
             os.system('train '+optionsValues+' -c '+c_value+' '+tempDir+tempTrainFileName+' '+modelDir+outname+'.model')
@@ -293,10 +310,10 @@ def main():
     #Write files
     writeIvectList(testVectors, tempDir+tempTestFileName)
     if not regressionValue:
-        os.system('predict '+tempDir+tempTestFileName+' '+modelDir+outname+'.model '+tempDir+tempResultFileName)
+        os.system('predict '+tempDir+tempTestFileName+' '+modelDir+outname+'.model '+tempDir+tempResultResultFileName)
         print 'Testing done'
     
-        readHardResults(tempDir+tempResultFileName, testVectors, numLanguages)
+        readHardResults(tempDir+tempResultFileName, testVectors, numLanguages, 1)
     else:
         os.system('predict -b 1 '+tempDir+tempTestFileName+' '+modelDir+outname+'.model '+tempDir+tempResultFileName)
         print 'Testing done'

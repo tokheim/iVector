@@ -13,7 +13,7 @@ devtargetmicros = 30 * 10000000;#Target microseconds of each file for devtest da
 devtimeslack = 0.1
 devtargetFiles = 100#Target number of devtest files per language
 
-shortTraintargetLength = 30
+shortTraintargetLength = 30 * 10000000;
 traintargetFiles = 250#Target number of train files per language
 traintimeslack = 0.4
 
