@@ -13,10 +13,14 @@ These methods are for testing the program. This includes both that the iVector/t
 const static std::string TEST_BASEDIR_IN = "C:\\src\\cpp\\iVector\\testin\\";
 const static std::string TEST_FILELIST_IN = "C:\\src\\cpp\\iVector\\testin\\filelist.txt";
 const static std::string TEST_OUT_LOC = "C:\\src\\cpp\\iVector\\testout\\results.txt";
+const static std::string TEST_SPACE_IN = "C:\\src\\cpp\\iVector\\testin\\spaceIn.txt";
+const static std::string TEST_SPACE_OUT = "C:\\src\\cpp\\iVector\\testout\\spaceOut.txt";
 #else
 const static std::string TEST_BASEDIR_IN = "./test/";
 const static std::string TEST_FILELIST_IN = "./test/fileList.txt";
 const static std::string TEST_OUT_LOC = "./test/results.txt";
+const static std::string TEST_SPACE_IN = "./test/spaceIn.txt";
+const static std::string TEST_SPACE_OUT = "./test/spaceOut.txt";
 #endif
 
 const static double MICROS_IN_S = 1000000;
@@ -39,7 +43,7 @@ void iVectTests() {
 	FeatureSpace space(5, 3, documents, 23);
 	printMatrix(space.tMatrix, "5x3 Random tMatrix:");
 	
-	matrix<double> tMatrix(5, 3);
+	/*matrix<double> tMatrix(5, 3);
 	tMatrix(0,0) = 1;
 	tMatrix(0,1) = 2;
 	tMatrix(0,2) = 1;
@@ -54,9 +58,15 @@ void iVectTests() {
 	tMatrix(3,2) = 0;
 	tMatrix(4,0) = 2;
 	tMatrix(4,1) = 1;
-	tMatrix(4,2) = 0;
+	tMatrix(4,2) = 0;*/
 
-	space = FeatureSpace(tMatrix, documents);
+	Configuration config;
+	config.featureSpacePath = TEST_SPACE_IN;
+	config.height = 5;
+	config.width = 3;
+	space = readSpace(config);
+
+	//space = FeatureSpace(tMatrix, documents);
 	printMatrix(space.tMatrix, "5x3 codeset tMatrix:");
 	printVector(space.mVector, "mVector:");
 
@@ -83,6 +93,8 @@ void iVectTests() {
 	std::cout << "\nTotal likelihood (2) = "<<calcTotalLikelihood(documents, space);
 
 	writeDocuments(documents, TEST_OUT_LOC);
+	writeSpace(space, TEST_SPACE_OUT);
+
 }
 
 //A speedtest on actual data. This will mostly give an estimate of the total runtime.

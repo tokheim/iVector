@@ -12,6 +12,9 @@ struct Configuration {
 	std::string outLoc;
 	std::string baseDir;
 	std::string fileListInDir;
+	std::string featureSpacePath;
+	bool loadFeatureSpace;
+	bool useTwoTrainSets;
 	
 	Configuration();
 	std::string toString();

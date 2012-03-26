@@ -30,48 +30,42 @@ string doubleToString(double num) {
 	return ss.str();
 }
 
-//This method does not neccessarily use the same training documents for finding the T-matrix and extracting training iVectors
-void shortTrainiVectors(Configuration config) {
-	resetClock();
-	//Set up tMatrix and iVectors
-	printTimeMsg("--- USING SHORT TRAINING VECTORS ---");
-	vector<Document> traindocs = fetchDocumentsFromFileList(STRAINSET, config);
-	printTimeMsg(string("Fetched ")+intToString(traindocs.size())+string(" train docs"));
-	vector<Document> devtestdocs = fetchDocumentsFromFileList(DEVSET, config);
-	printTimeMsg(string("Fetched ")+intToString(devtestdocs.size())+string(" devtest docs"));
-	FeatureSpace space(config.height, config.width, traindocs, config.seed);
-	printTimeMsg("Done space setup");
-
-	traintMatrix(traindocs, devtestdocs, space, config.outLoc, config.threads);
-	
-	//Fetch the long training documents
-	traindocs = fetchDocumentsFromFileList(TRAINSET, config);
-
-	vector<Document> testdocs = fetchDocumentsFromFileList(EVLSET, config);
-	printTimeMsg(string("Fetched ")+intToString(testdocs.size())+string(" evltest docs"));
-
-	//branchTraining(traindocs, devtestdocs, testdocs, space, outLoc, threads);
-
-	extractiVectors(traindocs, devtestdocs, testdocs, space, config.threads, config.outLoc);
-}
-
-
-
 //The method for training t, and extract iVectors from this matrix
 void trainiVectors(Configuration config) {
 	resetClock();
 	//Set up tMatrix and iVectors
-	vector<Document> traindocs = fetchDocumentsFromFileList(TRAINSET, config);
+	vector<Document> traindocs;
+	if (config.useTwoTrainSets && !config.loadFeatureSpace) {
+		traindocs = fetchDocumentsFromFileList(STRAINSET, config);
+	}
+	else if (!config.loadFeatureSpace) {
+		traindocs = fetchDocumentsFromFileList(TRAINSET, config);
+	}
 	printTimeMsg(string("Fetched ")+intToString(traindocs.size())+string(" train docs"));
 	vector<Document> devtestdocs = fetchDocumentsFromFileList(DEVSET, config);
 	printTimeMsg(string("Fetched ")+intToString(devtestdocs.size())+string(" devtest docs"));
+	
 	FeatureSpace space(config.height, config.width, traindocs, config.seed);
-	printTimeMsg("Done space setup");
+	if (!config.loadFeatureSpace) {
+		printTimeMsg("Done space setup");
 
-	traintMatrix(traindocs, devtestdocs, space, config.outLoc, config.threads);
+		traintMatrix(traindocs, devtestdocs, space, config.outLoc, config.threads);
+
+		writeSpace(space, config.featureSpacePath);
+	}
+	else {
+		space = readSpace(config);
+		printTimeMsg("Loaded space");
+	}
 
 	vector<Document> testdocs = fetchDocumentsFromFileList(EVLSET, config);
 	printTimeMsg(string("Fetched ")+intToString(testdocs.size())+string(" evltest docs"));
+	
+	if (config.useTwoTrainSets) {
+		traindocs = fetchDocumentsFromFileList(TRAINSET, config);
+		printTimeMsg(string("Fetched ")+intToString(traindocs.size())+string(" train docs"));
+	}
+
 
 	//branchTraining(traindocs, devtestdocs, testdocs, space, outLoc, threads);
 

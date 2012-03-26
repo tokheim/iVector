@@ -4,6 +4,8 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/algorithm/string.hpp>
 
+const static double MINUS_INF = log(0.0);
+
 using namespace std;
 
 /*
@@ -95,7 +97,11 @@ void writeSpace(FeatureSpace & space, string fullPath) {
 	}
 	outFile << space.mVector(0);
 	for (unsigned int i = 1; i < space.height; i++) {
-		outFile << " " << space.mVector(i);
+		if (space.mVector(i) != MINUS_INF) {
+			outFile << " " << space.mVector(i);
+		} else {
+			outFile << " -inf";
+		}
 	}
 	
 	for (unsigned int i = 0; i < space.height; i++) {
@@ -107,29 +113,32 @@ void writeSpace(FeatureSpace & space, string fullPath) {
 	outFile.close();
 }
 //Reads the mVector and tMatrix from the given directory
-FeatureSpace readSpace(string fullPath) {
+FeatureSpace readSpace(Configuration & config) {
 	ifstream inFile;
-	inFile.open(fullPath.c_str());
+	inFile.open(config.featureSpacePath.c_str());
 	if (!inFile.is_open()) {
-		cerr << "Unable to open file " << fullPath;
+		cerr << "Unable to open file " << config.featureSpacePath;
+		exit(1);
 	}
-	boost::numeric::ublas::matrix<double> tMatrix;
 	string line;
 	getline(inFile, line);
 	vector<string> splitLine;
 	boost::split(splitLine, line, boost::is_any_of("\t "));
-	boost::numeric::ublas::vector<double> mVector(splitLine.size());
-	for (unsigned int i = 0; i < splitLine.size(); i++) {
+	boost::numeric::ublas::vector<double> mVector(config.height);
+	for (int i = 0; i < config.height; i++) {
 		mVector(i) = atof(splitLine[i].c_str());
+		if (splitLine[i].find("-inf") != string::npos) {
+			mVector(i) = MINUS_INF;
+		}
 	}
+	boost::numeric::ublas::matrix<double> tMatrix(config.height, config.width);
+	int row = 0;
 	while (getline(inFile, line)) {
 		boost::split(splitLine, line, boost::is_any_of("\t "));
-		boost::numeric::ublas::vector<double> row(splitLine.size());
 		for (unsigned int i = 0; i < splitLine.size(); i++) {
-			row(i) = atof(splitLine[i].c_str());
+			tMatrix(row, i) = atof(splitLine[i].c_str());
 		}
-		tMatrix.resize(tMatrix.size1()+1, splitLine.size(), true);//Should be preallocated, but is currently not used anyways
-		boost::numeric::ublas::matrix_row<boost::numeric::ublas::matrix<double> > (tMatrix, tMatrix.size1()-1) = row;
+		row += 1;
 	}
 	inFile.close();
 	return FeatureSpace(tMatrix, mVector);

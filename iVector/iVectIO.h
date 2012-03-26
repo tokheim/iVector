@@ -18,7 +18,7 @@ std::vector<Document> fetchDocumentsFromFileList(int speechSet, Configuration &c
 void fetchDocumentsFromFileList(std::vector<Document> & documents, std::string fullPath, std::string baseDir, int dim, int languageCol, int fileNameCol, int featureNameCol, int featureValueCol);
 //vector<Document> fetchDocuments(int speechSet, string speechPath, int dim);
 void writeDocuments(std::vector<Document> & documents, std::string fullPath);
-FeatureSpace readSpace(std::string fullPath);
+FeatureSpace readSpace(Configuration & config);
 void writeSpace(FeatureSpace & space, std::string fullPath);
 
 #endif

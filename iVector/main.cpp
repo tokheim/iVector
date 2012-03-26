@@ -15,9 +15,12 @@ const static string PARAM_IN_BASE_DIR = "-b";
 const static string PARAM_OUT_LOC = "-o";
 const static string PARAM_TRIGRAM_COUNT = "-C";
 const static string PARAM_IVECT_COUNT = "-r";
-const static string PARAM_SEED = "-s";
+const static string PARAM_SEED = "-S";
 const static string PARAM_LIMIT_FEATURE = "-L";
 const static string PARAM_THREADS = "-t";
+const static string PARAM_LOADSPACE = "-l";
+const static string PARAM_SAVESPACE = "-s";
+const static string PARAM_USE_TWO_TRAIN_SETS = "-T";
 
 const static string HELP_TEXT = "Lorem ipsum dolor est";
 
@@ -34,6 +37,10 @@ void setPositiveValue(string paramName, char * sValue, int *param) {
 	if (*param <= 0) {
 		printParamError(paramName, sValue);
 	}
+}
+
+bool parseBool(string sValue) {
+	return sValue=="true" || sValue=="1" || sValue=="True" || sValue=="TRUE";
 }
 
 int main(int argc, char *argv[]) {
@@ -62,13 +69,23 @@ int main(int argc, char *argv[]) {
         else if (paramName == PARAM_THREADS) {
             setPositiveValue(paramName, argv[i+1], &config.threads);
         }
+		else if (paramName == PARAM_SAVESPACE) {
+			config.featureSpacePath = argv[i+1];
+			config.loadFeatureSpace = false;
+		}
+		else if (paramName == PARAM_LOADSPACE) {
+			config.featureSpacePath = argv[i+1];
+			config.loadFeatureSpace = true;
+		}
 		else if (paramName == "?" || paramName == "-?") {
 			cout << HELP_TEXT;
 			return 0;
 		}
 		else if (paramName == PARAM_LIMIT_FEATURE) {
-			string paramValue = string(argv[i+1]);
-            config.limitFeatures = paramValue=="true" || paramValue=="1" || paramValue=="True";
+			config.limitFeatures = parseBool(string(argv[i+1]));
+		}
+		else if (paramName == PARAM_USE_TWO_TRAIN_SETS) {
+			config.useTwoTrainSets = parseBool(string(argv[i+1]));
 		}
 		else {
 			printCommandError(paramName);
