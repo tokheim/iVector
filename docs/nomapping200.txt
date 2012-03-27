@@ -1,3 +1,5 @@
+Vanilla, ingen mapping, 93.4ish recognition på devtest
+
 in ./other/ base  out ./iVectors/nomapping200/ h 205379 w 200 s 23 limit 1
 37.187 - Fetched 3779 train docs
 40.5555 - Fetched 1515 devtest docs

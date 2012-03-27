@@ -1,3 +1,5 @@
+Vanilla MIT mapping, ganske lik gjenkjenning som 200
+
 in ./other/ base  out ./iVectors/new100/ h 35937 w 100 s 23 limit 1
 34.5577 - Fetched 3779 train docs
 37.9504 - Fetched 1515 devtest docs

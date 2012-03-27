@@ -1,3 +1,4 @@
+Mulig denne ble overskrevet, ingen mapping, T blir trent med 30 sekunder segmenter, klassifiserer med 290sekunder
 File list directory: ./other/
 Base directory for documents: 
 Save directory: ./iVectors/varnomapping200/
