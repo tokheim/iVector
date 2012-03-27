@@ -51,7 +51,7 @@ void trainiVectors(Configuration config) {
 
 		traintMatrix(traindocs, devtestdocs, space, config.outLoc, config.threads);
 
-		writeSpace(space, config.featureSpacePath);
+		writeSpace(space, config.outLoc+string("space"));
 	}
 	else {
 		space = readSpace(config);

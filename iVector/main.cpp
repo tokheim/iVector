@@ -19,7 +19,6 @@ const static string PARAM_SEED = "-S";
 const static string PARAM_LIMIT_FEATURE = "-L";
 const static string PARAM_THREADS = "-t";
 const static string PARAM_LOADSPACE = "-l";
-const static string PARAM_SAVESPACE = "-s";
 const static string PARAM_USE_TWO_TRAIN_SETS = "-T";
 
 const static string HELP_TEXT = "Lorem ipsum dolor est";
@@ -69,10 +68,6 @@ int main(int argc, char *argv[]) {
         else if (paramName == PARAM_THREADS) {
             setPositiveValue(paramName, argv[i+1], &config.threads);
         }
-		else if (paramName == PARAM_SAVESPACE) {
-			config.featureSpacePath = argv[i+1];
-			config.loadFeatureSpace = false;
-		}
 		else if (paramName == PARAM_LOADSPACE) {
 			config.featureSpacePath = argv[i+1];
 			config.loadFeatureSpace = true;
