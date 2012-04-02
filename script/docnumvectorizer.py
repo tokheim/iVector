@@ -11,10 +11,11 @@ languages = [ 'ARABIC_EGYPT', 'ENG_GENRL', 'ENG_SOUTH', 'FARSI', 'FRENCH_CAN', '
 inbasedir = './CallFriend/?/Splitted30/'
 setdir = ['train_raw/', 'devtest_raw/', 'evltest_raw/']
 outbasedir = './CallFriend/?/docnumvectors30/'
-#NOT USED splitsymbol = '.'
 unigramlistin = './other/unigramList.txt'
+#unigramlistin = './other/fullUnigramList.txt'
 outfilelistnames = ['./other/train_list.txt', './other/devtest_list.txt', './other/evltest_list.txt']
-#NOT USED - unigramlistout = './other/unigramlist.txt'
+onlyTrigrams = 0
+
 
 #Parameter initialization
 allunigrams = {}
@@ -35,12 +36,34 @@ def isNoise(symbol):
 def normalizeFeature(feature):
     return feature.rstrip()
 
-#1 to 1 maps feature strings to ints
+'''#1 to 1 maps feature strings to ints
 def calc_feature_num(trigram):
-    num = 0;
+    num = 0
     for i in range(3):
         num += allunigrams[trigram[i]]*math.pow(numofunigrams, 2-i)
     return int(num)
+'''
+def insert_feature_num(num, vector):
+    if vector.has_key(num):
+        vector[num] += 1
+    else:
+        vector[num] = 1
+
+def insert_features(ngram, vector):
+    lastnum = 0
+    for i in range(len(ngram)):
+        num = allunigrams[trigram[i]]*math.pow(numofunigrams, i)
+        if i > 0:
+            num += lastnum+math.pow(numofunigrams, i)
+        insert_feature_num(num, vector)
+        lastnum = num
+            
+def insert_feature(trigram, vector):
+    if len(trigram) == 3:
+        num = 0
+        for i in range(3):
+            num += allunigrams[trigram[i]]*math.pow(numofunigrams, 2-i)
+        insert_feature_num(num, vector)
 
 
 #Read list of possible unigrams
@@ -73,11 +96,11 @@ for i in range(len(setdir)):
                     lastphones.insert(0, phone)
                     if len(lastphones) > 3:
                         lastphones.pop(3)
-                        ngramnum = calc_feature_num(lastphones)
-                        if docvector.has_key(ngramnum):
-                            docvector[ngramnum] += 1.0
-                        else:
-                            docvector[ngramnum] = 1.0
+                    
+                    if onlyTrigrams:
+                        insert_feature(lastphones, docvector)
+                    else:
+                        insert_features(lastphones, docvector)
             outfile = open(outdir+filename, 'w')
             for key, value in docvector.items():
                 outfile.write(str(key)+' '+str(value)+' '+str(math.sqrt(value))+'\n')
@@ -91,3 +114,5 @@ for i in range(len(setdir)):
 
 print str(allunigrams)
 print 'Finished, total number of unigrams: '+str(numofunigrams)+', trigrams: '+str(math.pow(numofunigrams, 3))
+if not onlyTrigrams:
+    print 'Total: '+str(numofunigrams+math.pow(numofunigrams, 2)+math.pow(numofunigrams, 3))
