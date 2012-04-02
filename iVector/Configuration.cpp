@@ -15,7 +15,7 @@ Configuration::Configuration() {
 	limitFeatures = true;
 	seed = 23;
 	width = 200;
-	height = 35937;
+	height = 35937;//Full map 205379
 	featureSpacePath = "./space";
 	loadFeatureSpace = false;
 	useTwoTrainSets = false;
