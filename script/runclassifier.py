@@ -22,7 +22,7 @@ c_value = '-1'
 
 sphereSquareConstant = 1.0
 resultPath = './res.txt'#NOT USED
-tempDir = './ivecttemp/'
+tempDir = '../ivecttemp/'
 modelDir = './svmmodels/'
 tempTrainFileName = 'a'
 tempTestFileName = 'b'
@@ -33,11 +33,12 @@ gridPath = './gridliblinear.py'
 
 trainSymbol = '-t'
 testSymbol = '-e'
-resultsSymbol = '-q'#NOT USED
+resultsSymbol = '-R'#NOT USED
 optionsSymbol = '-o'
 regressionSymbol = '-r'
 regularizationSymbol = '-c'
-numLanguages = 13#Actual number of languages, not including dialects
+numLanguages = 13#Actual number of languages, not including dialects but including 1 out of set language
+maxLabel = 16#Highest class label
 ignoreLastLanguage = 0#Ignore out of set language
 
 trainVectors = [];
@@ -120,21 +121,6 @@ def calcStdev(iList):
     for i in range(len(var)):
         var[i] = math.sqrt(var[i]/(len(iList)-1))
     return var
-    
-#Interfaces gridliblinear (From liblinears easy.py)
-def gridSearch(trainPath):
-    cmd = gridPath+' '+gridOptions+' '+trainPath
-    f = subprocess.Popen(cmd, shell = True, stdout = subprocess.PIPE)
-    line = ''
-    while True:
-        last_line = line
-        print 'GridSearch: '+line
-        line = f.stdout.readline()
-        if not line: break
-    #c,g,rate = map(float,last_line.split())
-    c = last_line.split()[0]
-    print 'C value parsed is '+c
-    return c
 
 #Saves means and stdevs
 def writeScale(means, stdevs, savePath):
@@ -160,13 +146,29 @@ def readConfAndScale(fullPath, iList):
     shiftMean(iList, means)
     scale(iList, stdevs)
 
-def readHardResults(resultPath, testList, numLanguages):
-    #Check results (Hard value)
+#Interfaces gridliblinear (From liblinears easy.py)
+def gridSearch(trainPath):
+    cmd = gridPath+' '+gridOptions+' '+trainPath
+    f = subprocess.Popen(cmd, shell = True, stdout = subprocess.PIPE)
+    line = ''
+    while True:
+        last_line = line
+        print 'GridSearch: '+line
+        line = f.stdout.readline()
+        if not line: break
+    #c,g,rate = map(float,last_line.split())
+    c = last_line.split()[0]
+    print 'C value parsed is '+c
+    return c
+    
+
+def readResults(resultPath, testList, numLanguages, printResults):
     guess = [ [0 for i in range(numLanguages)] for i in range(numLanguages)]
     inFile = open(resultPath, 'r')
     i = 0
-    for line in inFile:
-        guess[(int(testList[i].lang)-1)%numLanguages][(int(line)-1)%numLanguages] += 1
+    for line in inFile.readlines()[1:]:
+        splitline = line.split(' ')
+        guess[(int(testList[i].lang)-1)%numLanguages][(int(splitline[0])-1)%numLanguages] += 1
         i+=1
     inFile.close()
     
@@ -174,47 +176,62 @@ def readHardResults(resultPath, testList, numLanguages):
     correct = 0.0
     for i in range(len(guess)):
         if not (ignoreLastLanguage and i == numLanguages-1):
-            print str(guess[i])
+            if printResults:
+                print str(guess[i])
             tot += sum(guess[i])
             correct += guess[i][i]
-    
-    print str(correct/tot)
+    if printResults:
+        print str(correct/tot)
     return correct/tot
-    
-def readSoftResults(resultPath, testList, numLanguages):
-    #1 line: labels 1 2 3 ...
-    #next lines: <guessed class> <prob1> <prob2> <prob3> <prob4> <prob5>...
-    pmissgiventarget = [0.0]*numLanguages
-    pfalsealarmgivennontarget = [0.0]*numLanguages
-    targets = [0]*numLanguages
+
+def findCValue(trainPath, tempModelPath, testPath, tempResultPath, numLanguages, testList):
+    c_best = '-1'
+    cor_best = 0
+    c_values = [str(math.pow(2, i)) for i in range(-5, 3)]
+    for c in c_values:
+        os.popen('train -s 0 '+optionsValues+' -c '+c+' '+trainPath+' '+tempModelPath)
+        os.system('predict -b 1 '+testPath+' '+tempModelPath+' '+tempResultPath)
+        
+        res = readResults(tempResultPath, testList, numLanguages, 0)
+        if res > cor_best:
+            print 'c: '+c+' result: '+str(res)+' Currently best'
+            c_best = c
+            cor_best = res
+        else:
+            print 'c: '+c+' result: '+str(res)+' Not best'
+    print 'Regularizaiton search finished, best c: '+c_best+' performance: '+str(cor_best)
+    return c_best
+        
+#Saves result vector for further processing
+def SaveResults(tempResultPath, testList, labels, resultPath):
+    #1 line: labels 4 2 7 3 ...
+    #next lines: <guessed class> <prob4> <prob2> <prob7> <prob3>...
     
     i = 0
-    inFile = open(resultPath, 'r')
-    for line in inFile.readlines()[1:]:#Ignore first line
+    inFile = open(tempResultPath, 'r')
+
+    outFile = open(resultPath, 'w')
+    
+    #Read labels
+    splitLine = inFile.readline().split()
+    labelmap = [-1]*(labels+1)#Labels are 1 indexed (zeroth cell is garbage)
+    for j in range(1, len(splitLine)):
+        labelmap[int(splitLine[j])] = j
+    
+    for line in inFile.readlines():
         splitLine = line.split()
-        prob = [0.0]*numLanguages
-        for j in range(1, len(splitLine)):
-            prob[(j-1)%numLanguages] += float(splitLine[j])#Some dialects mapped to same language so +=
-        for j in range(len(prob)):
-            if j == (int(testList[i].lang)-1)%numLanguages:#Is target language
-                pmissgiventarget[j] += 1-prob[j]
-                targets[j]+=1
+        outLine = testList[i].lang
+        for col in labelmap[1:]:
+            if col != -1:
+                outLine += ' '+ splitLine[col]
             else:
-                pfalsealarmgivennontarget[j] += prob[j]
+                outLine += ' 0.0'
+        outFile.write(outLine+'\n')
         i+=1
-        
+    
+    outFile.close()
     inFile.close()
     
-    cdettot = 0.0
-    for i in range(numLanguages):
-        if targets[i] != 0:
-            cdet = (pmissgiventarget[i]/targets[i]+pfalsealarmgivennontarget[i]/(len(testList)-targets[i]))/2
-        else:
-            cdet = 0.5*pfalsealarmgivennontarget[i]/(len(testList)-targets[i])
-        print str(i)+' C_det: '+str(cdet)
-        cdettot += cdet
-    print 'Avg C_det: '+str(cdettot/numLanguages)
-    return cdettot/numLanguages
     
 def main():
     trainPaths = []
@@ -223,6 +240,7 @@ def main():
     global testVectors
     global regressionValue
     global c_value
+    global resultPath
     #Read input parameters
     for i in range(1, len(sys.argv), 2):
         if sys.argv[i] == trainSymbol:
@@ -234,20 +252,15 @@ def main():
             resultPath = sys.argv[i+1]
         elif sys.argv[i] == optionsSymbol:
             optionsValues = sys.argv[i+1]
-        elif sys.argv[i] == regressionSymbol:
-            regressionValue = int(sys.argv[i+1])
         elif sys.argv[i] == regularizationSymbol:
             c_value = sys.argv[i+1]
     trainPaths.sort()
     outname = ''.join(trainPaths).replace('/', '').replace('.','')+c_value
-    if regressionValue:
-        outname += 'r'
-        
     
     #Force recalculation of model
     os.system('rm '+modelDir+outname+'.model')
     
-    os.system('mkdir '+tempDir)
+    os.system('mkdir -p '+tempDir)
     if not (os.path.exists(modelDir+outname+'.model') and os.path.exists(modelDir+outname+'.conf')):
         print 'Has to train new model'
         #This set of training docs haven't been used before
@@ -267,18 +280,15 @@ def main():
         #giveUnitLength(testVectors)
         print 'Vector lengths normalized'
         
-        
         writeScale(means, stdevs, modelDir+outname+'.conf')
         writeIvectList(trainVectors, tempDir+tempTrainFileName)
+        writeIvectList(testVectors, tempDir+tempTestFileName)
         print 'Sets saved'
-        if float(c_value) > 0:
+        if not float(c_value) > 0:#We should search for best c- value
             print 'Starting Gridsearch'
-            c_value = gridSearch(tempDir+tempTrainFileName)
+            c_value = findCValue(tempDir+tempTrainFileName, tempDir+tempModelFileName, tempDir+tempTestFileName, tempDir+tempResultFileName, numLanguages, testVectors)
             print 'Gridsearch finished'
-        if not regressionValue:
-            os.system('train '+optionsValues+' -c '+c_value+' '+tempDir+tempTrainFileName+' '+modelDir+outname+'.model')
-        else:
-            os.system('train -s 0 '+optionsValues+' -c '+c_value+' '+tempDir+tempTrainFileName+' '+modelDir+outname+'.model')
+        os.popen('train -s 0 '+optionsValues+' -c '+c_value+' '+tempDir+tempTrainFileName+' '+modelDir+outname+'.model')
         print 'Training finished'
     else:
         print 'Found previous model'
@@ -288,20 +298,17 @@ def main():
         applyStereoProj(testVectors)
         #giveUnitLength(testVectors)
         print 'Testvector lengths normalized'
-    
-    
-    #Write files
-    writeIvectList(testVectors, tempDir+tempTestFileName)
-    if not regressionValue:
-        os.system('predict '+tempDir+tempTestFileName+' '+modelDir+outname+'.model '+tempDir+tempResultFileName)
-        print 'Testing done'
-    
-        readHardResults(tempDir+tempResultFileName, testVectors, numLanguages)
-    else:
-        os.system('predict -b 1 '+tempDir+tempTestFileName+' '+modelDir+outname+'.model '+tempDir+tempResultFileName)
-        print 'Testing done'
         
-        readSoftResults(tempDir+tempResultFileName, testVectors, numLanguages)
+        #Write files
+        writeIvectList(testVectors, tempDir+tempTestFileName)
     
-    os.system('rm -r '+tempDir)
+    
+    os.system('predict -b 1 '+tempDir+tempTestFileName+' '+modelDir+outname+'.model '+tempDir+tempResultFileName)
+    print 'Testing done, c value used: '+c_value
+        
+    
+    SaveResults(tempDir+tempResultFileName, testVectors, maxLabel, resultPath)
+    readResults(tempDir+tempResultFileName, testVectors, numLanguages, 1)
+    
+    os.system('rm '+tempDir+'*')
 main()

@@ -1,3 +1,5 @@
+Vanilla, men > 290 sekunders segmenter brukt for trening, ganske lik gjennkjenning som 290
+
 in ./other/ base  out ./iVectors/ltrain200/ h 35937 w 200 s 23 limit 1
 35.8125 - Fetched 3032 train docs
 39.3859 - Fetched 1515 devtest docs

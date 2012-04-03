@@ -10,7 +10,7 @@ import math
 languages = [ 'ARABIC_EGYPT', 'ENG_GENRL', 'ENG_SOUTH', 'FARSI', 'FRENCH_CAN', 'GERMAN', 'HINDI', 'JAPANESE', 'KOREAN', 'MANDARIN_M', 'MANDARIN_T', 'SPANISH', 'SPANISH_CAR', 'TAMIL', 'VIETNAMESE' ]
 inbasedir = './CallFriend/?/vectsplit/'
 nistindir = './NIST/2003/lid03e1/transcripts/30/'
-setdir = ['train/', 'devtest/', 'shorttrain']
+setdir = ['train/', 'devtest/', 'shorttrain/']
 outbasedir = './CallFriend/?/docnumvectors/'
 #NOT USED splitsymbol = '.'
 unigramlistin = './other/unigramList.txt'

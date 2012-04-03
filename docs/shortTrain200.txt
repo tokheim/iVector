@@ -1,3 +1,5 @@
+vanilla, < 290 sekunders segmenter brukt for trening, MIT mapping, ganske like resultater som 290 sek
+
 in ./other/ base  out ./iVectors/strain200/ h 35937 w 200 s 23 limit 1
 39.4425 - Fetched 4528 train docs
 42.6843 - Fetched 1515 devtest docs

@@ -220,9 +220,7 @@ def main():
     trainPaths.sort()
     outPath = modelDir+''.join(trainPaths).replace('/', '').replace('.','')+'/'
     
-    #Force recalculation of model
-    #os.system('rm -r '+outPath)
-    
+
     os.system('mkdir -p '+tempDir)
     if not os.path.exists(outPath) or forceTrain:
         print 'Has to train new model'

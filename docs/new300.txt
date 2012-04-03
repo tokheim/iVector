@@ -1,3 +1,5 @@
+Vanilla MIT mapping, ganske lik gjennkjenning som 200dim
+
 in ./other/ base  out ./iVectors/new300/ h 35937 w 300 s 23 limit 1
 45.437 - Fetched 3779 train docs
 50.4886 - Fetched 1515 devtest docs
