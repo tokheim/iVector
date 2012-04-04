@@ -2,6 +2,11 @@
 Created on Jan 31, 2012
 
 @author: Tokminator
+
+
+DO NOT USE!!!!!!!!!!!!!!!!!!
+
+
 '''
 import os
 import math
