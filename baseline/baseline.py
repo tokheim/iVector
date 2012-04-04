@@ -27,7 +27,7 @@ class LangModel:
     def __init__(self, probs, alphas):
         self.probs = probs
         self.alphas = alphas
-    
+
     def getLikelihood(self, ngram):
         backoff = 0
         for i in range(len(ngram),0, -1):
@@ -38,7 +38,9 @@ class LangModel:
             elif i == 1:#Unigram
                 return backoff -inf
             elif self.alphas.has_key(histkey):
-                backoff += self.aplhas[histkey]
+                backoff += self.alphas[histkey]
+    
+    
 
 def getLabelNum(lang):
     str = lang[:3]
@@ -50,7 +52,7 @@ def getLabelNum(lang):
 
 
 def isSilence(symbol):
-  return allUnigrams['pau'] == allUnigrams[symbol] or allUnigrams['pau'] == symbol 
+  return (allUnigrams.has_key(symbol) and allUnigrams['pau'] == allUnigrams[symbol]) or allUnigrams['pau'] == symbol 
 
 def isNoise(symbol):
   return symbol == 'spk' or symbol == 'int'
@@ -77,8 +79,8 @@ def createLanguageModel(k, ngramcounts, totPhonemes):
                 ngramprobs[key] = math.log(value)-math.log(ngramcounts[historyOfGram])
     
     #Find alpha values for backoff smoothing
-    alphaNominators = {}
-    alphaDenominators = {}
+    alphanominators = {}
+    alphadenominators = {}
     for i in range(2, 4):
         for key, value in ngramprobs.items():
             if len(key) == i:
@@ -91,11 +93,25 @@ def createLanguageModel(k, ngramcounts, totPhonemes):
                     alphanominators[historyOfGram] = 1 - math.exp(value)
                     alphadenominators[historyOfGram] = 1 - math.exp(ngramprobs[lessGram])
     alphas = {}
-    for key, value in alphaNominators.items():
-        if alphadenominators[key] > 0 and value > 0:#Fyll in forklaring her
-            alpha[key] = math.log(value/alphadenominators[key])
-        elif alphanominators[key] == 0:#Nominator 0 means that none of the probability mass is used for smoothing
-            alpha[key] = -inf
+    for key, value in alphanominators.items():
+        '''
+        A trigram alphadenominator of 0 means that the bigram is also uncommon, and there isn't any bigram probability mass left 
+        to use to backoff to unigram. By not getting any backoff penalty from trigram, the trigram will get a likelihood of -inf when
+        trying to back of from bigram.
+        
+        A trigram alphanominator equal to zero means that none of the trigram's history probability mass is available for backoff smooting.
+        Backoff is then given penalty of -inf
+        
+        If a trigrams history is not found in alphas, then the history is to uncommon to have a model, and there is no penalty for backoff.
+        '''
+        #FOR TESTING
+        if value <= 0:
+            print str(key)+' nominator '+str(value)+' denominator '+str(alphadenominators[key])
+            
+        if alphadenominators[key] > 0 and value > 0:
+            alphas[key] = math.log(value/alphadenominators[key])
+        elif value <= 0:
+            alphas[key] = -inf
     
     return LangModel(ngramprobs, alphas)
 
@@ -105,7 +121,7 @@ def createLanguageModel(k, ngramcounts, totPhonemes):
 def calcLikelihoods(doc, models):
     likes = [0.0]*len(models)
     ngram = []
-    inFile = os.open(doc.fpath, 'r')
+    inFile = open(doc.fpath, 'r')
     for line in inFile:
         splitLine = line.split()
         if len(splitLine) > 3:
@@ -119,7 +135,7 @@ def calcLikelihoods(doc, models):
 
 #Calculate the likelihood for given document with given model
 def calcLikelihood(doc, model):
-    modelList = [].append(model)
+    modelList = [model]
     return calcLikelihoods(doc, modelList)[0]
 
 #Calculates the likelihoods for each document and each model
@@ -128,12 +144,12 @@ def recognize(docs, models):
 
 #Saves probabilitie outputs including the correct label
 def saveProbs(docs, results, savePath):
-    outFile = os.open(savePath, 'w')
+    outFile = open(savePath, 'w')
     for i in range(len(docs)):
-        str = str(getLabelNum(docs[i].lang)+1)
+        line = str(getLabelNum(docs[i].lang)+1)
         for val in results[i]:
-            str+=' '+str(val)
-        outFile.write(str+'\n')
+            line+=' '+str(val)
+        outFile.write(line+'\n')
     outFile.close()
 
 #prints identification results
@@ -157,23 +173,24 @@ def printResult(docs, results, languageMapper, languages):
 #Read document languages and positions into lists      
 for i in range(len(callSets)):
     for language in callLanguages:
-        path = './CallFriend/'+language+'/vectsplit/'+callSets[i]'/'
+        path = './CallFriend/'+language+'/vectsplit/'+callSets[i]+'/'
         for filename in os.listdir(path):
              if filename.endswith('.txt'):
                  docs[i].append(DocInfo(path+filename, language))
-keyFile = os.open(nistKeyFile, 'r'):
+keyFile = open(nistKeyFile, 'r')
 for line in keyFile:
     splitLine = line.split()
-    if os.path.isfile(nistindir+splitline[0]+'.rec'):
-        docs[2].append(DocInfo(nistindir+splitline[0]+'.rec', splitline[1]))
+    if os.path.isfile(nistindir+splitLine[0]+'.rec'):
+        docs[2].append(DocInfo(nistindir+splitLine[0]+'.rec', splitLine[1]))
 keyFile.close()
 
+numofunigrams = 0
 #Read list of possible unigrams
 unigramfile = open(unigramlistin, 'r')
 for line in unigramfile:
-    splitline = line.split(' ')
-    for splits in splitline:
-        allunigrams[splits.rstrip()] = numofunigrams
+    splitLine = line.split(' ')
+    for splits in splitLine:
+        allUnigrams[splits.rstrip()] = numofunigrams
     numofunigrams += 1
 unigramfile.close()
 
@@ -186,20 +203,20 @@ for language in callLanguages:
     for doc in docs[0]:
         if doc.lang == language:
             ngrams = []#Holds upto the last three phones, newest first
-            inFile = os.open(doc.fpath, 'r')
+            inFile = open(doc.fpath, 'r')
             for line in inFile:
                 splitLine = line.split()
-                if len(splitLine > 3):
+                if len(splitLine) > 3:
                     phone = splitLine[2]
                     if updateNgrams(phone, ngrams):
                         totPhonemes += 1.0
                         
-                    for j in range(len(ngrams)):
-                        key = tuple(ngrams[:(j+1)])
-                        if ngramcounts[key]:
-                            ngramcounts[key]+=1.0
-                        else:
-                            ngramcounts[key]=1.0
+                        for j in range(len(ngrams)):
+                            key = tuple(ngrams[:(j+1)])
+                            if ngramcounts.has_key(key):
+                                ngramcounts[key]+=1.0
+                            else:
+                                ngramcounts[key]=1.0
                     
             inFile.close()
     
@@ -207,20 +224,22 @@ for language in callLanguages:
     
     #ngrams with count less than k is discarded, check which model gives best likelihood
     bestK = -1
-    bestLike = -inf
+    bestLike = -10*inf
     for kvalue in kvalues:
         model = createLanguageModel(kvalue, ngramcounts, totPhonemes)
-        devlike = 0
+        devLike = 0
         for doc in docs[1]:
-            if doc.lang == callLanguages[i]:
-                devlike += calcLikelihood(doc, model)
+            if doc.lang == language:
+                devLike += calcLikelihood(doc, model)
         if devLike > bestLike:
             bestK = kvalue
             bestLike = devLike
             print 'New best k '+str(kvalue)+' for '+language+' found, like: '+str(devLike)
+        else:
+            print 'Not best k '+str(kvalue)+' for '+language+' found, like: '+str(devLike)
         
     trainmodels.append(createLanguageModel(bestK, ngramcounts, totPhonemes))
-    print '---Model for '+language+' created---'
+    print '---Model for '+language+' created with k '+str(bestK)+'---'
     
 print 'Models created, dev testing starting'
 results = recognize(docs[1], trainmodels)
