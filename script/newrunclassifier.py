@@ -177,8 +177,8 @@ def findCorrect(results, cIndexes):
         for j in range(maxLabel):
             if results[cIndexes[j]][j][i] > bestVal:
                 bestVal = results[cIndexes[j]][j][i]
-                bestLabel = j+1
-        if bestLabel % numLanguages == int(testVectors[i].lang) % numLanguages:
+                bestLabel = j
+        if bestLabel % numLanguages == (int(testVectors[i].lang)-1) % numLanguages:
             correct += 1.0
     return correct
 
@@ -273,7 +273,7 @@ def main():
         max_corr = 0
         best_c = 0
         for i in range(len(c_values)):
-            correct = findCorrect(res, [i for _ in range(maxLabel)])
+            correct = findCorrect(res, [i]*maxLabel)
             if correct > max_corr:
                 max_corr = correct
                 best_c = i
@@ -316,7 +316,7 @@ def main():
                     c_array[i] = j
                     print 'Lang '+str(i)+' new best C '+c_values[j]+' correct: '+str(float(correct)/len(testVectors))
         
-        print 'Two performance: '+str(float(findCorrect(res, c_array))/len(testVectors))+' c: '+str(c_array)#Kan fjernes
+        print 'C used: '+str(c_array)
         res2 = [[res[c_array[j]][j][i] for i in range(len(testVectors))] for j in range(maxLabel)]
         printCorrect(res2)
         
@@ -338,7 +338,7 @@ def main():
                     print 'Lang '+str(i)+' new best C '+c_values[j]+' correct: '+str(correct)
         
         res3 = [[res[c_array[j]][j][i] for i in range(len(testVectors))] for j in range(maxLabel)]
-        print 'Three performance: '+str(float(findCorrect(res, c_array))/len(testVectors))+' c: '+str(c_array)#Kan fjernes
+        print 'C used: '+str(c_array)
         printCorrect(res3)
         
         
