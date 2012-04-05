@@ -1,5 +1,5 @@
-trainfile = 'Input/train.txt';
-testfile = 'Input/test.txt';
+trainfile = 'C:\src\cpp\iVector\new200DevResults.txt';
+testfile = 'C:\src\cpp\iVector\new200EvlResults.txt';
 
 addpath(genpath('C:\src\cpp\iVector\iVector\matlab\Focal\matlab\multifocal'))
 
