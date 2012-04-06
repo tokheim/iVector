@@ -15,21 +15,6 @@ void traintMatrix(vector<Document> & traindocs, vector<Document> & devtestdocs, 
 const int MAX_TRAIN_STEPS = 7;
 const int MAX_EXTRACT_STEPS = 9;
 
-
-
-
-string intToString(int n) {
-	stringstream ss;
-	ss << n;
-	return ss.str();
-}
-
-string doubleToString(double num) {
-	stringstream ss;
-	ss << num;
-	return ss.str();
-}
-
 //The method for training t, and extract iVectors from this matrix
 void trainiVectors(Configuration config) {
 	resetClock();
@@ -73,23 +58,20 @@ void trainiVectors(Configuration config) {
 }
 //Reset iVectors for each update iteration (Recursive check for likelihoods is not really neccessary)
 double doResetUpdateIteration(vector<Document> & traindocs, vector<Document> & devtestdocs, FeatureSpace & space, int threads) {
+	updatetRows(traindocs, space, threads);
+	printTimeMsg("Updated t rows");
+	
 	resetiVectors(traindocs);
 	updateiVectors(traindocs, space, threads);
 	printTimeMsg("Updated train iVectors");
 	resetiVectors(devtestdocs);
-	updatetRows(traindocs, space, threads);
-	printTimeMsg("Updated t rows");
 	updateiVectors(devtestdocs, space, threads);
 	printTimeMsg("Updated devtest iVectors");
 	double newLikelihood = calcTotalLikelihoodExcludeInf(devtestdocs, space);
-	
+
 	//Nice to print but strictly unneccessary
 	printTimeMsg(string("Train avg likelihood ")+doubleToString(calcTotalLikelihoodExcludeInf(traindocs, space)/traindocs.size()));
 	printTimeMsg(string("Devtest avg likelihood ")+doubleToString(newLikelihood/devtestdocs.size()));
-	
-	printTimeMsg(string("Train avg distance ")+doubleToString(calcAvgEuclideanDistance(traindocs)));
-	printTimeMsg(string("Devtest avg distance ")+doubleToString(calcAvgEuclideanDistance(devtestdocs)));
-	
 
 	return newLikelihood;
 }

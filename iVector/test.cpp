@@ -42,25 +42,9 @@ void iVectTests() {
 	
 	FeatureSpace space(5, 3, documents, 23);
 	printMatrix(space.tMatrix, "5x3 Random tMatrix:");
-	
-	/*matrix<double> tMatrix(5, 3);
-	tMatrix(0,0) = 1;
-	tMatrix(0,1) = 2;
-	tMatrix(0,2) = 1;
-	tMatrix(1,0) = 1;
-	tMatrix(1,1) = 0;
-	tMatrix(1,2) = 1;
-	tMatrix(2,0) = 0;
-	tMatrix(2,1) = 1;
-	tMatrix(2,2) = 1;
-	tMatrix(3,0) = 1;
-	tMatrix(3,1) = 0;
-	tMatrix(3,2) = 0;
-	tMatrix(4,0) = 2;
-	tMatrix(4,1) = 1;
-	tMatrix(4,2) = 0;*/
 
-	Configuration config;
+	char* argv[1];
+	Configuration config(1, argv);
 	config.featureSpacePath = TEST_SPACE_IN;
 	config.height = 5;
 	config.width = 3;

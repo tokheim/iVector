@@ -14,6 +14,18 @@ using namespace boost::numeric::ublas;
 
 const static double MICROS_IN_S = 1000000;
 
+std::string intToString(int n) {
+	std::stringstream ss;
+	ss << n;
+	return ss.str();
+}
+
+std::string doubleToString(double num) {
+	std::stringstream ss;
+	ss << num;
+	return ss.str();
+}
+
 //This method resets the timer used to timestamp log transcriptions
 void resetClock() {
 	#ifndef _WIN32

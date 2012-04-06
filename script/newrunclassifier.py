@@ -23,7 +23,7 @@ tempTrainPath = tempDir+'a'
 tempTestPath = tempDir+'b'
 tempModelPath = tempDir+'c'
 tempResultPath = tempDir+'d'
-forceTrain = 1
+forceTrain = 0
 
 
 
@@ -34,7 +34,7 @@ forceSymbol = '-f'
 numLanguages = 13#Actual number of languages, not including dialects but including 1 out of set language (as last language)
 maxLabel = 16#Highest class label
 
-c_values = [str(math.pow(2, i)) for i in range(-4, 4)]
+c_values = [str(math.pow(2, i)) for i in range(-2, 6)]
 
 trainVectors = [];
 testVectors = [];
@@ -169,6 +169,7 @@ def parseResults(resultPath, results):
         results[i] = float(splitLine[posIndex])
         i += 1
 
+#Finds the number of correctly identified utterances, when different c-indexes are used
 def findCorrect(results, cIndexes):
     correct = 0
     for i in range(len(testVectors)):
@@ -186,7 +187,7 @@ def printCorrect(results):
     confMatrix = [[0 for _ in range(numLanguages)] for _ in range(numLanguages)]
     for i in range(len(testVectors)):
         highest = 0
-        for j in range(1, numLanguages):
+        for j in range(1, maxLabel):
             if results[j][i] > results[highest][i]:
                 highest = j
         confMatrix[(int(testVectors[i].lang)-1)%numLanguages][highest%numLanguages] += 1
@@ -255,9 +256,9 @@ def main():
            
             if i == numLanguages:#Out of set language
                 continue
-            elif i <= maxLabel - numLanguages:#There is a dialect
+            elif i <= maxLabel - numLanguages:#The language has dialects
                 writeIvectList(trainVectors, tempTrainPath, str(i), str(i+numLanguages))
-            elif i > maxLabel:#There is a dialect
+            elif i > maxLabel:#The language has dialects
                 writeIvectList(trainVectors, tempTrainPath, str(i), str(i-numLanguages))
             else:
                 writeIvectList(trainVectors, tempTrainPath, str(i))
@@ -306,9 +307,9 @@ def main():
             for j in range(len(c_values)):
                 correct = 0
                 for k in range(len(testVectors)):
-                    if int(testVectors[k].lang) % numLanguages == (i+1) % numLanguages and res[j][i][k] >= 0.5:
+                    if (int(testVectors[k].lang)-1) % numLanguages == i % numLanguages and res[j][i][k] >= 0.5:
                         correct += 1
-                    elif int(testVectors[k].lang) % numLanguages != (i+1) % numLanguages and res[j][i][k] >= 0.5:
+                    elif (int(testVectors[k].lang)-1) % numLanguages != i % numLanguages and res[j][i][k] >= 0.5:
                         correct -= 1
                 if correct > max_corr:
                     best_c = j
@@ -327,9 +328,9 @@ def main():
             for j in range(len(c_values)):
                 correct = 0
                 for k in range(len(testVectors)):
-                    if int(testVectors[k].lang) % numLanguages == (i+1) % numLanguages:
+                    if (int(testVectors[k].lang)-1) % numLanguages == i % numLanguages:
                         correct += res[j][i][k]
-                    elif int(testVectors[k].lang) % numLanguages != (i+1) % numLanguages:
+                    elif (int(testVectors[k].lang)-1) % numLanguages != i % numLanguages:
                         correct -= res[j][i][k]
                 if correct > max_corr:
                     best_c = j

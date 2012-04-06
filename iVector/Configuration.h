@@ -16,7 +16,7 @@ struct Configuration {
 	bool loadFeatureSpace;
 	bool useTwoTrainSets;
 	
-	Configuration();
+	Configuration(int argc, char *argv[]);
 	std::string toString();
 };
 #endif
