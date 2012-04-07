@@ -294,7 +294,7 @@ def main():
             else:
                 writeIvectList(trainVectors, tempTrainPath, str(i))
                 
-            os.popen('train -s 0 -c '+str(best_c)+' '+tempTrainPath+' '+outPath+'Model'+str(i))
+            os.popen('train -s 0 -c '+c_values[best_c]+' '+tempTrainPath+' '+outPath+'Model'+str(i))
         print 'Models saved'
         
         

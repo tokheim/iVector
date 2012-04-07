@@ -82,7 +82,6 @@ Configuration::Configuration(int argc, char *argv[]) {
 			printCommandError(paramName);
 		}
 	}
-	cout << toString();
 }
 
 string Configuration::toString() {
