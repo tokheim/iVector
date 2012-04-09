@@ -34,7 +34,7 @@ forceSymbol = '-f'
 numLanguages = 13#Actual number of languages, not including dialects but including 1 out of set language (as last language)
 maxLabel = 16#Highest class label
 
-c_values = [str(math.pow(2, i)) for i in range(-2, 6)]
+c_values = [str(math.pow(2, i)) for i in range(2, 10)]
 
 trainVectors = [];
 testVectors = [];
@@ -171,6 +171,10 @@ def parseResults(resultPath, results):
         results[i] = float(splitLine[posIndex])
         i += 1
 
+#returns false when labels are dialects of eachother, or if one of them are dialects. Labels are 1 indexed
+def shouldHaveModel(posLabel, negLabel):
+    return (posLabel-1)%numLanguages != (negLabel-1)%numLanguages and posLabel != numLanguages and negLabel != numLanguages
+
 def decide(scores, soft = 0):
     bestLabel = 0
     for i in range(1, maxLabel):
@@ -182,11 +186,11 @@ def decide(scores, soft = 0):
         
     
 def evaluate(results, doc):
-    softScore = [0.0]*len(maxLabel)
-    hardScore = [0.0]*len(maxLabel)#Hardscore is float since it has to be normalized to the number of ovo's performed for each class
+    softScore = [0.0]*maxLabel
+    hardScore = [0.0]*maxLabel#Hardscore is float since it has to be normalized to the number of ovo's performed for each class
     for posLabel in range(1, maxLabel):
         for negLabel in range(posLabel):
-            if posLabel%numLanguages == negLabel%numLanguages:#Dialect
+            if not shouldHaveModel(posLabel, negLabel):
                 continue
             softScore[posLabel] += results[posLabel][negLabel][doc]
             softScore[negLabel] += 1.0-results[posLabel][negLabel][doc]
@@ -195,7 +199,7 @@ def evaluate(results, doc):
             else:
                 hardScore[negLabel]+=1
     for i in range(0, maxLabel):
-        if i <= maxLabel-numLanguages or >= numLanguages:#Has dialects
+        if i <= maxLabel-numLanguages or i >= numLanguages:#Has dialects
             softScore[i] = softScore[i]/(maxLabel-2)
             hardScore[i] = hardScore[i]/(maxLabel-2)
         else:
@@ -204,7 +208,7 @@ def evaluate(results, doc):
     return zip(hardScore, softScore)
     
 def recognize(results, doc, soft = 0):
-    return decide(evaluate(results, doc), hard)
+    return decide(evaluate(results, doc), soft)
     
 
 #Finds the number of correctly identified utterances, when different c-indexes are used
@@ -284,10 +288,9 @@ def main():
         #Res[c][posLabel][negLabel][document]
         res = [[[[0.0 for testDoc in range(len(testVectors))] for negLabel in range(posLabel)] for posLabel in range(maxLabel)] for c in range(len(c_values))]
         
-
         for posLabel in range(maxLabel):
             for negLabel in range(posLabel):
-                if posLabel%numLanguages == negLabel%numLanguages:#Only different dialects
+                if not shouldHaveModel(posLabel+1, negLabel+1):
                     continue
                 writeIvectList(trainVectors, tempTrainPath, str(posLabel+1), str(negLabel+1))
                 for c in range(len(c_values)):
@@ -308,19 +311,7 @@ def main():
             else:
                 print 'Not best c '+c_values[i]+' correct: '+str(correct/len(testVectors))
         
-        printCorrect(res[best_c], 0)
-        
-        print '--Saving models--'
-        for posLabel in range(maxLabel):
-            for negLabel in range(posLabel):
-                if posLabel%numLanguages == negLabel%numLanguages:#Only different dialects
-                    continue
-                writeIvectList(trainVectors, tempTrainPath, str(posLabel+1), str(negLabel+1))
-                for c in range(len(c_values)):
-                    os.popen('train -s 0 -c '+c_values[best_c]+' '+tempTrainPath+' '+outPath+'Model'str(posLabel)+'_'+str(negLabel))
-        
-        print '--Saving results--'
-        saveResults(resultPath, res[best_c])    
+        printCorrect(res[best_c], 0)   
         
         print '--Testing soft models--'
         best_c = -1
@@ -335,6 +326,18 @@ def main():
                 print 'Not best c '+c_values[i]+' correct: '+str(correct/len(testVectors))
         
         printCorrect(res[best_c], 1)
+        
+        for posLabel in range(maxLabel):
+            for negLabel in range(posLabel):
+                if not shouldHaveModel(posLabel+1, negLabel+1):
+                    continue
+                print 'saving final model for language '+str(posLabel+1)+' and '+str(negLabel+1)
+                writeIvectList(trainVectors, tempTrainPath, str(posLabel+1), str(negLabel+1))
+                os.popen('train -s 0 -c '+c_values[best_c]+' '+tempTrainPath+' '+outPath+'Model'+str(posLabel)+'_'+str(negLabel))
+                
+        print '\n--Saving results--'
+        saveResults(resultPath, res[best_c]) 
+        
         
     else:
         print 'Found previous model'
@@ -356,13 +359,17 @@ def main():
         print 'Testing'
         for posLabel in range(maxLabel):
             for negLabel in range(posLabel):
-                if posLabel%numLanguages == negLabel%numLanguages:#Only different dialects
+                if not shouldHaveModel(posLabel+1, negLabel+1):
                     continue
                 
                 os.popen('predict -b 1 '+tempTestPath+' '+outPath+'Model'+str(posLabel)+'_'+str(negLabel)+' '+tempResultPath)
                 parseResults(tempResultPath, res[posLabel][negLabel])
         
+        print 'Hard results'
         printCorrect(res, 0)
+        print 'Soft results'
+        printCorrect(res, 1)
+        
         saveResults(resultPath, res)
     
     

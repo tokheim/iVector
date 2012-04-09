@@ -5,7 +5,7 @@
 using namespace std;
 
 /*
-This class  holds all the different options for iVector extraction.
+This class  holds all the different options for iVector extraction, parsing input arguments, and displaying usage
 */
 
 const static string PARAM_IN_FILELIST_DIR = "-i";
@@ -19,7 +19,7 @@ const static string PARAM_THREADS = "-t";
 const static string PARAM_LOADSPACE = "-l";
 const static string PARAM_USE_TWO_TRAIN_SETS = "-T";
 
-const static string HELP_TEXT = "Lorem ipsum dolor est";
+const static string HELP_TEXT = "Lorem ipsum dolor est C Full map 205379, mapped with bi and unigram 37059, unmapped with bi and unigram 208919";
 
 void printCommandError(string cmd);
 void printParamError(string cmd, char * paramValue);
@@ -35,7 +35,7 @@ Configuration::Configuration(int argc, char *argv[]) {
 	limitFeatures = true;
 	seed = 23;
 	width = 200;
-	height = 35937;//Full map 205379, mapped with bi and unigram 37059, 
+	height = 35937;//Full map 205379, mapped with bi and unigram 37059, unmapped with bi and unigram 208919
 	featureSpacePath = "";
 	loadFeatureSpace = false;
 	useTwoTrainSets = false;
