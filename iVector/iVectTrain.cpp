@@ -12,6 +12,7 @@ void extractiVectors(vector<Document> traindocs, vector<Document> devtestdocs, v
 void branchTraining(vector<Document> & traindocs, vector<Document> & devtestdocs, vector<Document> & testdocs, FeatureSpace & space, string outLoc, int threads);
 void traintMatrix(vector<Document> & traindocs, vector<Document> & devtestdocs, FeatureSpace & space, string outLoc, int threads);
 
+
 const int MAX_TRAIN_STEPS = 7;
 const int MAX_EXTRACT_STEPS = 9;
 
@@ -139,6 +140,7 @@ void traintMatrix(vector<Document> & traindocs, vector<Document> & devtestdocs, 
 		oldLikelihood = newLikelihood;
 		
 		newLikelihood = doUpdateIteration(traindocs, devtestdocs, space, threads);
+		//newLikelihood = doResetUpdateIteration(traindocs, devtestdocs, space, threads);
 
 		writeDocuments(traindocs, outLoc+string("train")+intToString(steps));
 		writeDocuments(devtestdocs, outLoc+string("devtest")+intToString(steps));
@@ -166,9 +168,9 @@ void doUpdateIteration(vector<Document> & traindocs, vector<Document> & devtestd
 	printTimeMsg(string("Devtest likelihood ")+doubleToString(calcTotalLikelihoodExcludeInf(devtestdocs, space)/devtestdocs.size()));
 	printTimeMsg(string("Evltest likelihood ")+doubleToString(calcTotalLikelihoodExcludeInf(testdocs, space)/testdocs.size()));
 	
-	printTimeMsg(string("Train distance") + doubleToString(calcAvgEuclideanDistance(traindocs)));
-	printTimeMsg(string("Devtest distance") + doubleToString(calcAvgEuclideanDistance(devtestdocs)));
-	printTimeMsg(string("Test distance") + doubleToString(calcAvgEuclideanDistance(testdocs)));
+	printTimeMsg(string("Train distance ") + doubleToString(calcAvgEuclideanDistance(traindocs)));
+	printTimeMsg(string("Devtest distance ") + doubleToString(calcAvgEuclideanDistance(devtestdocs)));
+	printTimeMsg(string("Test distance ") + doubleToString(calcAvgEuclideanDistance(testdocs)));
 }
 
 //Method for extracting iVectors from a given T-matrix. Saves iVectors after each iteration. Currently copies list of documents for usage with branching
