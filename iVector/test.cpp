@@ -1,6 +1,7 @@
 #include "test.h"
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/matrix_proxy.hpp>
 
 
 using namespace boost::numeric::ublas;
@@ -70,11 +71,11 @@ void iVectTests() {
 		std::cout << i << ": ";
 		printVector(documents[i].iVector, "");
 	}
-	std::cout << "\nTotal likelihood1 (1) = "<<calcTotalLikelihood(documents, space);
+	std::cout << "\nTotal likelihood1 (1) = "<<calcTotalLikelihood(documents, space, false);
 	updatetRows(documents, space, 2);
-	std::cout << "\nTotal likelihood (1.5) = "<<calcTotalLikelihood(documents, space);
+	std::cout << "\nTotal likelihood (1.5) = "<<calcTotalLikelihood(documents, space, false);
 	updateiVectors(documents, space, 2);
-	std::cout << "\nTotal likelihood (2) = "<<calcTotalLikelihood(documents, space);
+	std::cout << "\nTotal likelihood (2) = "<<calcTotalLikelihood(documents, space, false);
 
 	writeDocuments(documents, TEST_OUT_LOC);
 	writeSpace(space, TEST_SPACE_OUT);
@@ -143,7 +144,7 @@ void speedTests(Configuration config) {
 	std::cout << "Update " << width << " iVectors with " << threads << " threads, " << time << "s, update whole set, " << time/width*docSize << " s.\n";
     
     gettimeofday(&startTime, NULL);
-    calcTotalLikelihood(traindocs, space);
+    calcTotalLikelihood(traindocs, space, false);
     gettimeofday(&stopTime, NULL);
     time = stopTime.tv_sec-startTime.tv_sec+((stopTime.tv_usec-startTime.tv_usec)/MICROS_IN_S);
     std::cout << "Calculated likelihood for " << width << " documents in " << time << "s, calc for whole set, " << time/width*docSize << "s.\n";
@@ -164,5 +165,20 @@ void testAll(Configuration config) {
 	speedTests(config);
 
 	std::string breaker;
+	
+	matrix<double> c(2, 2);
+	matrix<double> a(2, 2);
+	printMatrix(a, "Unresetted matrix");
+	a.clear();
+	c = a;
+	a(0,0) = 10;
+	printMatrix(a, "Cleared matrix");
+	printMatrix(c, "cleartest");
+	vector<double> b(2);
+	b(0) = 1;
+	b(1) = 2;
+	matrix_row<matrix<double> >(a, 0) += b;
+	printMatrix(a, "add matrix");
+
 	getline(std::cin, breaker);
 }
