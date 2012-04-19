@@ -30,7 +30,6 @@ double calcPhiDenominator(FeatureSpace & space, vector<double> & iVector) {
 	vector<double> prods = prod(space.tMatrix, iVector);
 	for (unsigned int i = 0; i < space.height; i++) {
 		denominator += exp(space.mVector(i)+prods(i));
-		//denominator += exp(space.mVector(i)+inner_prod(space.tMatrix(i), iVector));Alternative
 	}
 	return denominator;
 }
@@ -48,45 +47,33 @@ double calcPhi(FeatureSpace & space, vector<double> & iVector, unsigned int row,
 	return exp(space.mVector(row)+inner_prod(matrix_row<matrix<double> >(space.tMatrix, row), iVector))/denominator;
 }
 
-double calcUtteranceLikelihood(Document & document, FeatureSpace & space) {
+double calcUtteranceLikelihood(Document & document, FeatureSpace & space, bool excludeInf) {
 	double likelihood = 0.0;
 	double denominator = calcPhiDenominator(space, document.iVector);
 	HASH_I_D::iterator it;
-	for (it = document.gamma.begin(); it != document.gamma.end(); ++it) {
-		double phi = calcPhi(space, document.iVector, it->first, denominator);
-		likelihood += it->second * log(phi);
-	}
-	return likelihood;
-}
-
-double calcTotalLikelihood(std::vector<Document> & documents, FeatureSpace & space) {
-	double likelihood = 0.0;
-	for (unsigned int i = 0; i < documents.size(); i++) {
-		likelihood += calcUtteranceLikelihood(documents[i], space);
-	}
-	return likelihood;
-}
-//This gives the likelihood but excludes any feature that has zero probability of occuring. These features should be constant
-//throughout iterations.
-double calcUtteranceLikelihoodExcludeInf(Document & document, FeatureSpace & space) {
-	double likelihood = 0.0;
-	double denominator = calcPhiDenominator(space, document.iVector);
-	HASH_I_D::iterator it;
-	for (it = document.gamma.begin(); it != document.gamma.end(); ++it) {
-		if (space.mVector(it->first) != MINUS_INF) {
+	if (!excludeInf) {
+		for (it = document.gamma.begin(); it != document.gamma.end(); ++it) {
 			likelihood += it->second * log(calcPhi(space, document.iVector, it->first, denominator));
+		}
+	}
+	else {
+		for (it = document.gamma.begin(); it != document.gamma.end(); ++it) {
+			if (space.mVector(it->first) != MINUS_INF) {
+				likelihood += it->second * log(calcPhi(space, document.iVector, it->first, denominator));
+			}
 		}
 	}
 	return likelihood;
 }
 
-double calcTotalLikelihoodExcludeInf(std::vector<Document> & documents, FeatureSpace & space) {
-	double totLikelihood = 0.0;
+double calcTotalLikelihood(std::vector<Document> & documents, FeatureSpace & space, bool excludeInf) {
+	double likelihood = 0.0;
 	for (unsigned int i = 0; i < documents.size(); i++) {
-		totLikelihood += calcUtteranceLikelihoodExcludeInf(documents[i], space);
+		likelihood += calcUtteranceLikelihood(documents[i], space, excludeInf);
 	}
-	return totLikelihood;
+	return likelihood;
 }
+
 //setup Ax=b for iVector updates
 void setUpSystem(vector<double> & gradient, symmetric_matrix<double> & jacobian, Document & document, FeatureSpace & space, double denominator) {
 	jacobian.clear();
@@ -134,8 +121,8 @@ void updateiVector(Document & document, FeatureSpace & space) {
 	matrix<double> A = jacobian;//Neccessary since the jacobian is symmetric while the decomposed matrix is not
 
 	permutation_matrix<double> p(space.width);
-	lu_factorize(A, p);
-	lu_substitute(A, p, b);//b holds the solution
+	lu_factorize(A, p);//LU-decomposes A
+	lu_substitute(A, p, b);//b holds the solution (change in given iVector)
 	document.iVector += b;
 }
 //Perform newton Raphson updates on all iVectors in set
@@ -147,16 +134,16 @@ void updateiVectors(std::vector<Document> & documents, FeatureSpace & space) {
 //Performs newton raphson updates on a row of T
 void updatetRow(std::vector<Document> & documents, FeatureSpace & space, unsigned int row, vector<double> & denominators) {
 	matrix_row<matrix<double> > (space.oldtMatrix, row) = matrix_row<matrix<double> > (space.tMatrix, row);
-	if (space.mVector(row) != MINUS_INF) {//If mVector is trained on a superset of "documents" then the old values should still be a solution
+	if (space.mVector(row) != MINUS_INF) {//If mVector is trained on a superset of "documents" then the old values should still be a solution optimal solution
 		vector<double> b(space.width);
 		symmetric_matrix<double> jacobian(space.width);
 		setUpSystem(b, jacobian, documents, space, row, denominators);
 
-		matrix<double> A = jacobian;//Necccessary since the jacobian is symmetric while the decomposed matrix is not
+		matrix<double> A = jacobian;//Neccessary since the jacobian is symmetric while the decomposed matrix is not
 
 		permutation_matrix<double> p(space.width);
 		lu_factorize(A, p);
-		lu_substitute(A, p, b);//b holds solution
+		lu_substitute(A, p, b);//b holds the solution (change in given row of T)
 		matrix_row<matrix<double> > (space.tMatrix, row) += b;
 	}
 }
@@ -170,7 +157,7 @@ void updatetRows(std::vector<Document> & documents, FeatureSpace & space) {
 
 //Recursivly reduce the update step until the likelihood increases
 void recursiveiVectorUpdateCheck(Document & document, FeatureSpace & space, double oldLikelihood, int attempts) {
-	if (oldLikelihood > calcUtteranceLikelihoodExcludeInf(document, space) && attempts < MAX_REDUCE_STEPSIZE_ATTEMPTS) {
+	if (oldLikelihood > calcUtteranceLikelihood(document, space, true) && attempts < MAX_REDUCE_STEPSIZE_ATTEMPTS) {
 		document.iVector = (document.iVector-document.oldiVector)/2;
 		recursiveiVectorUpdateCheck(document, space, oldLikelihood, attempts+1);
 	}
@@ -181,7 +168,7 @@ void recursiveiVectorUpdateCheck(Document & document, FeatureSpace & space, doub
 }
 //Ensure that the update step of an iVector doesn't cause the likelihood to decrease by reducing the update steps
 void updateiVectorCheckLike(Document & document, FeatureSpace & space) {
-	double oldLikelihood = calcUtteranceLikelihoodExcludeInf(document, space);//could be changed from T-matrix updates
+	double oldLikelihood = calcUtteranceLikelihood(document, space, true);//could be changed from T-matrix updates
 	updateiVector(document, space);
 	recursiveiVectorUpdateCheck(document, space, oldLikelihood, 0);
 }

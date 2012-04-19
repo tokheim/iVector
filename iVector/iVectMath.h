@@ -8,8 +8,7 @@
 
 boost::numeric::ublas::vector<double> calcAllPhiDenominators(FeatureSpace & space, std::vector<Document> & documents);
 double calcAvgEuclideanDistance(std::vector<Document> & documents);
-double calcTotalLikelihood(std::vector<Document> & documents, FeatureSpace & space);
-double calcTotalLikelihoodExcludeInf(std::vector<Document> & documents, FeatureSpace & space);
+double calcTotalLikelihood(std::vector<Document> & documents, FeatureSpace & space, bool excludeInf);
 
 void updateiVectors(std::vector<Document> & documents, FeatureSpace & space);
 void updateiVectorCheckLike(Document & document, FeatureSpace & space);

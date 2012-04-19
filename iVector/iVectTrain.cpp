@@ -68,10 +68,10 @@ double doResetUpdateIteration(vector<Document> & traindocs, vector<Document> & d
 	resetiVectors(devtestdocs);
 	updateiVectors(devtestdocs, space, threads);
 	printTimeMsg("Updated devtest iVectors");
-	double newLikelihood = calcTotalLikelihoodExcludeInf(devtestdocs, space);
+	double newLikelihood = calcTotalLikelihood(devtestdocs, space, true);
 
 	//Nice to print but strictly unneccessary
-	printTimeMsg(string("Train avg likelihood ")+doubleToString(calcTotalLikelihoodExcludeInf(traindocs, space)/traindocs.size()));
+	printTimeMsg(string("Train avg likelihood ")+doubleToString(calcTotalLikelihood(traindocs, space, true)/traindocs.size()));
 	printTimeMsg(string("Devtest avg likelihood ")+doubleToString(newLikelihood/devtestdocs.size()));
 
 	return newLikelihood;
@@ -85,10 +85,10 @@ double doUpdateIteration(vector<Document> & traindocs, vector<Document> & devtes
 	printTimeMsg("Updated train iVectors");
 	updateiVectors(devtestdocs, space, threads);
 	printTimeMsg("Updated devtest iVectors");
-	double newLikelihood = calcTotalLikelihoodExcludeInf(devtestdocs, space);
+	double newLikelihood = calcTotalLikelihood(devtestdocs, space, true);
 	
 	//Nice to print but strictly unneccessary
-	printTimeMsg(string("Train avg likelihood ")+doubleToString(calcTotalLikelihoodExcludeInf(traindocs, space)/traindocs.size()));
+	printTimeMsg(string("Train avg likelihood ")+doubleToString(calcTotalLikelihood(traindocs, space, true)/traindocs.size()));
 	printTimeMsg(string("Devtest avg likelihood ")+doubleToString(newLikelihood/devtestdocs.size()));
 	
 	printTimeMsg(string("Train avg distance ")+doubleToString(calcAvgEuclideanDistance(traindocs)));
@@ -128,10 +128,10 @@ void traintMatrix(vector<Document> & traindocs, vector<Document> & devtestdocs, 
 	printTimeMsg("Done devtest docs init");
 
 	double oldLikelihood = log(0.0);
-	double newLikelihood = calcTotalLikelihoodExcludeInf(devtestdocs, space);
+	double newLikelihood = calcTotalLikelihood(devtestdocs, space, true);
 	int steps = 0;
     
-    printTimeMsg(string("Train likelihood ")+doubleToString(calcTotalLikelihoodExcludeInf(traindocs, space)/traindocs.size()));
+    printTimeMsg(string("Train likelihood ")+doubleToString(calcTotalLikelihood(traindocs, space, true)/traindocs.size()));
 	printTimeMsg(string("Devtest likelihood ")+doubleToString(newLikelihood/devtestdocs.size()));
 	
 	//while (newLikelihood > oldLikelihood && steps++ < MAX_STEPS) {
@@ -164,9 +164,9 @@ void doUpdateIteration(vector<Document> & traindocs, vector<Document> & devtestd
 	printTimeMsg("Evltest updated");
 
 	//Strictly unneccessary but nice to see
-	printTimeMsg(string("Train likelihood ")+doubleToString(calcTotalLikelihoodExcludeInf(traindocs, space)/traindocs.size()));
-	printTimeMsg(string("Devtest likelihood ")+doubleToString(calcTotalLikelihoodExcludeInf(devtestdocs, space)/devtestdocs.size()));
-	printTimeMsg(string("Evltest likelihood ")+doubleToString(calcTotalLikelihoodExcludeInf(testdocs, space)/testdocs.size()));
+	printTimeMsg(string("Train likelihood ")+doubleToString(calcTotalLikelihood(traindocs, space, true)/traindocs.size()));
+	printTimeMsg(string("Devtest likelihood ")+doubleToString(calcTotalLikelihood(devtestdocs, space, true)/devtestdocs.size()));
+	printTimeMsg(string("Evltest likelihood ")+doubleToString(calcTotalLikelihood(testdocs, space, true)/testdocs.size()));
 	
 	printTimeMsg(string("Train distance ") + doubleToString(calcAvgEuclideanDistance(traindocs)));
 	printTimeMsg(string("Devtest distance ") + doubleToString(calcAvgEuclideanDistance(devtestdocs)));
