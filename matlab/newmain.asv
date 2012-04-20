@@ -6,11 +6,6 @@ addpath(genpath('../../Focal'))
 [devscores, devlabels] = readScores('../../dev.txt');
 [testscores, testlabels] = readScores('../../nist.txt');
 
-%trainscores = {log(trainscores{1}), log(trainscores{2})};
-%devscores = {log(devscores{1}), log(devscores{2})};
-%testscores = {log(testscores{1}), log(testscores{2})};
-
-%Closed set
 temp = [testlabels ~= 0];
 Ctestscores = {testscores{1}(:, temp), testscores{2}(:, temp)};
 Ctestlabels = testlabels(temp);
@@ -25,4 +20,13 @@ loglh1 = apply_nary_lin_fusion(Ctestscores, alpha, beta);
 loglh2 = apply_nary_lin_fusion(Ctestscores, alpha, beta);
 
 
-calref_plot({Ctestscores{1}, Ctestscores{2}, loglh1, loglh2}, Ctestlabels, {'Prim dialect', 'sec dialect', 'devtrained', 'traintrained'});
+calref_plot(Ctestscores, Ctestlabels, {'prim', 'sec'});
+
+figure(2);
+calref_plot({loglh1}, Ctestlabels, {'devtrained'});
+
+figure(3);
+calref_plot({loglh2}, Ctestlabels, {'traintrained'});
+
+figure(4);
+calref_plot({Ctestscores{1}loglh1, loglh2}, Ctestlabels, {'devtrained', 'traintrained'});

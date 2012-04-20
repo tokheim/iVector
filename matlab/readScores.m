@@ -5,7 +5,7 @@ function [scores, labels] = readScores(path)
   sys1cols = [2:13];%The columns with primary dialects
   sys2cols = [15:17 5:13];%The columns with secondary dialects
 
-  scores = {temp(:, sys1cols), temp(:, sys2cols)};
+  scores = {temp(:, sys1cols)', temp(:, sys2cols)'};
 
 
 
