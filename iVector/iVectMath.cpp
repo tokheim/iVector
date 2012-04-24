@@ -172,3 +172,51 @@ void updateiVectorCheckLike(Document & document, FeatureSpace & space) {
 	updateiVector(document, space);
 	recursiveiVectorUpdateCheck(document, space, oldLikelihood, 0);
 }
+
+
+
+
+//Eksperimentell kode
+
+vector<double> calcPhiNominators(std::vector<Document> & documents, FeatureSpace & space, int tRow) {
+	vector<double> nominators(documents.size());
+	for (unsigned int i = 0; i < documents.size(); i++) {
+		nominators(i) = exp(space.mVector(tRow)+inner_prod(documents[i].iVector, row(space.tMatrix, tRow)));
+	}
+	return nominators;
+}
+
+double calcRowLikelihood(std::vector<Document> & documents, vector<double> & denominators, vector<double> & oldNominators, vector<double> & newNominators, unsigned int tRow) {
+	double likelihood = 0.0;
+	for (unsigned int i = 0; i < documents.size(); i++) {
+		double gammaVal = documents[i].getGammaValue(tRow);
+		if (gammaVal != 0) {
+			likelihood += gammaVal*log(newNominators(i)/(denominators(i)-oldNominators(i)+newNominators(i)));
+		}
+	}
+	return likelihood;
+}
+
+void recursivetRowUpdateCheck(std::vector<Document> & documents, FeatureSpace & space, vector<double> & denominators, vector<double> & oldNominators, double oldLikelihood, unsigned int tRow, int attempts) {
+	if (attempts >= MAX_REDUCE_STEPSIZE_ATTEMPTS) {//Could not find better row, so use old one
+		row(space.tMatrix, tRow) = row(space.oldtMatrix, tRow);
+	}
+	else {
+		vector<double> newNominators = calcPhiNominators(documents, space, tRow);
+		if (oldLikelihood >= calcRowLikelihood(documents, denominators, oldNominators, newNominators, tRow)) {
+			row(space.tMatrix, tRow) = (row(space.oldtMatrix, tRow)+row(space.tMatrix, tRow))/2;
+			recursivetRowUpdateCheck(documents, space, denominators, oldNominators, oldLikelihood, tRow, attempts+1);
+		}
+	}
+}
+
+
+void updatetRowCheckLike(std::vector<Document> & documents, FeatureSpace & space, unsigned int tRow, vector<double> & denominators) {
+	if (space.mVector(tRow) != MINUS_INF) {
+		vector<double> oldNominators = calcPhiNominators(documents, space, tRow);
+		double oldLikelihood = calcRowLikelihood(documents, denominators, oldNominators, oldNominators, tRow);
+		updatetRow(documents, space, tRow, denominators);
+		recursivetRowUpdateCheck(documents, space, denominators, oldNominators, oldLikelihood, tRow, 0);
+	}
+}
+

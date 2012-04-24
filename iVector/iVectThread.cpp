@@ -51,6 +51,7 @@ void updatetRowRange(vector<Document> &documents, FeatureSpace &space, boost::nu
 		if (next >= 0) {
 			//cout << "Thread starting row " << next << "\n";
 			updatetRow(documents, space, next, denominators);
+			//updatetRowCheckLike(documents, space, next, denominators);
 			//cout << "Thread ending row " << next << "\n";
 		}
 	}

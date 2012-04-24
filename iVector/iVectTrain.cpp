@@ -10,11 +10,79 @@ using namespace std;
 
 void extractiVectors(vector<Document> traindocs, vector<Document> devtestdocs, vector<Document> testdocs, FeatureSpace & space, int threads, string outLoc);
 void branchTraining(vector<Document> & traindocs, vector<Document> & devtestdocs, vector<Document> & testdocs, FeatureSpace & space, string outLoc, int threads);
-void traintMatrix(vector<Document> & traindocs, vector<Document> & devtestdocs, FeatureSpace & space, string outLoc, int threads);
+void traintMatrix(vector<Document> & traindocs, vector<Document> & devtestdocs, FeatureSpace & space, string outLoc, int threads, int maxSteps);
 
 
 const int MAX_TRAIN_STEPS = 7;
 const int MAX_EXTRACT_STEPS = 9;
+
+void expandDimension(vector<Document> & traindocs, vector<Document> & devdocs, FeatureSpace & space, int newDimension) {
+	for (unsigned int i = 0; i < traindocs.size(); i++) {
+		traindocs[i].iVector.resize(newDimension, true);
+		traindocs[i].oldiVector.resize(newDimension, true);
+		for (int j = space.width; j < newDimension; j++) {
+			traindocs[i].iVector(j) = 0;
+			traindocs[i].oldiVector(j) = 0;
+		}
+	}
+	for (unsigned int i = 0; i < devdocs.size(); i++) {
+		devdocs[i].iVector.resize(newDimension, true);
+		devdocs[i].oldiVector.resize(newDimension, true);
+		for (int j = space.width; j < newDimension; j++) {
+			devdocs[i].iVector(j) = 0;
+			devdocs[i].oldiVector(j) = 0;
+		}
+	}
+	space.tMatrix.resize(space.height, newDimension, true);
+	space.oldtMatrix.resize(space.height, newDimension, true);
+	for (unsigned int i = 0; i < space.height; i++) {
+		for (int j = space.width; j < newDimension; j++) {
+			space.tMatrix(i, j) = (((double) rand())/RAND_MAX-0.5);
+			space.oldtMatrix(i, j) = space.tMatrix(i, j);
+		}
+	}
+	space.width = newDimension;
+	printTimeMsg("Expanded dimension\n\n");
+
+}
+
+//Method trains T-matrix by expanding width with 50 columns to the maximum width is reached
+void trainInIterations(Configuration config) {
+	int resultWidth = config.width;
+	config.width = 50;
+	resetClock();
+	vector<Document> traindocs = fetchDocumentsFromFileList(TRAINSET, config);
+	printTimeMsg(string("Fetched ")+intToString(traindocs.size())+string(" train docs"));
+	vector<Document> devtestdocs = fetchDocumentsFromFileList(DEVSET, config);
+	printTimeMsg(string("Fetched ")+intToString(devtestdocs.size())+string(" devtest docs"));
+	FeatureSpace space(config.height, config.width, traindocs, config.seed);
+
+	config.width = resultWidth;
+
+	printTimeMsg(string("---update T with width ")+intToString(space.width)+string("---"));
+	traintMatrix(traindocs, devtestdocs, space, config.outLoc, config.threads, 2);
+	while (space.width < config.width) {
+		expandDimension(traindocs, devtestdocs, space, space.width+50);
+		printTimeMsg(string("---update T with width ")+intToString(space.width)+string("---"));
+
+		if (space.width < config.width) {//not last update
+			traintMatrix(traindocs, devtestdocs, space, config.outLoc, config.threads, 2);
+		}
+		else {
+			traintMatrix(traindocs, devtestdocs, space, config.outLoc, config.threads, MAX_TRAIN_STEPS);
+		}
+	}
+	vector<Document> testdocs = fetchDocumentsFromFileList(EVLSET, config);
+	printTimeMsg(string("Fetched ")+intToString(testdocs.size())+string(" evltest docs"));
+	extractiVectors(traindocs, devtestdocs, testdocs, space, config.threads, config.outLoc);
+
+
+}
+
+	
+
+
+
 
 //The method for training t, and extract iVectors from this matrix
 void trainiVectors(Configuration config) {
@@ -35,7 +103,7 @@ void trainiVectors(Configuration config) {
 	if (!config.loadFeatureSpace) {
 		printTimeMsg("Done space setup");
 
-		traintMatrix(traindocs, devtestdocs, space, config.outLoc, config.threads);
+		traintMatrix(traindocs, devtestdocs, space, config.outLoc, config.threads, MAX_TRAIN_STEPS);
 
 		writeSpace(space, config.outLoc+string("space"));
 	}
@@ -120,7 +188,7 @@ void branchTraining(vector<Document> & traindocs, vector<Document> & devtestdocs
 
 
 //Finds the t-Matrix giving highest likelihood to devtest documents
-void traintMatrix(vector<Document> & traindocs, vector<Document> & devtestdocs, FeatureSpace & space, string outLoc, int threads) {
+void traintMatrix(vector<Document> & traindocs, vector<Document> & devtestdocs, FeatureSpace & space, string outLoc, int threads, int maxSteps) {
 	//Initially update all iVectors
 	updateiVectors(traindocs, space, threads);
 	printTimeMsg("Done traindocs init");
@@ -135,16 +203,16 @@ void traintMatrix(vector<Document> & traindocs, vector<Document> & devtestdocs, 
 	printTimeMsg(string("Devtest likelihood ")+doubleToString(newLikelihood/devtestdocs.size()));
 	
 	//while (newLikelihood > oldLikelihood && steps++ < MAX_STEPS) {
-    while (steps++ < MAX_TRAIN_STEPS) {
+    while (steps++ < maxSteps) {
 		printTimeMsg(string("---Start step ") + intToString(steps) + string("---\n"));
 		oldLikelihood = newLikelihood;
 		
 		newLikelihood = doUpdateIteration(traindocs, devtestdocs, space, threads);
 		//newLikelihood = doResetUpdateIteration(traindocs, devtestdocs, space, threads);
 
-		writeDocuments(traindocs, outLoc+string("train")+intToString(steps));
-		writeDocuments(devtestdocs, outLoc+string("devtest")+intToString(steps));
-		printTimeMsg("Writing done");
+		//writeDocuments(traindocs, outLoc+string("train")+intToString(steps));
+		//writeDocuments(devtestdocs, outLoc+string("devtest")+intToString(steps));
+		//printTimeMsg("Writing done");
 		if (newLikelihood < oldLikelihood) {
 			printTimeMsg("Overtrained, using previous t-Matrix;");
 			space.tMatrix = space.oldtMatrix;

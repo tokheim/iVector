@@ -2,31 +2,30 @@ close all
 addpath(genpath('../../Focal'))
 
 
-[trainscores, trainlabels] = readScores('../../train.txt');
-[devscores, devlabels] = readScores('../../dev.txt');
-[testscores, testlabels] = readScores('../../nist.txt');
+[trainCellScores, trainSuperScores, trainlabels] = readScores('../../train.txt');
+[devCellScores, devSuperScores, devlabels] = readScores('../../dev.txt');
+[testCellScores, testSuperScores, testlabels] = readScores('../../nist.txt');
 
+priors = ones(1, 12)/12;%flat prior
+
+%Closed set
 temp = [testlabels ~= 0];
-Ctestscores = {testscores{1}(:, temp), testscores{2}(:, temp)};
-Ctestlabels = testlabels(temp);
+cTestCellScores = {testCellScores{1}(:, temp), testCellScores{2}(:, temp)};%closed set test scores
+cTestSuperScores = testSuperScores(:, temp);
+cTestLabels = testlabels(temp);%closed set test labels
 
 
+%llr fusion
+[alpha, beta] = train_nary_llr_fusion(devCellScores, devlabels);
+llrFuseScores = apply_nary_lin_fusion(cTestCellScores, alpha, beta);
 
+%linear backend
+[Trans, offset] = train_linear_backend(devSuperScores, devlabels, {'ppca', 11});
+linScores = apply_linear_backend(cTestSuperScores, Trans, offset);
+%linScores = loglh2posterior(linScores, priors); UNØDVENDIG
+temp = apply_linear_backend(devSuperScores, devlabels, 
+[alpha, beta] = train_nary_llr_fusion(
 
-[alpha, beta] = train_nary_llr_fusion(devscores, devlabels);
-loglh1 = apply_nary_lin_fusion(Ctestscores, alpha, beta);
+%quadratic backend
 
-[alpha, beta] = train_nary_llr_fusion(trainscores, trainlabels);
-loglh2 = apply_nary_lin_fusion(Ctestscores, alpha, beta);
-
-
-calref_plot(Ctestscores, Ctestlabels, {'prim', 'sec'});
-
-figure(2);
-calref_plot({loglh1}, Ctestlabels, {'devtrained'});
-
-figure(3);
-calref_plot({loglh2}, Ctestlabels, {'traintrained'});
-
-figure(4);
-calref_plot({Ctestscores{1}loglh1, loglh2}, Ctestlabels, {'devtrained', 'traintrained'});
+calref_plot({cTestCellScores{1}, cTestCellScores{2}, llrFuseScores, linScores}, cTestLabels, {'Prim dialect', 'sec dialect', 'llrfuseScores', 'linScores'});

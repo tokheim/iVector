@@ -13,5 +13,6 @@ int main(int argc, char *argv[]) {
 	cout << config.toString();
 	testAll(config);
 	//trainiVectors(config);
+	//trainInIterations(config);
 	return 0;
 }

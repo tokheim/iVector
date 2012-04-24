@@ -177,8 +177,19 @@ void testAll(Configuration config) {
 	vector<double> b(2);
 	b(0) = 1;
 	b(1) = 2;
+	a(1,0) = 1;
 	matrix_row<matrix<double> >(a, 0) += b;
 	printMatrix(a, "add matrix");
+
+	row(a, 1) = row(a, 0);
+	a(1,1) += 1;
+	printMatrix(a, "test");
+
+	row(a, 0) = (row(a, 0) + row(a, 1))/2;
+	printMatrix(a, "avg matrix");
+
+	a.resize(a.size1(), 4, true);
+	printMatrix(a, "resized");
 
 	getline(std::cin, breaker);
 }

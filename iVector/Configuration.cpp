@@ -96,9 +96,7 @@ string Configuration::toString() {
 	ss << "height: " << height << "\n";
 	if (loadFeatureSpace) {
 		ss << "Load feature space from " << featureSpacePath << "\n";
-	} else {
-		ss << "Save feature space to " << featureSpacePath << "\n";
-	}
+	} 
 	ss << "Use different sets for T and classifier training " << useTwoTrainSets << "\n";
 	return ss.str();
 }

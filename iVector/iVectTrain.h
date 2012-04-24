@@ -14,5 +14,6 @@
 
 void shortTrainiVectors(Configuration config);
 void trainiVectors(Configuration config);
+void trainInIterations(Configuration config);
 
 #endif
