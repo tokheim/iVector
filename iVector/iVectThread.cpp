@@ -21,10 +21,8 @@ void updateiVectorRange(vector<Document> &documents, FeatureSpace &space) {
 			}
 		}
 		if (next >= 0) {
-			//cout << "Thread starting document " << next << "\n";
 			//updateiVector(documents[next], space);
 			updateiVectorCheckLike(documents[next], space);
-			//cout << "Thread ended document " << next << "\n";
 		}
 	}
 }
@@ -49,10 +47,9 @@ void updatetRowRange(vector<Document> &documents, FeatureSpace &space, boost::nu
 			}
 		}
 		if (next >= 0) {
-			//cout << "Thread starting row " << next << "\n";
 			updatetRow(documents, space, next, denominators);
 			//updatetRowCheckLike(documents, space, next, denominators);
-			//cout << "Thread ending row " << next << "\n";
+			//updatetRowPart(documents, space, next, denominators);
 		}
 	}
 }

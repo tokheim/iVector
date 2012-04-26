@@ -220,3 +220,31 @@ void updatetRowCheckLike(std::vector<Document> & documents, FeatureSpace & space
 	}
 }
 
+//Updates part of a row of T usefull for resizing
+void updatetRowPart(std::vector<Document> & documents, FeatureSpace & space, unsigned int row, vector<double> & denominators) {
+	unsigned int fromIndex = space.width-50;//Is hardcoded for testing, should be separate
+	matrix_row<matrix<double> > (space.oldtMatrix, row) = matrix_row<matrix<double> > (space.tMatrix, row);
+	if (space.mVector(row) != MINUS_INF) {//If mVector is trained on a superset of "documents" then the old values should still be a solution optimal solution
+		vector<double> grad(space.width);
+		symmetric_matrix<double> jacobian(space.width);
+		setUpSystem(grad, jacobian, documents, space, row, denominators);
+
+		//Select part of gradient/jacboian that should be updated
+		vector<double> b(space.width-fromIndex);
+		matrix<double> A(space.width-fromIndex, space.width-fromIndex);
+		for (unsigned int i = fromIndex; i < space.width; i++) {
+			b(i-fromIndex) = grad(i);
+			for (unsigned int j = fromIndex; j < space.width; j++) {
+				A(i-fromIndex, j-fromIndex) = jacobian(i, j);
+			}
+		}
+		permutation_matrix<double> p(space.width-fromIndex);
+		lu_factorize(A, p);
+		lu_substitute(A, p, b);//b holds the solution (change in given row of T)
+		
+		//put back in t-row
+		for (unsigned int i = fromIndex; i < space.width; i++) {
+			space.tMatrix(row, i) += b(i-fromIndex);
+		}
+	}
+}
