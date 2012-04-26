@@ -24,6 +24,17 @@ double calcAvgEuclideanDistance(std::vector<Document> & documents) {
 	return dist/documents.size();
 }
 
+void colOrthogonalize(matrix<double > & mat) {
+	for (unsigned int i = 0; i < mat.size2(); i++) {
+		double prod = inner_prod(column(mat, i), column(mat, i));
+		vector<double > u = column(mat, i)/inner_prod;
+		for (unsigned int j = i+1; j < mat.size2(); j++) {
+			col(mat, i) -= inner_prod(column(mat, i), column(mat, j))*u;
+		}
+	}
+}
+
+
 //Calculates the denominator in the expression for phi for a document
 double calcPhiDenominator(FeatureSpace & space, vector<double> & iVector) {
 	double denominator = 0.0;

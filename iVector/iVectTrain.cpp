@@ -107,6 +107,9 @@ void trainiVectors(Configuration config) {
 		printTimeMsg("Loaded space");
 	}
 
+	//colOrthogonalize(space.tMatrix);
+	//printTimeMsg("Featurespace orthogonalized");
+
 	vector<Document> testdocs = fetchDocumentsFromFileList(EVLSET, config);
 	printTimeMsg(string("Fetched ")+intToString(testdocs.size())+string(" evltest docs"));
 	
