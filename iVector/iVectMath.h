@@ -6,6 +6,7 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <vector>
 
+void colOrthogonalize(boost::numeric::ublas::matrix<double > & mat);
 boost::numeric::ublas::vector<double> calcAllPhiDenominators(FeatureSpace & space, std::vector<Document> & documents);
 double calcAvgEuclideanDistance(std::vector<Document> & documents);
 double calcTotalLikelihood(std::vector<Document> & documents, FeatureSpace & space, bool excludeInf);

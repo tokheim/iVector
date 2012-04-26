@@ -20,7 +20,7 @@ void expandDimension(vector<Document> & traindocs, vector<Document> & devdocs, F
 	for (unsigned int i = 0; i < traindocs.size(); i++) {
 		traindocs[i].iVector.resize(newDimension, true);
 		traindocs[i].oldiVector.resize(newDimension, true);
-		for (int j = space.width; j < newDimension; j++) {
+		for (int j = 0; j < newDimension; j++) {
 			traindocs[i].iVector(j) = 0;
 			traindocs[i].oldiVector(j) = 0;
 		}
@@ -28,7 +28,7 @@ void expandDimension(vector<Document> & traindocs, vector<Document> & devdocs, F
 	for (unsigned int i = 0; i < devdocs.size(); i++) {
 		devdocs[i].iVector.resize(newDimension, true);
 		devdocs[i].oldiVector.resize(newDimension, true);
-		for (int j = space.width; j < newDimension; j++) {
+		for (int j = 0; j < newDimension; j++) {
 			devdocs[i].iVector(j) = 0;
 			devdocs[i].oldiVector(j) = 0;
 		}
@@ -111,6 +111,9 @@ void trainiVectors(Configuration config) {
 		space = readSpace(config);
 		printTimeMsg("Loaded space");
 	}
+
+	//colOrthogonalize(space.tMatrix);
+	//printTimeMsg("Featurespace orthogonalized");
 
 	vector<Document> testdocs = fetchDocumentsFromFileList(EVLSET, config);
 	printTimeMsg(string("Fetched ")+intToString(testdocs.size())+string(" evltest docs"));
