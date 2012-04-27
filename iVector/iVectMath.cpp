@@ -27,9 +27,9 @@ double calcAvgEuclideanDistance(std::vector<Document> & documents) {
 void colOrthogonalize(matrix<double > & mat) {
 	for (unsigned int i = 0; i < mat.size2(); i++) {
 		double prod = inner_prod(column(mat, i), column(mat, i));
-		vector<double > u = column(mat, i)/inner_prod;
+		vector<double> u = column(mat, i)/prod;
 		for (unsigned int j = i+1; j < mat.size2(); j++) {
-			col(mat, i) -= inner_prod(column(mat, i), column(mat, j))*u;
+			column(mat, j) -= inner_prod(column(mat, i), column(mat, j))*u;
 		}
 	}
 }
