@@ -188,8 +188,14 @@ void testAll(Configuration config) {
 	row(a, 0) = (row(a, 0) + row(a, 1))/2;
 	printMatrix(a, "avg matrix");
 
-	a.resize(a.size1(), 4, true);
+	a.resize(3, a.size2(), true);
 	printMatrix(a, "resized");
+
+	a(2,0) = 5;
+	a(2,1) = 3;
+	printMatrix(a, "new values");
+	colOrthogonalize(a);
+	printMatrix(a, "orthogonalized");
 
 	getline(std::cin, breaker);
 }

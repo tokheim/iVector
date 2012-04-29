@@ -60,17 +60,12 @@ void trainInIterations(Configuration config) {
 	config.width = resultWidth;
 
 	printTimeMsg(string("---update T with width ")+intToString(space.width)+string("---"));
-	traintMatrix(traindocs, devtestdocs, space, config.outLoc, config.threads, 2);
+	traintMatrix(traindocs, devtestdocs, space, config.outLoc, config.threads, MAX_TRAIN_STEPS);
 	while (space.width < config.width) {
 		expandDimension(traindocs, devtestdocs, space, space.width+50);
 		printTimeMsg(string("---update T with width ")+intToString(space.width)+string("---"));
 
-		if (space.width < config.width) {//not last update
-			traintMatrix(traindocs, devtestdocs, space, config.outLoc, config.threads, 2);
-		}
-		else {
-			traintMatrix(traindocs, devtestdocs, space, config.outLoc, config.threads, MAX_TRAIN_STEPS);
-		}
+		traintMatrix(traindocs, devtestdocs, space, config.outLoc, config.threads, MAX_TRAIN_STEPS);
 	}
 	vector<Document> testdocs = fetchDocumentsFromFileList(EVLSET, config);
 	printTimeMsg(string("Fetched ")+intToString(testdocs.size())+string(" evltest docs"));
@@ -213,9 +208,6 @@ void traintMatrix(vector<Document> & traindocs, vector<Document> & devtestdocs, 
 		newLikelihood = doUpdateIteration(traindocs, devtestdocs, space, threads);
 		//newLikelihood = doResetUpdateIteration(traindocs, devtestdocs, space, threads);
 
-		//writeDocuments(traindocs, outLoc+string("train")+intToString(steps));
-		//writeDocuments(devtestdocs, outLoc+string("devtest")+intToString(steps));
-		//printTimeMsg("Writing done");
 		if (newLikelihood < oldLikelihood) {
 			printTimeMsg("Overtrained, using previous t-Matrix;");
 			space.tMatrix = space.oldtMatrix;

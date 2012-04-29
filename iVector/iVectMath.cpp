@@ -27,9 +27,9 @@ double calcAvgEuclideanDistance(std::vector<Document> & documents) {
 void colOrthogonalize(matrix<double > & mat) {
 	for (unsigned int i = 0; i < mat.size2(); i++) {
 		double prod = inner_prod(column(mat, i), column(mat, i));
-		vector<double > u = column(mat, i)/inner_prod;
+		vector<double> u = column(mat, i)/prod;
 		for (unsigned int j = i+1; j < mat.size2(); j++) {
-			col(mat, i) -= inner_prod(column(mat, i), column(mat, j))*u;
+			column(mat, j) -= inner_prod(column(mat, i), column(mat, j))*u;
 		}
 	}
 }
@@ -231,4 +231,31 @@ void updatetRowCheckLike(std::vector<Document> & documents, FeatureSpace & space
 	}
 }
 
+//Updates part of a row of T usefull for resizing
+void updatetRowPart(std::vector<Document> & documents, FeatureSpace & space, unsigned int row, vector<double> & denominators) {
+	unsigned int fromIndex = space.width-50;//Is hardcoded for testing, should be separate
+	matrix_row<matrix<double> > (space.oldtMatrix, row) = matrix_row<matrix<double> > (space.tMatrix, row);
+	if (space.mVector(row) != MINUS_INF) {//If mVector is trained on a superset of "documents" then the old values should still be a solution optimal solution
+		vector<double> grad(space.width);
+		symmetric_matrix<double> jacobian(space.width);
+		setUpSystem(grad, jacobian, documents, space, row, denominators);
 
+		//Select part of gradient/jacboian that should be updated
+		vector<double> b(space.width-fromIndex);
+		matrix<double> A(space.width-fromIndex, space.width-fromIndex);
+		for (unsigned int i = fromIndex; i < space.width; i++) {
+			b(i-fromIndex) = grad(i);
+			for (unsigned int j = fromIndex; j < space.width; j++) {
+				A(i-fromIndex, j-fromIndex) = jacobian(i, j);
+			}
+		}
+		permutation_matrix<double> p(space.width-fromIndex);
+		lu_factorize(A, p);
+		lu_substitute(A, p, b);//b holds the solution (change in given row of T)
+		
+		//put back in t-row
+		for (unsigned int i = fromIndex; i < space.width; i++) {
+			space.tMatrix(row, i) += b(i-fromIndex);
+		}
+	}
+}
