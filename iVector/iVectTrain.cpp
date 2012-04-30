@@ -205,6 +205,13 @@ void traintMatrix(vector<Document> & traindocs, vector<Document> & devtestdocs, 
 		printTimeMsg(string("---Start step ") + intToString(steps) + string("---\n"));
 		oldLikelihood = newLikelihood;
 		
+		//if (steps > 2) {
+		//	newLikelihood = doUpdateIteration(traindocs, devtestdocs, space, threads);
+		//} else {
+		//	newLikelihood = doResetUpdateIteration(traindocs, devtestdocs, space, threads);
+		//}
+
+
 		newLikelihood = doUpdateIteration(traindocs, devtestdocs, space, threads);
 		//newLikelihood = doResetUpdateIteration(traindocs, devtestdocs, space, threads);
 

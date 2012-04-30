@@ -8,3 +8,12 @@ iVector/iVector.vcproj.Stihn.Tokminator.user
 test/*
 project/*
 .DS_Store
+latex/*.aux
+latex/*.bbl
+latex/*.blg
+latex/*.aux
+latex/*.log
+latex/*.out
+latex/*.pdf
+latex/*.gz
+latex/*.toc

@@ -152,7 +152,8 @@ def saveResults(resultPath, results):
     for i in range(len(testVectors)):
         line = testVectors[i].lang
         for j in range(maxLabel):
-            line += ' '+str(results[j][i])
+            if j!=numLanguages-1:#Don't write out out of set scores
+                line += ' '+str(scores[j][1])
         outFile.write(line+'\n')
     outFile.close()
     

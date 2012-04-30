@@ -1,0 +1,162 @@
+\chapter{OLD Baseline system}
+\label{baseline}
+\label{chapterthree}
+
+\section{Phoneme recognizers}\label{chap:phnrec}
+The phoneme recognizer that will be used in the baseline system is developed at Brno University of Technology (BUT) in Czech Republic. The recognizer performs feature extraction by looking at the temporal context of a windowed segment. It splits the segment into a left context (LC) and a right context (RC) to evaluate the temporal changes in the utterance. The classifiers are based on a neural network, and finally, the phoneme string is decoded by using the Viterbi algorithm. For further reading, see \cite{phnrec}.
+
+Three different phoneme recognizers, trained respectively on the Hungarian, Russian and Czech SpeechDat-E database, are available for use. The baseline system in this project will use the phoneme recognizer trained on Hungarian. The equal error rate (EER) of these three recognizers are shown in table \ref{tab:phnrec}.
+
+\begin{table}[h!b!t!]
+	\begin{center}
+	\caption{BUT phoneme recognizers, EER}
+	\begin{tabular}{ | l | c | c | c |}
+		\hline
+		\textbf{Language used for training} & \textbf{Hungarian} & \textbf{Russian} & \textbf{Czech}  \\ \hline 
+		\textbf{EER (\%) } & 33,32 & 39,27 &  24,24  \\ 
+		\hline
+	\end{tabular}
+	\label{tab:phnrec}
+	\end{center}
+\end{table}
+
+\section{CallFriend database}
+\subsection{Contents}\label{chap:callfriend}
+Speech from the CallFriend database will be used for training and evaluation of the language identifier. The database contains several hours of telephone conversations for twelve languages. The languages are shown in table \ref{tab:callfriend}.
+
+\begin{table}[hbt]
+	\begin{center}
+	\caption{Languages included in CallFriend}
+	\begin{tabular}{ | c | c | c | c |}
+		\hline
+		Arabic & English & Farsi & French \\ \hline 
+		German & Hindi & Japanese & Korean \\ \hline 
+		Mandarin & Spanish & Tamil & Vietnamese \\
+		\hline
+	\end{tabular}
+	\label{tab:callfriend}
+	\end{center}
+\end{table}
+
+In addition, some of the languages have speech data for two different dialect forms of the given language. These languages are English, Mandarin and Spanish. The speech data is divided into two separate folders which makes it possible to create two language models for the same language (one for each dialect). The dialects are presented in table \ref{tab:callfrienddial}.
+
+\begin{table}[hbt]
+	\begin{center}
+	\caption{Dialects in CallFriend}
+                     \begin{tabular}{ | l | c | c | }
+		\cline{2-3}
+		\multicolumn{1}{l}{}  & \multicolumn{2}{|c|}{\textbf{Dialects}} \\ \hline
+		\textbf{English} & American English & American English (Southern) \\ \hline 
+		\textbf{Mandarin} & Mainland & Taiwan \\ \hline 
+		\textbf{Spanish} & Non-Caribbean & Caribbean \\
+		\hline
+	\end{tabular}
+	\label{tab:callfrienddial}
+	\end{center}
+\end{table}
+
+The length of the conversations in the database varies somehow, but most of the files have a length of 30 minutes. In total, for each language/dialect, there are approximately:
+
+\begin{itemize}
+\item 20 hours of training data - used for building the initial language model.
+\item 20 hours of development test data (\emph{devtest}) - can be used for testing during development in order to tweak on variables that creates the most optimal language model.
+\item 20 hours of evaluation test  data (\emph{evltest}) - used for evaluating the system. These data must be unknown for the system until the final evaluation tests.
+\end{itemize}
+
+\subsection{Splitting of files}\label{chap:splitfiles}
+The speech files in the evaluation set have a length of 30 minutes, and if they were to be tested by the system in their full length, they would most probably be identified as the correct language. However, one doesn't always have that much speech available when identifying a language. It is also interesting, in regards to a possible real-time implementation, to examine the system's accuracy compared to the amount of available speech. Therefore, splitting of the evaluation files is necessary, and segments containing respectively 10, 30 and 45 seconds of speech were evaluated.
+
+
+
+
+\section{Language model}
+
+In order to decide what language is spoken in an utterance we need to build language models capable of differentiating the different languages. While it could be possible to construct a rule-based system to decide the language of utterances, the by far most used technique is to use a statistical model trained from training data. For a sequence of phonemes, $S$, the most likely language, $L$, will be given by 
+
+\begin{equation}\label{argmaxlang}
+\underset{L}{\arg\max} \, p(L|S, \theta)
+\end{equation}
+
+where $\theta$ is the statistical model for the languages. For the baseline system we used a so called generative language model. Generative means that the model is capable of producing realistic data, or transcripts when used for language modeling. Using Bayes' rule, the probability in \ref{argmaxlang} can be written as
+
+\begin{align}\label{langmaxlike}
+\underset{L}{\arg\max} \, p(L|S, \theta) &=\underset{L}{\arg\max}\frac{p(S|L, \theta)\cdot p(L|\theta)}{p(S|\theta)} \\
+&= \underset{L}{\arg\max} \, p(S|L, \theta)\cdot p(L|\theta)
+\end{align}
+
+since $p(S|\theta)$ is equal for all languages and can simply be ignored. The prior $p(L|\theta)$ is dependent on the usage of the system. In an implementation for real usage it could be estimated from statistics about the user group, but when testing the performance, it is often assumed to be equal for all languages. Thus the only thing the language model needs to estimate is the likelihood of each language producing the sequence of phonemes. 
+
+\subsection{Model Training}
+\label{modeltrain}
+
+Because $S$ only takes discrete values, a theoretical optimal estimation of $p(S|L)$ would be the frequency the exact utterance $S$ occurs in the training data for the language $L$. Since there is almost an unlimited number of possible phoneme sequences in an utterance, a model like this trained on a limited set of data is likely to perform poorly on unseen data. It is simply very unlikely that a transcript from an test utterance also exists in the training set. This would make $p(S|L, \theta)$ equal zero for most utterances and make the model useless.  Another expression for $p(S|L)$ is
+
+\begin{equation}\label{infinitygram}
+p(S|L) = \prod_{i=1}^N p(s_i|s_1, s_2, ... , s_{i-1}, L)
+\end{equation}
+
+where $s_i$ is the $i$-th token in the utterance. This formulation is also prone to the same training issues as before. Assuming that the probability for token $s_i$ is most dependent on the last few tokens, equation \ref{infinitygram} can be approximated by
+
+\begin{equation}\label{ngram}
+p(S|L) \approx p(s_1| L)\cdot p(s_2| s_1, L)\cdot ... \cdot p(s_n|S_1^{n-1}, L) \cdot \prod_{i=n+1}^N p(s_i | S_{i-n+1}^{i-1}, L)
+\end{equation}
+
+where $S_{x}^{x+y}$ is the sequence of phonemes $\{s_x, s_{x+1}, s_{x+2}, ... , s_{x+y}\}$. This is called a n-gram approximation \cite[section 11.2.2]{talegk}, where a phoneme is only dependent on it's $n-1$ preceding phonemes. A low value for $n$ will make the model less realistic as it ignores dependencies in the language, but it will also require less training data as short n-grams should appear more frequent in utterances than long n-grams. The probability of a n-gram can then be estimated as
+
+\begin{equation}\label{ngramprob}
+p(s_i | S_{i-n+1}^{i-1}, L) = \frac{C_L(S_{i-n+1}^i, L)}{C_L(S_{i-n+1}^{i-1}, L)}
+\end{equation}
+
+where $C_L(S)$ is the number of times the phoneme sequence $S$ appears in the training data, or the total number of phonemes if $S$ is an empty set. The language model will then be the probability of all n-grams up to the selected size $n$ estimated from equation \ref{ngramprob}. The reason for needing the lower order n-grams is that high order n-grams aren't applicable at the beginning of utterances.
+
+In the baseline system we used 3-grams (also called trigrams) for the model. Some tokens from the transcript that gave little or no insight into what language was spoken were simply ignored to make the other n-gram estimations less sparse. Specifically we ignored tokens that the phoneme recognizer labeled as noise, and all but the first of consecutive tokens with silence. 
+
+\subsection{Model Smoothing}
+
+\label{ngramsmooth}
+
+An issue with equation \ref{ngramprob} is that no matter how often most of an utterance's n-grams appear in the training corpus, a single unseen n-gram will make the equation \ref{ngram} evaluate to zero. This happens so frequently with unseen data that it is impossible to ignore. This problem stems from the fact that the relative error of probability estimates for rare events grows without bound as the probability of an event goes towards zero \cite{probestimate}. Since the number of possible n-grams grows exponentially with $n$, we are expecting that lower order n-grams probabilities will have better estimates at the expense of being less realistic models. So when a sufficiently rare n-gram is encountered in an utterance it should be beneficial to use an n-gram of lower order as an estimate of the probability. In the baseline system we used a very simple method known as backoff smoothing \cite[section 11.4.2]{talegk} on the n-grams. The smoothed probability of an n-gram, $\hat{p}$, is given by
+
+\begin{equation}\label{smoothedngram}
+\hat{p}(s_i | S_{i-n+1}^{i-1}, L)= 
+\begin{cases}
+p(s_i | S_{i-n+1}^{i-1}, L) & \text{if } C_L(S_{i-n+1}^i) > k \\
+\alpha_L (S_{i-n+1}^{i-1})\hat{p}(s_i | S_{i-n+2}^{i-1}, L) & \text{if } C_L(S_{i-n+1}^i) \leq k
+\end{cases}
+\end{equation}
+
+where $k$ is some chosen constant and $\alpha_L$ is a context dependent constant serving two purposes. If a rare n-gram backs off to a lower ordered n-gram then this lower ordered n-gram can be very probable. The $\alpha_L$ value will then be used as a penalty for using the lower ordered n-gram. Furthermore it is set to assures that the sum of probabilities given a history of phonemes equal $1$. This means that the probability mass where $C_L(S_{i-n+1}^i)$ is less than or equal $k$ should be equal before and after the smoothing
+
+\begin{equation}\label{probmasses}
+\sum_{s_i:C_L(S_{i-n+1}^i)\leq k}p(s_i|S_{i-n+1}^{i-1}, L)
+ = 
+\sum_{s_i:C_L(S_{i-n+1}^i)\leq k} \hat{p}(s_i|S_{i-n+1}^{i-1}, L)
+\end{equation}
+
+Using equation \ref{smoothedngram} and \ref{probmasses} the value for $\alpha_L$ should be
+
+\begin{equation}\label{alpha}
+\alpha_L(S_{i-n+1}^{i-1})=
+\frac{1-\sum_{s_i:C_L(S_{i-n+1}^i)>k} p(s_i|S_{i-n+1}^{i-1}, L)}{
+1-\sum_{s_i:C_L(S_{i-n+1}^i)>k} p(s_i|S_{i-n+2}^{i-1}, L)}
+\end{equation}
+
+If we assume that the unigram probabilities are accurate and need no smoothing, the smoothed language model for higher order n-grams can be built iteratively. The only parameter we haven't set is the value for $k$. Since the n-gram smoothing can be seen as a method to avoid overfitting of the language models, the ideal value of $k$ should maximize the likelihood in equation \ref{ngram} for unseen data. In our baseline system we set an independent value for $k$ for each language by iterating over a range of integer values and evaluating on the devtest data. To fully utilize the devtest data for the final evaluation, we then retrained the system using both training and devtest data.
+
+\subsection{Language recognition}
+
+With the language models developed from training data in section \ref{modeltrain} and \ref{ngramsmooth} we are now ready to identify the languages of unknown utterances. Instead of using equation \ref{ngram} for evaluating likelihoods for utterances, we used the log-likelihood. The log-likelihood is less prone to underflow problems on computers, and since the logarithm function is strictly increasing, the log-likelihoods will still be comparable to each other. Using trigrams, the identified language will then be $\underset{L}{\arg \max}$ of
+
+\begin{align}\label{langlogmaxlike}
+\log\hat{p}(L|S, \theta)=\log \hat{p}&(s_1 | L, \theta)+\log\hat{p}(s_2 | s_1, L, \theta) \nonumber \\
+&+\sum_{i=3}^N \log\hat{p}(s_i | S_{i-2}^{i-1}, L, \theta)+\log p(L|\theta)
+\end{align}
+
+For languages with multiple dialects we used separate models for each dialect. Our models are supposed to be generative, so it seemed counterintuitive to pool dialects together. The model would then be of two different phoneme distributions, and thereby not be a generative model for any of the dialects.  Furthermore separating dialects have been beneficial in other systems \cite[section 8.3.4]{matejka09}. During evaluation we calculate the likelihood for a language with two dialects producing the phonemes as
+
+\begin{align}
+p(S|L, \theta) &= p(S|L, D_a, \theta)p(D_a |L, \theta)+p(S|L, D_b, \theta)p(D_b|L, \theta) \nonumber \\
+&= \frac{p(S|L, D_a)+p(S|L, D_b)}{2}
+\end{align}
+
+where $D_a$ and $D_b$ are the two dialects. In the last line in this equation we assume the priors for each dialect to be equal.
