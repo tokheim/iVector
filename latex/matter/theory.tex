@@ -1,11 +1,23 @@
 \chapter{Theory}
 \label{sect:Theory}
 
-\section{Properties of iVecctor matrix}
+\section{Properties of the Newton Raphson updates}
 
+From equation ??? $\mathbf{H}_n$ can be seen to be symmetric.
+\begin{equation}\label{symproof}
+\mathbf{H}_n^T = \left(\sum_{i=1}^{C}a_{ni}\mathbf{t}_i\mathbf{t}_i^T\right)^T = \sum_{i=1}^{C}a_{ni}\left(\mathbf{t}_i\mathbf{t}_i^T\right)^T =
+ \sum_{i=1}^{C}a_{ni}\mathbf{t}_i\mathbf{t}_i^T = \mathbf{H}_n
+\end{equation}
+where $a_nc$ is the scalar part of equation ???. A similar proof can be constructed for $\mathbf{H}_c$, but is omitted due to the similarities. This is a very important property as the construction of the jacobian is computationally expensive. Since most of the matrix is redundant, we only have to calculate the upper or lower half of the matrix. 
 
+The Jacobian is also positive definite. A matrix, $\mathbf{A}$ is given to be positive definite if $\mathbf{x}^T\mathbf{Ax} > 0$ for all non-zero vectors $\mathbf{x}$ CORMEN. 
 
-
+\begin{align}
+\mathbf{x}^T\mathbf{H}_n\mathbf{x} &= \mathbf{x}^T\left(\sum_{i=1}^{C}a_{ni}\mathbf{t}_i\mathbf{t}_i^T\right)\mathbf{x} 
+= \sum_{i=1}^{C}a_{ni}\mathbf{x}^T\mathbf{t}_i\mathbf{t}_i^T\mathbf{x} 
+= \sum_{i=1}^{C}a_{ni}\left(\mathbf{x}^T\mathbf{t}_i\right)^2 \geq 0 
+\end{align}
+The inequality above is given by the fact that $a_{ni} \geq 0$ and that $\mathbf{x}^T\mathbf{t}_i$ is a real scalar.
 
 \label{chapterfive}
 

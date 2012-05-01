@@ -147,8 +147,11 @@ def saveProbs(docs, results, savePath):
     outFile = open(savePath, 'w')
     for i in range(len(docs)):
         line = str(getLabelNum(docs[i].lang)+1)
+        sum = 0.0
+        for val in results[i]:#Do some normalizaiton on length
+            sum+=math.exp(val)
         for val in results[i]:
-            line+=' '+str(val)
+            line+=' '+str(val-math.log(sum))
         outFile.write(line+'\n')
     outFile.close()
 
