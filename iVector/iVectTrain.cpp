@@ -87,7 +87,7 @@ void trainiVectors(Configuration config) {
 	if (config.useTwoTrainSets && !config.loadFeatureSpace) {
 		traindocs = fetchDocumentsFromFileList(STRAINSET, config);
 	}
-	else if (!config.loadFeatureSpace) {
+	else {
 		traindocs = fetchDocumentsFromFileList(TRAINSET, config);
 	}
 	printTimeMsg(string("Fetched ")+intToString(traindocs.size())+string(" train docs"));
