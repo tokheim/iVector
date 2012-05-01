@@ -113,7 +113,7 @@ def giveUnitLength(iList):
         for i in range(len(item.ivect)):
             item.ivect[i] = item.ivect[i]/normTerm
 
-#Calculate and scale by standard deviation
+#Calculate standard deviation on a mean-normalized list
 def calcStdev(iList):
     var = [0.0]*len(iList[0].ivect)
     for item in iList:
@@ -154,7 +154,8 @@ def saveResults(resultPath, results):
         line = testVectors[i].lang
         scores = evaluate(results, i)
         for j in range(maxLabel):
-            line += ' '+str(scores[j][1])
+            if j!=numLanguages-1:#Don't write out out of set scores
+                line += ' '+str(scores[j][1])
         outFile.write(line+'\n')
     outFile.close()
     

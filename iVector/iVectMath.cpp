@@ -201,9 +201,7 @@ double calcRowLikelihood(std::vector<Document> & documents, vector<double> & den
 	double likelihood = 0.0;
 	for (unsigned int i = 0; i < documents.size(); i++) {
 		double gammaVal = documents[i].getGammaValue(tRow);
-		if (gammaVal != 0) {
-			likelihood += gammaVal*log(newNominators(i)/(denominators(i)-oldNominators(i)+newNominators(i)));
-		}
+		likelihood += gammaVal*log(newNominators(i)/(denominators(i)-oldNominators(i)+newNominators(i)));
 	}
 	return likelihood;
 }
