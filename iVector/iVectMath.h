@@ -17,7 +17,13 @@ void updateiVector(Document & document, FeatureSpace & space);
 
 void updatetRows(std::vector<Document> & documents, FeatureSpace & space);
 void updatetRow(std::vector<Document> & documents, FeatureSpace & space, unsigned int row, boost::numeric::ublas::vector<double> & denominators);
-void updatetRowCheckLike(std::vector<Document> & documents, FeatureSpace & space, unsigned int tRow, boost::numeric::ublas::vector<double> & denominators);
+
+
+//Experimental
+
+
+void updatetRowCheckLike(std::vector<Document> & documents, FeatureSpace & space, unsigned int tRow, boost::numeric::ublas::vector<double> & denominators, double oldLikelihood)
+void checkTLike(std::vector<Document> & documents, FeatureSpace & space, unsigned int column);//checks in columns
 
 void updatetRowPart(std::vector<Document> & documents, FeatureSpace & space, unsigned int row, boost::numeric::ublas::vector<double> & denominators);
 
