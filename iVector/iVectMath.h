@@ -22,9 +22,14 @@ void updatetRow(std::vector<Document> & documents, FeatureSpace & space, unsigne
 //Experimental
 
 
-void updatetRowCheckLike(std::vector<Document> & documents, FeatureSpace & space, unsigned int tRow, boost::numeric::ublas::vector<double> & denominators, double oldLikelihood)
+void updatetRowCheckLike(std::vector<Document> & documents, FeatureSpace & space, unsigned int tRow, boost::numeric::ublas::vector<double> & denominators);
 void checkTLike(std::vector<Document> & documents, FeatureSpace & space, unsigned int column);//checks in columns
 
 void updatetRowPart(std::vector<Document> & documents, FeatureSpace & space, unsigned int row, boost::numeric::ublas::vector<double> & denominators);
+
+//Experimental testing
+//double getColumnLikelihood(std::vector<Document> & documents, boost::numeric::ublas::matrix<double> & tMatrix, boost::numeric::ublas::vector<double> & mVector, unsigned int column);
+boost::numeric::ublas::vector<double> calcPhiNominators(std::vector<Document> & documents, FeatureSpace & space, int tRow);
+double calcLikelihood(std::vector<Document> & documents, FeatureSpace & space, boost::numeric::ublas::vector<double> & denominators, boost::numeric::ublas::vector<double> & oldNominators, unsigned int tRow);
 
 #endif

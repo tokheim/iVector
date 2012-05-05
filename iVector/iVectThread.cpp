@@ -48,13 +48,14 @@ void updatetRowRange(vector<Document> &documents, FeatureSpace &space, boost::nu
 		}
 		if (next >= 0) {
 			updatetRow(documents, space, next, denominators);
-			//updatetRowCheckLike(documents, space, next, denominators);
 			//updatetRowPart(documents, space, next, denominators);
+			//updatetRowCheckLike(documents, space, next, denominators);
 		}
 	}
 }
 
 void updatetRows(std::vector<Document> &documents, FeatureSpace & space, int numOfThreads) {
+	
 	takenFrom = 0;
 	boost::numeric::ublas::vector<double> denominators = calcAllPhiDenominators(space, documents);
 	boost::thread_group threads;

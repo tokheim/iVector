@@ -169,7 +169,7 @@ void updatetRows(std::vector<Document> & documents, FeatureSpace & space) {
 //Recursivly reduce the update step until the likelihood increases
 void recursiveiVectorUpdateCheck(Document & document, FeatureSpace & space, double oldLikelihood, int attempts) {
 	if (oldLikelihood > calcUtteranceLikelihood(document, space, true) && attempts < MAX_REDUCE_STEPSIZE_ATTEMPTS) {
-		document.iVector = (document.iVector-document.oldiVector)/2;
+		document.iVector = (document.iVector+document.oldiVector)/2;
 		recursiveiVectorUpdateCheck(document, space, oldLikelihood, attempts+1);
 	}
 	else if (attempts >= MAX_REDUCE_STEPSIZE_ATTEMPTS) {//Could not find a better iVector, so use the old one
@@ -188,6 +188,11 @@ void updateiVectorCheckLike(Document & document, FeatureSpace & space) {
 
 
 
+/*
+Experimental code, after t-update checks that each column recieves higher likelihood (by itself)
+*/
+
+
 
 double getColumnLikelihood(std::vector<Document> & documents, matrix<double> & tMatrix, vector<double> & mVector, unsigned int column) {
 	double totLike = 0.0;
@@ -198,7 +203,8 @@ double getColumnLikelihood(std::vector<Document> & documents, matrix<double> & t
 		denom = 0.0;
 		for (unsigned int j = 0; j < mVector.size(); j++) {
 			nominators(j) = exp(mVector(j)+tMatrix(j, column)*documents[i].iVector(column));
-			denom += nominators(j);
+			//denom += nominators(j);
+			denom += exp(mVector(j)+inner_prod(row(tMatrix, j), documents[i].iVector));
 		}
 		for (it = documents[i].gamma.begin(); it != documents[i].gamma.end(); ++it) {
 			if (mVector(it->first) != MINUS_INF) {
@@ -214,7 +220,7 @@ void checkTLike(std::vector<Document> & documents, FeatureSpace & space, double 
 		column(space.tMatrix, tColumn) = column(space.oldtMatrix, tColumn);
 	}
 	else {
-		if (oldLikelihood >= getColumnLikelihood(documents, space.tMatrix, space.mVector, tColumn) {
+		if (oldLikelihood >= getColumnLikelihood(documents, space.tMatrix, space.mVector, tColumn)) {
 			column(space.tMatrix, tColumn) = (column(space.oldtMatrix, tColumn)+column(space.tMatrix, tColumn))/2;
 			checkTLike(documents, space, oldLikelihood, tColumn, attempts+1);
 		}
@@ -229,8 +235,9 @@ void checkTLike(std::vector<Document> & documents, FeatureSpace & space, unsigne
 
 
 
-
-
+/*
+Experimental code, updates row of t and check that total likelihood is greater after update
+*/
 
 
 
@@ -244,64 +251,46 @@ vector<double> calcPhiNominators(std::vector<Document> & documents, FeatureSpace
 	return nominators;
 }
 
-double calcLikelihood(std::vector<Document> & documents, FeatureSpace & space, vector<double> & denominators, vector<double> & oldNominators, double oldTotLikelihood, unsigned int tRow) {
-	double totLike = oldTotLikelihood;
-	HASH_I_D::iterator it;
+double calcLikelihood(std::vector<Document> & documents, FeatureSpace & space, vector<double> & denominators, vector<double> & oldNominators, unsigned int tRow) {
+	double likeDiff = 0.0;
 	double nominator;
+	double rowGamma;
 	for (unsigned int i = 0; i < documents.size(); i++) {
-		nominator = exp(space.mVector(tRow)+row(space.tMatrix, tRow)*documents[i].iVector);
-		for (it = documents[i].gamma.begin(); it != documents[i].gamma.end(); ++it) {
-			if (it->first == tRow) {
-				totLike+=it->second * (log(nominator/(denominators(i)+nominator-oldNominators(i)))-log(oldNominators(i)/denominators(i)));
-			}
-			else if (space.mVector(it->first) != MINUS_INF) {
-				totLike+=it->second * (log(denominators(i))-log(denominators(i)+nominator-oldNominators(i)));
-			}
-		}
+		nominator = exp(space.mVector(tRow)+inner_prod(row(space.tMatrix, tRow), documents[i].iVector));
+		rowGamma = documents[i].getGammaValue(tRow);
+		likeDiff += rowGamma * (log(nominator/(denominators(i)+nominator-oldNominators(i)))-log(oldNominators(i)/denominators(i)));
+		likeDiff += (documents[i].gammaSum-rowGamma)*(log(denominators(i))-log(denominators(i)+nominator-oldNominators(i)));
 	}
-	return totLike;
-}		
+	return likeDiff;
+}
 
-/*
-double calcRowLikelihood(std::vector<Document> & documents, vector<double> & denominators, vector<double> & oldNominators, vector<double> & newNominators, unsigned int tRow) {
-	double likelihood = 0.0;
-	for (unsigned int i = 0; i < documents.size(); i++) {
-		double gammaVal = documents[i].getGammaValue(tRow);
-		likelihood += gammaVal*log(newNominators(i)/(denominators(i)-oldNominators(i)+newNominators(i)));
-	}
-	return likelihood;
-}*/
-
-void recursivetRowUpdateCheck(std::vector<Document> & documents, FeatureSpace & space, vector<double> & denominators, vector<double> & oldNominators, double oldLikelihood, unsigned int tRow, int attempts) {
+void recursivetRowUpdateCheck(std::vector<Document> & documents, FeatureSpace & space, vector<double> & denominators, vector<double> & oldNominators, unsigned int tRow, int attempts) {
 	if (attempts >= MAX_REDUCE_STEPSIZE_ATTEMPTS) {//Could not find better row, so use old one
 		row(space.tMatrix, tRow) = row(space.oldtMatrix, tRow);
 	}
 	else {
-		if (oldLikelihood >= calcLikelihood(documents, space, denominators, oldNominators, oldLikelihood, tRow)) {
+		if (0 > calcLikelihood(documents, space, denominators, oldNominators, tRow)) {
 			row(space.tMatrix, tRow) = (row(space.oldtMatrix, tRow)+row(space.tMatrix, tRow))/2;
-			recursivetRowUpdateCheck(documents, space, denominators, oldNominators, oldLikelihood, tRow, attempts+1);
+			recursivetRowUpdateCheck(documents, space, denominators, oldNominators, tRow, attempts+1);
 		}
 	}
 }
 
 
-void updatetRowCheckLike(std::vector<Document> & documents, FeatureSpace & space, unsigned int tRow, vector<double> & denominators, double oldLikelihood) {
+void updatetRowCheckLike(std::vector<Document> & documents, FeatureSpace & space, unsigned int tRow, vector<double> & denominators) {
 	if (space.mVector(tRow) != MINUS_INF) {
 		vector<double> oldNominators = calcPhiNominators(documents, space, tRow);
 		updatetRow(documents, space, tRow, denominators);
-		recursivetRowUpdateCheck(documents, space, denominators, oldNominators, oldLikelihood, tRow, 0);
+		recursivetRowUpdateCheck(documents, space, denominators, oldNominators, tRow, 0);
 	}
 }
 
 
 
 
-
-
-
-
-
-
+/*
+Experimental code, Updates only part of a row of T
+*/
 
 //Updates part of a row of T usefull for resizing
 void updatetRowPart(std::vector<Document> & documents, FeatureSpace & space, unsigned int row, vector<double> & denominators) {

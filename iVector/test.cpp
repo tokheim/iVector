@@ -71,6 +71,8 @@ void iVectTests() {
 		std::cout << i << ": ";
 		printVector(documents[i].iVector, "");
 	}
+
+
 	std::cout << "\nTotal likelihood1 (1) = "<<calcTotalLikelihood(documents, space, false);
 	updatetRows(documents, space, 2);
 	std::cout << "\nTotal likelihood (1.5) = "<<calcTotalLikelihood(documents, space, false);
@@ -79,6 +81,45 @@ void iVectTests() {
 
 	writeDocuments(documents, TEST_OUT_LOC);
 	writeSpace(space, TEST_SPACE_OUT);
+	
+
+	vector<double> noms = calcPhiNominators(documents, space, 0);
+	vector<double> denoms = calcAllPhiDenominators(space, documents);
+	double like = calcLikelihood(documents, space, denoms, noms, 0);
+	std::cout << "\nUnchanged likediff = "<<like;
+	space.tMatrix(0,0) = 1000;
+	like = calcLikelihood(documents, space, denoms, noms, 0);
+	std::cout << "\nChanged likediff = "<<like;
+	std::cout << "\nActual likelihood (2) = "<<calcTotalLikelihood(documents, space, false);
+
+
+	//Eksperimentell testing
+	/*FeatureSpace testSpace = space;
+	
+	for (unsigned int i = 0; i < space.width; i++) {
+		checkTLike(documents, space, i);
+	}
+	std::cout << "\nLikelihood after check = "<<calcTotalLikelihood(documents, space, false);
+
+	for (unsigned int i = 0; i < 10; i++) {
+		updateiVectors(documents, space);
+		updateiVectors(documents, testSpace);
+	}
+	std::cout << "\n10 after = "<<calcTotalLikelihood(documents, space, false);
+
+	std::cout << "\n10 after ordinary = "<<calcTotalLikelihood(documents, testSpace, false);
+	*/
+
+
+	
+	//std::cout << "\nColTest likelihood = "<<calcTotalLikelihood(documents, space, false);
+	//vector<double> denominators = calcAllPhiDenominators(space, documents);
+	//double oldLike = calcTotalLikelihood(documents, space, false);
+	//for (unsigned int i = 0; i < space.height; i++) {
+	//	updatetRowCheckLike(documents, space, i, denominators, oldLike);
+	//}
+
+
 
 }
 
@@ -166,7 +207,7 @@ void testAll(Configuration config) {
 
 	std::string breaker;
 	
-	matrix<double> c(2, 2);
+	/*matrix<double> c(2, 2);
 	matrix<double> a(2, 2);
 	printMatrix(a, "Unresetted matrix");
 	a.clear();
@@ -195,7 +236,7 @@ void testAll(Configuration config) {
 	a(2,1) = 3;
 	printMatrix(a, "new values");
 	colOrthogonalize(a);
-	printMatrix(a, "orthogonalized");
+	printMatrix(a, "orthogonalized");*/
 
 	getline(std::cin, breaker);
 }
