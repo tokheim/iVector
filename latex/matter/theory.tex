@@ -10,12 +10,20 @@ Due to the similarities in updating rows of $\mathbf{T}$ and iVectors we will he
 To avoid issues with numeric instability, it is often desirable not to calculate the inverse of a matrix \cite[p. 743]{cormen}. We can rewrite the linear systems in equation ??? and ??? to
 
 \begin{equation}\label{lupeq}
-\mathbf{H}\delta\mathbf{x} = \mathbf{g}
+\mathbf{H}_x\delta\mathbf{x} = \mathbf{g}
 \end{equation}
 where $\delta\mathbf{x}$ equals $\mathbf{x}(NEW)-\mathbf{x}(OLD)$. Equation \ref{lupeq} can then be solved by using well known algorithms such as LUP decomposition. With a given iVector dimension $R$, the system is then solved in $\mathcal{O}(R^3)$ asymptotic time \cite[p. 754]{cormen}. 
 
-LUP decomposition can only solve this system when $\mathbf{H}$ is nonsingular. That is when the rank of $\mathbf{H}$ is $R$, and there exists one and only one solution \cite[p. 54]{matte3}. This is not the case when we during training update a row of $T$ corresponding to an unseen feature, $c$. From equation ??? and ??? both $\mathbf{H}_c$ and $\mathbf{g}_c$ will then be all zero \footnote{If we estimate $\mathbf{m}$ with the same data that we use to update $\mathbf{T}$, then equation ??? and ??? gives that $\mathbf{m}_c$ will equal $-\infty$, making $\phi_{nc}=\gamma_{nc}=0$ for all utterances, $n$, in the training set.}. Since it is clear that any values for $\mathbf{t}_c$ will be a valid solution, a simple way to circumvent the problem is to assume that the new values for $\mathbf{t}_c$ is also zero. This will make the gradient and Hessian for iVectors (equation ??? and ???) unaffected by features not seen in the training data. Since it is unlikely that we gain much information  from those features anyways, we will have reduced the complexity of updating iVectors and $\mathbf{T}$ by ignoring these rows, without significant- or perhaps any cost.
+LUP decomposition can only solve this system when $\mathbf{H}_x$ is nonsingular. That is when the rank of $\mathbf{H}_x$ is $R$, and there exists one and only one solution \cite[p. 54]{matte3}. This is not the case when we during training update a row of $T$ corresponding to an unseen feature, $c$. From equation ??? and ??? both $\mathbf{H}_c$ and $\mathbf{g}_c$ will then be all zero \footnote{If we estimate $\mathbf{m}$ with the same data that we use to update $\mathbf{T}$, then equation ??? and ??? gives that $\mathbf{m}_c$ will equal $-\infty$, making $\phi_{nc}=\gamma_{nc}=0$ for all utterances, $n$, in the training set.}. Since it is clear that any values for $\mathbf{t}_c$ will be a valid solution, a simple way to circumvent the problem is to assume that the new values for $\mathbf{t}_c$ is also zero. This will make the gradient and Hessian for iVectors (equation ??? and ???) unaffected by features not seen in the training data. Since it is unlikely that we gain much information  from those features anyways, we will have reduced the complexity of updating iVectors and $\mathbf{T}$ by ignoring these rows, without significant- or perhaps any cost.
 
+There are some other situations situations where $\mathbf{H}_x$ will be singular. Unfortunate initial values for $\mathbf{T}$ could produce a highly linearly dependent matrix. E.g. if $\mathbf{T}$ is all zero then $\mathbf{H}_n$ would certainly be singular. Also with the iVector dimension, $R$, set very high, we would expect some of the dimensions to be redundant when maximizing equation ???. This shouldn't be an issue since our aim is to compactly represent utterances. 
+
+Instead of finding latent information shared by utterances,  Clearly so many degrees of freedom is in violation of our goal to compactly represent utterances 
+
+
+we would expect equation \ref{lupeq} to have more than one solution. The reason for this will be more formally shown when we prove that $\mathbf{H}_x$ is positive definite, but a reasonable argument for now is that with enough degrees of freedom, we would be able 
+
+While there are other situations where $\mathbf{H}_x$ is singular
 There are other situations where $\mathbf{H}$ can be singular, but they shouldn't arise MORE!!!
 
 
@@ -34,5 +42,13 @@ For a special class of linear systems, there exists a number of faster solvers t
 = \sum_{\forall y}a_{xy}\mathbf{z}^T\mathbf{y}\mathbf{y}^T\mathbf{z} 
 = \sum_{\forall y}a_{xy}\left(\mathbf{z}^T\mathbf{y}\right)^2 \geq 0 
 \end{equation}
-The inequality above is given by the fact that $a_{xy} \geq 0$ and that $\mathbf{z}^T\mathbf{y}$ is a real scalar. If $\mathbf{\tilde{y}}$ is the set of $\mathbf{y}$-vectors where $a_{xy} \neq 0$, then equality can only be reached if $\mathbf{z}$ is orthogonal to all the vectors in $\mathbf{\tilde{y}}$. This implies that the vectors in $\mathbf{\tilde{y}}$ cannot span the entire $R$-dimensional space. Each row of $\mathbf{H}_x$ will be a weighted sum of these vectors, so a row of $\mathbf{H}_x$ will be contained in the subspace defined by $\mathbf{\tilde{y}}$. Therefore $\mathbf{H}_x$ must have a rank less than $R$ and be singular. Since $\mathbf{H}_x$ should be nonsingular in practical usage, we can assume that it also will be positive definite.  
+The inequality above is given by the fact that $a_{xy} \geq 0$ and that $\mathbf{z}^T\mathbf{y}$ is a real scalar. If $\mathbf{\tilde{y}}$ is the set of $\mathbf{y}$-vectors where $a_{xy} \neq 0$, then equality can only be reached if $\mathbf{z}$ is orthogonal to all the vectors in $\mathbf{\tilde{y}}$. This implies that the vectors in $\mathbf{\tilde{y}}$ cannot span the entire $R$-dimensional space. Each row of $\mathbf{H}_x$ will be a weighted sum of these vectors, so the span of rows in $\mathbf{H}_x$ will be contained in the subspace defined by the vectors in $\mathbf{\tilde{y}}$. Therefore $\mathbf{H}_x$ must also have a rank less than $R$ and be singular. Interestingly, a positive definite matrix will always be nonsingular CITE!!!, which means that if, and only if, the vectors in $\mathbf{\tilde{y}}$ span the whole space, then $\mathbf{H}_x$ will be nonsingular and positive definite. 
+
+Given that $\mathbf{T}$ and iVectors are finite, we have from equation ??? that $\phi_{nc} > 0$ whenever $m_c \neq -\infty$. This mens that $a_{xy}=\max(\gamma_{nc}, \phi_{nc})>0$ for all features, $c$, found in the utterances used to train $\mathbf{m}$ (equation ???). A sufficient condition for the Hessian to be nonsingular in practical usage should therefore be to set the iVector dimension, $R$, significantly lower than the number of unique features and utterances in the training set. Using high-precision variables for iVectors and $\mathbf{T}$ it will at least be very unlikely that thewhole $R$-dimensional space isn't spanned.
+
+
+
+
+\section{Gaussian backend}
+
 
