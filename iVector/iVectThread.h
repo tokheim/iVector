@@ -8,5 +8,6 @@
 
 void updateiVectors(std::vector<Document> &documents, FeatureSpace &space, int numOfThreads);
 void updatetRows(std::vector<Document> &documents, FeatureSpace & space, int numOfThreads);
+void updatetRows(std::vector<Document> &documents, FeatureSpace & space, int numOfThreads, std::vector<Document> & devDocs);
 
 #endif

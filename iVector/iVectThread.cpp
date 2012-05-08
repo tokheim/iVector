@@ -36,7 +36,7 @@ void updateiVectors(vector<Document> &documents, FeatureSpace &space, int numOfT
 	}
 	threads.join_all();
 }
-void updatetRowRange(vector<Document> &documents, FeatureSpace &space, boost::numeric::ublas::vector<double> &denominators) {
+void updatetRowRange(vector<Document> &documents, FeatureSpace &space, boost::numeric::ublas::vector<double> &denominators, vector<Document> & devDocs) {
 	while (takenFrom < space.height) {
 		int next = -1;
 		{
@@ -49,19 +49,22 @@ void updatetRowRange(vector<Document> &documents, FeatureSpace &space, boost::nu
 		if (next >= 0) {
 			updatetRow(documents, space, next, denominators);
 			//updatetRowPart(documents, space, next, denominators);
-			//updatetRowCheckLike(documents, space, next, denominators);
+			//updatetRowCheckLike(documents, space, next, denominators, devDocs);
 		}
 	}
 }
 
-void updatetRows(std::vector<Document> &documents, FeatureSpace & space, int numOfThreads) {
-	
+void updatetRows(std::vector<Document> &documents, FeatureSpace & space, int numOfThreads, std::vector<Document> & devDocs) {	
 	takenFrom = 0;
 	boost::numeric::ublas::vector<double> denominators = calcAllPhiDenominators(space, documents);
 	boost::thread_group threads;
 	for (int i = 0; i < numOfThreads; i++) {
-		boost::thread * thread = new boost::thread(updatetRowRange, boost::ref(documents), boost::ref(space), boost::ref(denominators));
+		boost::thread * thread = new boost::thread(updatetRowRange, boost::ref(documents), boost::ref(space), boost::ref(denominators), boost::ref(devDocs));
 		threads.add_thread(thread);
 	}
 	threads.join_all();
+}
+
+void updatetRows(vector<Document> & documents, FeatureSpace & space, int numOfThreads) {
+	updatetRows(documents, space, numOfThreads, documents);
 }

@@ -145,7 +145,7 @@ double doResetUpdateIteration(vector<Document> & traindocs, vector<Document> & d
 
 //Update iteratation of both iVectors and t-matrix
 double doUpdateIteration(vector<Document> & traindocs, vector<Document> & devtestdocs, FeatureSpace & space, int threads) {
-	updatetRows(traindocs, space, threads);
+	updatetRows(traindocs, space, threads, devtestdocs);//remember to change back
 	printTimeMsg("Updated t rows");
 	updateiVectors(traindocs, space, threads);
 	printTimeMsg("Updated train iVectors");

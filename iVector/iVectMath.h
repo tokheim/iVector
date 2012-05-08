@@ -24,6 +24,7 @@ void updatetRow(std::vector<Document> & documents, FeatureSpace & space, unsigne
 
 void updatetRowCheckLike(std::vector<Document> & documents, FeatureSpace & space, unsigned int tRow, boost::numeric::ublas::vector<double> & denominators);
 void checkTLike(std::vector<Document> & documents, FeatureSpace & space, unsigned int column);//checks in columns
+void updatetRowCheckLike(std::vector<Document> & documents, FeatureSpace & space, unsigned int tRow, boost::numeric::ublas::vector<double> & denominators, std::vector<Document> & devDocs);
 
 void updatetRowPart(std::vector<Document> & documents, FeatureSpace & space, unsigned int row, boost::numeric::ublas::vector<double> & denominators);
 

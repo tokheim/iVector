@@ -9,7 +9,7 @@
 This class does most of the mathematical operations in the program
 */
 
-const static int MAX_REDUCE_STEPSIZE_ATTEMPTS = 4;
+const static int MAX_REDUCE_STEPSIZE_ATTEMPTS = 10;
 const static double MINUS_INF = log(0.0);
 
 using namespace boost::numeric::ublas;
@@ -54,8 +54,8 @@ vector<double> calcAllPhiDenominators(FeatureSpace & space, std::vector<Document
 	return denominators;
 }
 
-double calcPhi(FeatureSpace & space, vector<double> & iVector, unsigned int row, double denominator) {
-	return exp(space.mVector(row)+inner_prod(matrix_row<matrix<double> >(space.tMatrix, row), iVector))/denominator;
+double calcPhi(FeatureSpace & space, vector<double> & iVector, unsigned int tRow, double denominator) {
+	return exp(space.mVector(tRow)+inner_prod(row(space.tMatrix, tRow), iVector))/denominator;
 }
 
 double calcUtteranceLikelihood(Document & document, FeatureSpace & space, bool excludeInf) {
@@ -143,19 +143,19 @@ void updateiVectors(std::vector<Document> & documents, FeatureSpace & space) {
 	}
 }
 //Performs newton raphson updates on a row of T
-void updatetRow(std::vector<Document> & documents, FeatureSpace & space, unsigned int row, vector<double> & denominators) {
-	matrix_row<matrix<double> > (space.oldtMatrix, row) = matrix_row<matrix<double> > (space.tMatrix, row);
-	if (space.mVector(row) != MINUS_INF) {//If mVector is trained on a superset of "documents" then the old values should still be a solution optimal solution
+void updatetRow(std::vector<Document> & documents, FeatureSpace & space, unsigned int tRow, vector<double> & denominators) {
+	row(space.oldtMatrix, tRow) = row(space.tMatrix, tRow);
+	if (space.mVector(tRow) != MINUS_INF) {//If mVector is trained on a superset of "documents" then the old values should still be a solution optimal solution
 		vector<double> b(space.width);
 		symmetric_matrix<double> jacobian(space.width);
-		setUpSystem(b, jacobian, documents, space, row, denominators);
+		setUpSystem(b, jacobian, documents, space, tRow, denominators);
 
 		matrix<double> A = jacobian;//Neccessary since the jacobian is symmetric while the decomposed matrix is not
 
 		permutation_matrix<double> p(space.width);
 		lu_factorize(A, p);
 		lu_substitute(A, p, b);//b holds the solution (change in given row of T)
-		matrix_row<matrix<double> > (space.tMatrix, row) += b;
+		matrix_row<matrix<double> > (space.tMatrix, tRow) += b;
 	}
 }
 //Performs newton-raphson updates on all rows of T
@@ -264,14 +264,14 @@ double calcLikelihood(std::vector<Document> & documents, FeatureSpace & space, v
 	return likeDiff;
 }
 
-void recursivetRowUpdateCheck(std::vector<Document> & documents, FeatureSpace & space, vector<double> & denominators, vector<double> & oldNominators, unsigned int tRow, int attempts) {
+void recursivetRowUpdateCheck(std::vector<Document> & documents, std::vector<Document> & likeDocs, FeatureSpace & space, vector<double> & denominators, vector<double> & oldNominators, unsigned int tRow, int attempts) {
 	if (attempts >= MAX_REDUCE_STEPSIZE_ATTEMPTS) {//Could not find better row, so use old one
 		row(space.tMatrix, tRow) = row(space.oldtMatrix, tRow);
 	}
 	else {
-		if (0 > calcLikelihood(documents, space, denominators, oldNominators, tRow)) {
+		if (0 > calcLikelihood(likeDocs, space, denominators, oldNominators, tRow)) {
 			row(space.tMatrix, tRow) = (row(space.oldtMatrix, tRow)+row(space.tMatrix, tRow))/2;
-			recursivetRowUpdateCheck(documents, space, denominators, oldNominators, tRow, attempts+1);
+			recursivetRowUpdateCheck(documents, likeDocs, space, denominators, oldNominators, tRow, attempts+1);
 		}
 	}
 }
@@ -281,9 +281,18 @@ void updatetRowCheckLike(std::vector<Document> & documents, FeatureSpace & space
 	if (space.mVector(tRow) != MINUS_INF) {
 		vector<double> oldNominators = calcPhiNominators(documents, space, tRow);
 		updatetRow(documents, space, tRow, denominators);
-		recursivetRowUpdateCheck(documents, space, denominators, oldNominators, tRow, 0);
+		recursivetRowUpdateCheck(documents, documents, space, denominators, oldNominators, tRow, 0);
 	}
 }
+
+void updatetRowCheckLike(std::vector<Document> & documents, FeatureSpace & space, unsigned int tRow, vector<double> & denominators, std::vector<Document> & devDocs) {
+	if (space.mVector(tRow) != MINUS_INF) {
+		vector<double> oldNominators = calcPhiNominators(devDocs, space, tRow);
+		updatetRow(documents, space, tRow, denominators);
+		recursivetRowUpdateCheck(documents, devDocs, space, denominators, oldNominators, tRow, 0);
+	}
+}
+
 
 
 
