@@ -2,7 +2,7 @@ import os
 import math
 
 languageMapper = {'ENG':0, 'SPA':1, 'MAN':2, 'FAR':3, 'FRE':4, 'GER':5, 'HIN':6, 'JAP':7, 'KOR':8, 'TAM':9, 'VIE':10, 'ARA':11, 'OutOfSet':12}
-callLanguages = [ 'ARABIC_EGYPT', 'ENG_GENRL', 'ENG_SOUTH', 'FARSI', 'FRENCH_CAN', 'GERMAN', 'HINDI', 'JAPANESE', 'KOREAN', 'MANDARIN_M', 'MANDARIN_T', 'SPANISH', 'SPANISH_CAR', 'TAMIL', 'VIETNAMESE' ]
+callLanguages = [ 'ENG_GENRL', 'SPANISH', 'MANDARIN_M', 'FARSI', 'FRENCH_CAN', 'GERMAN', 'HINDI', 'JAPANESE', 'KOREAN', 'TAMIL', 'VIETNAMESE', 'ARABIC_EGYPT', 'ENG_SOUTH', 'SPANISH_CAR', 'MANDARIN_T' ]
 callSets = ['train', 'devtest']
 nistKeyFile = '/talebase/data/speech_raw/NIST_LR/2003/docs/LID03_KEY.v3'
 nistindir = './NIST/2003/lid03e1/transcripts/30/'
@@ -147,11 +147,15 @@ def saveProbs(docs, results, savePath):
     outFile = open(savePath, 'w')
     for i in range(len(docs)):
         line = str(getLabelNum(docs[i].lang)+1)
-        sum = 0.0
         for val in results[i]:#Do some normalizaiton on length
-            sum+=math.exp(val)
+            val = max(val, -2000)
+        
+        sum = results[i][0]
+        for j in range(1, len(results[i])):
+            sum += math.log(1+math.exp(results[i][j]-sum))
+        
         for val in results[i]:
-            line+=' '+str(val-math.log(sum))
+            line+=' '+str(math.exp(val-sum))
         outFile.write(line+'\n')
     outFile.close()
 
