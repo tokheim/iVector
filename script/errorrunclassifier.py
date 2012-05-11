@@ -151,7 +151,7 @@ def saveResults(resultPath, results):
     outFile = open(resultPath, 'w')
     for i in range(len(testVectors)):
         line = testVectors[i].lang
-        for j in range(maxLabel):
+        for j in range(len(results)):
             line += ' '+str(results[j][i])
         outFile.write(line+'\n')
     outFile.close()
@@ -239,7 +239,28 @@ def getSparseMatrix(bits, onesPerRow):
                 ones -= 1
     return matrix
             
-            
+
+def writeMatrix(codeLang, path):
+    outFile = open(path, 'w')
+    outFile.write(str(len(codeLang))+' '+str(len(codeLang[0]))+'\n')
+    for i in range(len(codeLang)):
+        outFile.write(str(codeLang[i][0]))
+        for j in range(1, len(codeLang[i])):
+            outFile.write(' '+str(codeLang[i][j]))
+        outFile.write('\n')
+    outFile.close()
+    
+def readMatrix(path):
+    inFile = open(path, 'r')
+    splitline = inFile.readline().split(' ')
+    matrix = [[0 for _ in range(int(splitline[1]))] for _ in range(int(splitline[0]))]
+    for i in range(len(matrix)):
+        splitline = inFile.readline().split(' ')
+        for j in range(len(matrix[i])):
+            matrix[i][j] = int(splitline[j])
+    return matrix
+
+
 
 def createMatrixMatrix(bits):
     attempts = 200000 / bits
@@ -387,14 +408,7 @@ def main():
     trainPaths.sort()
     outPath = modelDir+''.join(trainPaths).replace('/', '').replace('.','')+'huff/'
     
-    #Two representations of huffman codes for easy representation of rows and columns
-    #codeLang = getHuffmanMatrix()
-    #codeLang = getTestMatrix()
-    codeLang = createMatrixMatrix(numBits)
     
-    print 'CodeLang, min dist '+str(getRowColDist(codeLang))+':'
-    for i in range(len(codeLang)):
-        print str(codeLang[i])
 
     os.system('mkdir -p '+tempDir)
     if not os.path.exists(outPath) or forceTrain:
@@ -418,7 +432,20 @@ def main():
         #giveUnitLength(testVectors)
         print 'Vector lengths normalized'
         
+        
+        #Two representations of huffman codes for easy representation of rows and columns
+        #codeLang = getHuffmanMatrix()
+        #codeLang = getTestMatrix()
+        codeLang = createMatrixMatrix(numBits)
+    
+        print 'CodeLang, min dist '+str(getRowColDist(codeLang))+':'
+        for i in range(len(codeLang)):
+            print str(codeLang[i])
+        
+        
+        
         writeScale(means, stdevs, outPath+'conf')
+        writeMatrix(codeLang, outPath+'mat')
         
         writeIvectList(testVectors, tempTestPath)#Scores are calculated in this script anyways so labels aren't important...
         
@@ -456,16 +483,16 @@ def main():
         print '---Hard optimize---'
         printCorrect(res[bestHardC], codeLang)
                 
-                
-        print '--All models saved--'
+        bestC = bestSoftC
         
-                
-        #os.popen('train -s 0 -c '+c_values[best_c]+' '+tempTrainPath+' '+outPath+'Model'+str(bit))
-        print 'Models saved'
+        for bit in range(len(codeLang)):
+            writeIvectList(trainVectors, tempTrainPath, codeLang[bit])
+            os.popen('train -s 0 -c '+c_values[bestC]+' '+tempTrainPath+' '+outPath+'Model'+str(bit))
+            print 'Model '+str(bit+1)+' of '+str(len(codeLang))+' created'
+        print '--All models saved--'    
         
-        
-        
-        #saveResults(resultPath, res1)    
+        saveResults(resultPath, res[bestC])  
+        print '--Results saved--'  
         
         
         
@@ -477,6 +504,26 @@ def main():
         applyStereoProj(testVectors)
         #giveUnitLength(testVectors)
         print 'Testvector lengths normalized'
+        
+        codeLang = readMatrix(outPath+'mat')
+        print 'matrix read'
+        print 'CodeLang, min dist '+str(getRowColDist(codeLang))+':'
+        for i in range(len(codeLang)):
+            print str(codeLang[i])
+        
+        writeIvectList(testVectors, tempTestPath)
+        res = [[0.0 for _ in range(len(testVectors))] for _ in range(len(codeLang))]
+        
+        for bit in range(len(codeLang)):
+            os.popen('predict -b 1 '+tempTestPath+' '+outPath+'Model'+str(bit)+' '+tempResultPath)
+            parseResults(tempResultPath, res[bit])
+            print 'testing '+str((bit*100)/len(codeLang))+'% complete'
+        
+        print '---Results---'
+        printCorrect(res, codeLang)
+        
+        saveResults(resultPath, res)
+        print '---Results saved---'
         
         '''
         res = [[0.0 for _ in range(len(testVectors))] for _ in range(maxLabel)]

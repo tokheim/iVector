@@ -1,0 +1,70 @@
+\chapter{Proofs of properties for the Newton Raphson updates}
+
+This chapter will prove the properties used in section ???. 
+
+%Due to the similarities in updating rows of $\mathbf{T}$ and iVectors we will here use a common notation when proofs apply to both updates. $\mathbf{x}$ will denote the updated vector (either a row of $\mathbf{T}$ or an iVector), $\mathbf{H}_x$ its (approximate) Hessian and $\mathbf{g}_x$ its gradient. We will use $\mathbf{y}$ to denote the vectors used to update $\mathbf{x}$ (iVectors if $\mathbf{x}$ is a row of $\mathbf{T}$ and vice versa). The Hessian from equation ?? and ?? is then written as
+
+\section{Proof of symmetri}
+\label{symproof}
+
+From equation ?? we have
+
+\begin{align*}\label{symproof}
+\mathbf{H}_n^T &= \left(\sum_{i=1}^{C}\max(\gamma_{ni}, \phi_{ni}\sum_{j=1}^{C}\gamma_{nj})\mathbf{t}_i\mathbf{t}_i^T\right)^T \\
+ &= \sum_{i=1}^{C}\max(\gamma_{ni}, \phi_{ni}\sum_{j=1}^{C}\gamma_{nj})\left(\mathbf{t}_i\mathbf{t}_i^T\right)^T \\
+ &= \sum_{i=1}^{C}\max(\gamma_{ni}, \phi_{ni}\sum_{j=1}^{C}\gamma_{nj})\mathbf{t}_i\mathbf{t}_i^T\right \\
+ &= \mathbf{H}_n
+\end{align*}
+which concludes the proof that $\mathbf{H}_n$ is symmetric. A similar proof using equation ??? will show that $\mathbf{H}_c$ is symmetric as well.
+
+
+%\begin{equation}\label{symproof}
+%\mathbf{H}_x^T = \left(\sum_{\forall y}a_{xy}\mathbf{y}\mathbf{y}^T\right)^T = 
+%\sum_{\forall y}a_{xy}\left(\mathbf{y}\mathbf{y}^T\right)^T =
+% \sum_{\forall y}a_{xy}\mathbf{y}\mathbf{y}^T = \mathbf{H}_x
+%\end{equation}
+
+
+\section{Conditions for positive definity and for nonsingularity}
+\label{posdefproof}
+We will here show the conditions for the Hessian of i-vectors and rows of $\mathbf{T}$ being positive definite and singular. A nonsingular matrix, $\mathbf{A}$ is a matrix that has one and only one solution to a linear system $\mathbf{Ax}=\mathbf{b}$ \cite[p. 54]{matte3}. Also  to be positive definite if $\mathbf{x}^T\mathbf{Ax} > 0$ for all non-zero vectors $\mathbf{z}$ \cite[p. 246]{matte3}. When we apply this to the approximation to the Hessian in equation ??? we get
+
+\begin{align*}
+\mathbf{x}^T\mathbf{H}_n\mathbf{x} &= \mathbf{x}^T\left(\sum_{i=1}^C\max(\gamma_{ni}, \phi_{ni}\sum_{j=1}^{C}\gamma_{nj})\mathbf{t}_i\mathbf{t}_i^T\right)\mathbf{x} \\
+&= \sum_{i=1}^C\max(\gamma_{ni}, \phi_{ni}\sum_{j=1}^{C}\gamma_{nj})\mathbf{x}^T\mathbf{t}_i\mathbf{t}_i^T\mathbf{x} \number \label{posdefEq}\\
+&= \sum_{i=1}^C\max(\gamma_{ni}, \phi_{ni}\sum_{j=1}^{C}\gamma_{nj})(\mathbf{x}^T\mathbf{t}_i)^2 \geq 0
+\end{align*}
+The inequality above is given by the fact that $\phi_{nc}$ and $\gamma_{nc} \geq 0 \forall n, i$ and that $\mathbf{x}^T\mathbf{t}_c$ will be a real scalar. Since the update process explained in section ??? only gives i-vectors and rows of $\mathbf{T}$ finite values $\phi_{nc}$ from equation ??? will only equal 0 when $m_c = -\infty$. From equation ??, this will only happen if the feature, $c$, is not seen in the set used to calculate $m_c$. We now let $\mathbf{\tilde{t}}$ denote the set of rows from $\mathbf{T}$ that correspond to features seen in the training set, that is
+
+\begin{equation*}
+\mathbf{\tilde{t}} = \{\mathbf{t}_c | m_c \neq -\infty \}
+\end{equation*}
+Equality in equation \ref{posdefEq} can only be reached if $\mathbf{x}$ is orthogonal to all the vectors in $\mathbf{\tilde{t}}$. If $R$ is the dimension of rows of $\mathbf{T}$ (and i-vectors), then $\mathbf{x}$ can only be orthogonal to the vectors in $\mathbf{\tilde{t}}$ if these vectors don't span the entire $R$-dimensional space. Each row of $\mathbf{H}_n$ will be a weighted sum of the vectors in $\mathbf{\tilde{t}}$, so the span of $\mathbf{H}_n$ will be a subspace of $\mathbf{\tilde{t}}$'s span. So if there is an orthogonal vector $\mathbf{x}$, then $\mathbf{H}_n$ will have rank less than $R$. A matrix with less than full rank will be singular \cite[p. 54]{matte3}, and  and be singular \cite[p. 54]{matte3}.
+
+
+
+
+
+For a special class of linear systems, there exists a number of faster solvers than LUP decomposition. We will here show that $\mathbf{H}_x$ is positive definite, making $\mathcal{O}(R^2)$ algorithms applicable \cite{tewfik1994fast} to solve the linear system in equation \ref{lupec}. Given that $R$ should be significantly less than $C$, the reduction in total runtime could be negligible to the time spent to set up the equation's Hessian. Nevertheless, proving $\mathbf{H}_x$ is positive definite enables us to use less complex (and still faster) solvers like the closely related LU decomposition \cite[p. 749]{cormen}. A matrix, $\mathbf{A}$ is given to be positive definite if $\mathbf{z}^T\mathbf{Az} > 0$ for all non-zero vectors $\mathbf{z}$ \cite[p. 246]{matte3}. For $\mathbf{H}_x$ we have that
+
+\begin{equation}
+\mathbf{z}^T\mathbf{H}_x\mathbf{z} = \mathbf{z}^T\left(\sum_{\forall y}a_{xy}\mathbf{y}\mathbf{y}^T\right)\mathbf{z} 
+= \sum_{\forall y}a_{xy}\mathbf{z}^T\mathbf{y}\mathbf{y}^T\mathbf{z} 
+= \sum_{\forall y}a_{xy}\left(\mathbf{z}^T\mathbf{y}\right)^2 \geq 0 
+\end{equation}
+The inequality above is given by the fact that $a_{xy} \geq 0$ and that $\mathbf{z}^T\mathbf{y}$ is a real scalar. If $\mathbf{\tilde{y}}$ is the set of $\mathbf{y}$-vectors where $a_{xy} \neq 0$, then equality can only be reached if $\mathbf{z}$ is orthogonal to all the vectors in $\mathbf{\tilde{y}}$. This implies that the vectors in $\mathbf{\tilde{y}}$ cannot span the entire $R$-dimensional space. Each row of $\mathbf{H}_x$ will be a weighted sum of these vectors, so the span of rows in $\mathbf{H}_x$ will be contained in the subspace defined by the vectors in $\mathbf{\tilde{y}}$. Therefore $\mathbf{H}_x$ must also have a rank less than $R$ and be singular. Interestingly, a positive definite matrix will always be nonsingular CITE!!!, which means that if, and only if, the vectors in $\mathbf{\tilde{y}}$ span the whole space, then $\mathbf{H}_x$ will be nonsingular and positive definite. 
+
+Given that $\mathbf{T}$ and iVectors only get finite values from updates, $a_xy = \max(\gamma_{nc}, \phi_{nc})$ can only be zero if $m_c=-\infty$. So if training i-vectors and rows of $\mathbf{T}$ representing features seen in the training set span $R$, the Hessian will be nonsingular for updates of $\mathbf{T}$ and i-vectors respectively. It should then be sufficient to set $R$ significantly lower than the number of unique features and utterances in the training set to keep the Hessian nonsingular.
+
+\subsection{Span of the total variability matrix}
+
+In order to achieve a high likelihood from equation ???, $\mathbf{T}$ needs to model the variability between utterances. T
+
+We will here show that the achievable likelihood only depends on the column span of $\mathbf{T}$. This means that techniques like orthogonalizing $\mathbf{T}$ won't have any effect on 
+
+
+
+
+\section{Gaussian backend}
+
+
