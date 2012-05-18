@@ -5,6 +5,7 @@ Created on Jan 31, 2012
 '''
 import os
 import math
+import copy
 
 #Setup
 languages = [ 'ARABIC_EGYPT', 'ENG_GENRL', 'ENG_SOUTH', 'FARSI', 'FRENCH_CAN', 'GERMAN', 'HINDI', 'JAPANESE', 'KOREAN', 'MANDARIN_M', 'MANDARIN_T', 'SPANISH', 'SPANISH_CAR', 'TAMIL', 'VIETNAMESE' ]
@@ -17,7 +18,7 @@ unigramlistin = './other/unigramList.txt'
 outfilelistnames = ['./other/train_list.txt', './other/devtest_list.txt', './other/short_train_list.txt','./other/nist_list.txt']
 nistoutdir = './NIST/2003/lid03e1/docnumvectors/30/'
 nistkeyfile = '/talebase/data/speech_raw/NIST_LR/2003/docs/LID03_KEY.v3'
-onlyTrigrams = 0
+onlyTrigrams = 1
 
 #Parameter initialization
 allunigrams = {}
@@ -38,8 +39,8 @@ def isNoise(symbol):
 def normalizeFeature(feature):
     return feature.rstrip()
 
-def insert_feature_num(float, vector):
-    num = int(float)
+def insert_feature_num(floatnum, vector):
+    num = int(floatnum)
     if vector.has_key(num):
         vector[num] += 1
     else:
@@ -61,8 +62,8 @@ def insert_feature(trigram, vector):
             num += allunigrams[trigram[i]]*math.pow(numofunigrams, 2-i)
         insert_feature_num(num, vector)
 
-#Read file and write vector
-def vectorize(indir, outdir, filename):
+#Read file and create vector
+def vectorize(indir, filename):
     tranfile = open(indir+filename, 'r')
     lastphones = []
     docvector = {}
@@ -82,11 +83,25 @@ def vectorize(indir, outdir, filename):
                 insert_feature(lastphones, docvector)
             else:
                 insert_features(lastphones, docvector)
+    return docvector
 
+#Read file and write vector
+def makeVector(indir, outdir, filename, langEntropy, docEntropy):
+    docvector = vectorize(indir, filename)
     outfile = open(outdir+filename.replace('.rec', '.txt'), 'w')
     for key, value in docvector.items():
-        outfile.write(str(key)+' '+str(value)+' '+str(math.sqrt(value))+'\n')        
+        if langEntropy.has_key(key):
+            outfile.write(str(key)+' '+str(docEntropy[key]*value)+' '+str(langEntropy[key]*value)+'\n')        
     print 'Finished with file '+outdir+filename
+
+def calcEntropy(key, tot, occurrencelist):
+    entropy = 0.0
+    for occurrencedict in occurrencelist:
+        if occurrencedict.has_key(key):
+            
+            
+            entropy += occurrencedict[key]*math.log(float(occurrencedict[key])/tot)
+    return 1-entropy/(tot*math.log(len(occurrencelist)))
 
 #Read list of possible unigrams
 unigramfile = open(unigramlistin, 'r')
@@ -95,6 +110,34 @@ for line in unigramfile:
     for splits in splitline:
         allunigrams[normalizeFeature(splits)] = numofunigrams
     numofunigrams += 1
+
+#Find normalized entropy
+langOccurrences = [{} for _ in range(len(languages))]
+docOccurrences = []
+allOccurrences = {}
+for i in range(len(languages)):
+    indir = inbasedir.replace('?', languages[i])+setdir[0]
+    for filename in os.listdir(indir):
+        docvector = vectorize(indir, filename)
+        docOccurrences.append(copy.deepcopy(docvector))
+        for key, value in docvector.items():
+            if langOccurrences[i].has_key(key):
+                langOccurrences[i][key]+=value
+            else:
+                langOccurrences[i][key]=value
+            if allOccurrences.has_key(key):
+                allOccurrences[key]+=value
+            else:
+                allOccurrences[key]=value
+    print str((i+1)*100/len(languages))+'% finished reading files for entropy estimating'
+langEntropy = {}
+docEntropy = {}
+for key, value in allOccurrences.items():
+    langEntropy[key] = calcEntropy(key, value, langOccurrences)
+    docEntropy[key] = calcEntropy(key, value, docOccurrences)
+    
+print 'Entropies calculated'
+
 
 #Create training and devtest vectors
 for i in range(len(setdir)):
@@ -105,7 +148,7 @@ for i in range(len(setdir)):
         os.system('mkdir -p '+outdir)
         os.system('rm '+outdir+'*.*')
         for filename in os.listdir(indir):
-            vectorize(indir, outdir, filename)
+            makeVector(indir, outdir, filename, langEntropy, docEntropy)
             alldocs.append(DocInfo(outdir+filename, language))
     outfile = open(outfilelistnames[i], 'w')
     for doc in alldocs:
@@ -121,7 +164,7 @@ for line in keyfile:
     if not os.path.isfile(nistindir+splitline[0]+'.rec'):
         continue
     splitline = line.split(' ')
-    vectorize(nistindir, nistoutdir, splitline[0]+'.rec')
+    makeVector(nistindir, nistoutdir, splitline[0]+'.rec', langEntropy, docEntropy)
     alldocs.append(DocInfo(nistoutdir+splitline[0]+'.txt', splitline[1]))
 outfile = open(outfilelistnames[3], 'w')
 for doc in alldocs:
