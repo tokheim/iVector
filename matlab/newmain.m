@@ -7,17 +7,21 @@ addpath(genpath('../../Focal'))
 %testLoc = '../../map200evl.txt';
 %trainLoc = '../../nomap200resetDev.txt';
 %testLoc = '../../nomap200resetEvl.txt';
+trainLoc = '../../hamNomap200resetDev.txt';
+testLoc = '../../hamNomap200resetEvl.txt';
+
+%Baseline systems
 %trainLoc = '../../mapBaseDev.txt';
 %testLoc = '../../mapBaseEvl.txt';
-trainLoc = '../../nomapBaseDev.txt';
-testLoc = '../../nomapBaseEvl.txt';
+%trainLoc = '../../nomapBaseDev.txt';%Worse performance
+%testLoc = '../../nomapBaseEvl.txt';%Worse performance
 
 %%Closed set testing
 
 [devScores, devLabels] = readScores(trainLoc, 'ignore');
 [testScores, testLabels] = readScores(testLoc, 'ignore');
 
-[Trans, offset] = train_linear_backend(devScores, devLabels);
+[Trans, offset] = train_linear_backend(devScores, devLabels, {'ppca', 20});
 linScores = apply_linear_backend(testScores, Trans, offset);
 
 %[CC, Mu] = train_quadratic_backend(devScores, devLabels, {'ppca', 11}, 0.9);
