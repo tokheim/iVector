@@ -129,13 +129,14 @@ for i in range(len(languages)):
                 allOccurrences[key]+=value
             else:
                 allOccurrences[key]=value
+    print str((i+1)*100/len(languages))+'% finished reading files for entropy estimating'
 langEntropy = {}
 docEntropy = {}
 for key, value in allOccurrences.items():
     langEntropy[key] = calcEntropy(key, value, langOccurrences)
     docEntropy[key] = calcEntropy(key, value, docOccurrences)
     
-print 'Entropies found'
+print 'Entropies calculated'
 
 
 #Create training and devtest vectors
