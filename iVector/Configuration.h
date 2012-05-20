@@ -7,7 +7,7 @@ struct Configuration {
 	int height;
 	int width;
 	int seed;
-	bool limitFeatures;
+	int featureColumn;
 	int threads;
 	std::string outLoc;
 	std::string baseDir;

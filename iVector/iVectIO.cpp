@@ -80,11 +80,7 @@ void fetchDocumentsFromFileList(vector<Document> & documents, string fullPath, s
 //Reads the documents given in the file list (directory found from config, actual file given by the speechSet value)
 vector<Document> fetchDocumentsFromFileList(int speechSet, Configuration &config) {
 	vector<Document> documents;
-	int featureValueCol = 1;
-	if (config.limitFeatures) {
-		featureValueCol = 2;
-	}
-	fetchDocumentsFromFileList(documents, config.fileListInDir+SET_INPUTFILE_NAMES[speechSet], config.baseDir, config.width, 0, 1, 0, featureValueCol);	
+	fetchDocumentsFromFileList(documents, config.fileListInDir+SET_INPUTFILE_NAMES[speechSet], config.baseDir, config.width, 0, 1, 0, config.featureColumn);	
 	return documents;
 }
 //Saves the tMatrix and mVector to the given directory.

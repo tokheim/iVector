@@ -1,6 +1,43 @@
 \chapter{Theory}
 \label{sect:Theory}
 
+\section{Introduction to languages}
+
+\section{Language Recognition systems}
+
+\subsection{Language Detection vs Identification}
+\label{sect:detvsid}
+
+Identification and detection of languages are two very related tasks in language recognition. In both tasks languages are constricted to be in a set of classes. Each class can be a single language, dialect, or a set of languages, and the goal of our system is to separate these classes. In this thesis we will only look at formulations where each class is a single language and possibly one class that consists of all other languages, which we refer to as an \emph{out of set language}. We call it an \emph{open set} recognition problem When the set includes an out of set language, and \emph{closed set} otherwise. With this formulation in mind, we drop the notion of classes, and just call each class a language. 
+
+Given a hypothesized language, a language detection system will either accept or reject the claimed language based on a set of observations. The confidence the language detection system requires for its decisions will vary on application, but we say that we accept the hypothesis if the probability that it is the hypothesized language, $l_i$, given the systems knowledge of languages, $\theta$, and observations, $S$, is greater than some threshold, $t$. The acceptance criteria can also be written as
+
+\begin{equation*}
+P(l_i | \theta, X) \geq t.
+\end{equation}
+Any claim that doesn't satisfy the equation will be rejected.
+
+ In language identification, our goal is just to find the most probable language from the known languages, that is
+\begin{equation*}
+\underset{i}{\arg \max} P(l_i | \theta, X).
+\end{equation}
+Since both recognition problems are quite straight forward after we've found $P(l_i | \theta, X)$, most effort in the field of language recognition is put into making $\theta$ a good model of the languages of interest.
+
+\section{Language Model Using Markov Chains}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 \section{More on the iterative update process}
 
 Here we are going to look more closely at the Newton Raphson update steps for producing i-vectors and the variability matrix. In a real-time implementation we would need to extract i-vectors using these updates for live data which makes the operation time-sensitive. At the same time these updates involve linear algebra on a high-dimension space, making the operations computationally expensive. An unefficient implementation of these updates will therefore severely impact the computational requirements for training and live usage of the system. It is also critical for the total performance of the system that the i-vectors convey meaningful information about an utterance. A thorough study of the Newton Raphson update process is therefore warranted. 

@@ -50,6 +50,7 @@ Equality in equation \ref{posdefEq} can only be reached if $\mathbf{x}$ is ortho
 With similar calculations as in equation \ref{posdefEq} we can show when $\mathbf{H}_c$ is nonsingular and positive definite. As with $\mathbf{\tilde{t}}_n$ we let $\mathbf{\tilde{w}}_c$ denote the set of i-vectors that contribute (isn't multiplied with zero in equation ???) to $\mathbf{H}_c$. Given that we use the same set to train $\mathbf{m}$ and $\mathbf{T}$, $\gamma_{nc}$ can only be zero if $m_c$ is $-\infty$. So $\mathbf{\tilde{w}}_c$ is either all i-vectors from the training set, or the empty set if $c$ is a feature that is not seen in the training set. For features found in the training set, this means that $\mathbf{H}_c$ will be nonsingular and positive definite if and only if all the i-vectors from the training set span all $R$ dimensions.
 
 \section{The importance of the total variability matrix's column span}
+\label{orthproof}
 
 In this section we will see the importance the column span of $\mathbf{T}$ has on the likelihood achieved during the iterative updates given in section ???. Given two different matrices, $\mathbf{T}$ and $\mathbf{\hat{T}}$, with the same column span, there will for any vector $\mathbf{w}_n$ exist a vector $\mathbf{\hat{w}}_n$ where 
 

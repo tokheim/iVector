@@ -4,20 +4,30 @@ maxaxis = 2;
 thresholds = -15:0.1:70;
 
 tot = size(llrs, 2)*size(llrs, 1);
+
+numtrue = ones(1, size(llrs, 1));%array with i-th element equal number of classes with that label
+
 %set up labels as a logical matrix to make life easier
 labelMat = logical(ones(size(llrs)));
 for i = 1:size(labelMat, 1)
     labelMat(i, :) = (labels == i);
+    numtrue(i) = sum(labelMat(i, :));
 end
+faweight = 100./((tot-numtrue)*size(labelMat, 1));
+frweight = 100./(numtrue*size(labelMat, 1));
+
 y = ones(size(thresholds));
 x = ones(size(thresholds));
 
 for i = 1:size(thresholds, 2),
     dec = llrs > thresholds(i);
-    fa = sum(dec(:) & ~labelMat(:));
-    fr = sum(~dec(:) & labelMat(:));
-    y(i) = fr*100.0/tot;
-    x(i) = fa*100.0/tot;
+    y(i) = sum(frweight*(dec & ~labelMat));
+    x(i) = sum(faweight*(~dec & labelMat));
+
+    %fa = sum(dec(:) & ~labelMat(:));
+    %fr = sum(~dec(:) & labelMat(:));
+    %y(i) = fr*100.0/tot;
+    %x(i) = fa*100.0/tot;
 end
 
 if nargin == 2,

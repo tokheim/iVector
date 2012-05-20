@@ -91,7 +91,7 @@ def makeVector(indir, outdir, filename, langEntropy, docEntropy):
     outfile = open(outdir+filename.replace('.rec', '.txt'), 'w')
     for key, value in docvector.items():
         if langEntropy.has_key(key):
-            outfile.write(str(key)+' '+str(docEntropy[key]*value)+' '+str(langEntropy[key]*value)+'\n')        
+            outfile.write(str(key)+' '+str(value)+' '+str(math.sqrt(value))+' '+str(docEntropy[key]*value)+' '+str(langEntropy[key]*value)+'\n')        
     print 'Finished with file '+outdir+filename
 
 def calcEntropy(key, tot, occurrencelist):

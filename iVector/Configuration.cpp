@@ -14,7 +14,7 @@ const static string PARAM_OUT_LOC = "-o";
 const static string PARAM_TRIGRAM_COUNT = "-C";
 const static string PARAM_IVECT_COUNT = "-r";
 const static string PARAM_SEED = "-S";
-const static string PARAM_LIMIT_FEATURE = "-L";
+const static string PARAM_FEATURE_COLUMN = "-L";
 const static string PARAM_THREADS = "-t";
 const static string PARAM_LOADSPACE = "-l";
 const static string PARAM_USE_TWO_TRAIN_SETS = "-T";
@@ -32,7 +32,7 @@ Configuration::Configuration(int argc, char *argv[]) {
 	baseDir = "";
 	outLoc = "./iVectors/";
 	threads = 8;
-	limitFeatures = true;
+	featureColumn = 1;
 	seed = 23;
 	width = 200;
 	height = 35937;//Full map 205379, mapped with bi and unigram 37059, unmapped with bi and unigram 208919
@@ -72,8 +72,8 @@ Configuration::Configuration(int argc, char *argv[]) {
 			cout << HELP_TEXT;
 			exit(0);
 		}
-		else if (paramName == PARAM_LIMIT_FEATURE) {
-			limitFeatures = parseBool(string(argv[i+1]));
+		else if (paramName == PARAM_FEATURE_COLUMN) {
+			setPositiveValue(paramName, argv[i+1], featureColumn);
 		}
 		else if (paramName == PARAM_USE_TWO_TRAIN_SETS) {
 			useTwoTrainSets = parseBool(string(argv[i+1]));
