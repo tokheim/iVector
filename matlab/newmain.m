@@ -5,10 +5,10 @@ addpath(genpath('../../Focal'))
 
 %trainLoc = '../../map200dev.txt';
 %testLoc = '../../map200evl.txt';
-%trainLoc = '../../nomap200resetDev.txt';
-%testLoc = '../../nomap200resetEvl.txt';
-trainLoc = '../../hamNomap200resetDev.txt';
-testLoc = '../../hamNomap200resetEvl.txt';
+trainLoc = '../../nomap200resetDev.txt';
+testLoc = '../../nomap200resetEvl.txt';
+%trainLoc = '../../hamNomap200resetDev.txt';
+%testLoc = '../../hamNomap200resetEvl.txt';
 
 %Baseline systems
 %trainLoc = '../../mapBaseDev.txt';
@@ -21,7 +21,7 @@ testLoc = '../../hamNomap200resetEvl.txt';
 [devScores, devLabels] = readScores(trainLoc, 'ignore');
 [testScores, testLabels] = readScores(testLoc, 'ignore');
 
-[Trans, offset] = train_linear_backend(devScores, devLabels, {'ppca', 20});
+[Trans, offset] = train_linear_backend(devScores, devLabels);
 linScores = apply_linear_backend(testScores, Trans, offset);
 
 %[CC, Mu] = train_quadratic_backend(devScores, devLabels, {'ppca', 11}, 0.9);
@@ -31,6 +31,9 @@ linScores = apply_linear_backend(testScores, Trans, offset);
 cdet = avg_detection_cost('cdet', decision, testLabels, 0);
 
 disp(['AVG cdet for closed set: ' num2str(cdet)]);
+
+figure(1)
+plotdet(llrs, testLabels)
 
 %%Open set testing
 [devScores, devLabels] = readScores(trainLoc, 'UBM');
@@ -46,6 +49,18 @@ linScores = apply_linear_backend(testScores, Trans, offset);
 cdet = avg_detection_cost('cdet', decision, testLabels, 1);
 
 disp(['AVG cdet for open set: ' num2str(cdet)]);
+
+hold on
+plotdet(llrs, testLabels, 'r')
+
+
+
+
+
+
+
+
+
 
 % [trainCellScores, trainSuperScores, trainlabels] = readScores('../../train.txt');
 % [devCellScores, devSuperScores, devlabels] = readScores('../../dev.txt');
