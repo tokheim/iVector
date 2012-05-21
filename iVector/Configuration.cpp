@@ -90,7 +90,7 @@ string Configuration::toString() {
 	ss << "Base directory for documents: " << baseDir << "\n";
 	ss << "Save directory: " << outLoc << "\n";
 	ss << "Threads available: " << threads << "\n";
-	ss << "Limit features by square root: " << limitFeatures << "\n";
+	ss << "Column to read feature counts: " << featureColumn << "\n";
 	ss << "Seed for T-matrix generation: " << seed << "\n";
 	ss << "iVector size: " << width << "\n";
 	ss << "height: " << height << "\n";
