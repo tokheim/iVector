@@ -5,14 +5,14 @@ addpath(genpath('../../Focal'))
 
 %trainLoc = '../../map200dev.txt';
 %testLoc = '../../map200evl.txt';
-trainLoc = '../../nomap200resetDev.txt';
-testLoc = '../../nomap200resetEvl.txt';
+%trainLoc = '../../nomap200resetDev.txt';
+%testLoc = '../../nomap200resetEvl.txt';
 %trainLoc = '../../hamNomap200resetDev.txt';
 %testLoc = '../../hamNomap200resetEvl.txt';
 
 %Baseline systems
-%trainLoc = '../../mapBaseDev.txt';
-%testLoc = '../../mapBaseEvl.txt';
+trainLoc = '../../mapBaseDev.txt';
+testLoc = '../../mapBaseEvl.txt';
 %trainLoc = '../../nomapBaseDev.txt';%Worse performance
 %testLoc = '../../nomapBaseEvl.txt';%Worse performance
 
