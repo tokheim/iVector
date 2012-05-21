@@ -1,19 +1,17 @@
 function plotdet(llrs, labels, color)
 %plots det curves for given system
-maxaxis = 2;
-thresholds = -15:0.1:70;
-
-tot = size(llrs, 2)*size(llrs, 1);
+maxaxis = 20;
+thresholds = -70:0.1:70;
 
 numtrue = ones(1, size(llrs, 1));%array with i-th element equal number of classes with that label
 
 %set up labels as a logical matrix to make life easier
-labelMat = logical(ones(size(llrs)));
+labelMat = true(size(llrs));
 for i = 1:size(labelMat, 1)
     labelMat(i, :) = (labels == i);
     numtrue(i) = sum(labelMat(i, :));
 end
-faweight = 100./((tot-numtrue)*size(labelMat, 1));
+faweight = 100./((size(labelMat, 2)-numtrue)*size(labelMat, 1));
 frweight = 100./(numtrue*size(labelMat, 1));
 
 y = ones(size(thresholds));
@@ -21,8 +19,8 @@ x = ones(size(thresholds));
 
 for i = 1:size(thresholds, 2),
     dec = llrs > thresholds(i);
-    y(i) = sum(frweight*(dec & ~labelMat));
-    x(i) = sum(faweight*(~dec & labelMat));
+    y(i) = sum(frweight*(~dec & labelMat));
+    x(i) = sum(faweight*(dec & ~labelMat));
 
     %fa = sum(dec(:) & ~labelMat(:));
     %fr = sum(~dec(:) & labelMat(:));
