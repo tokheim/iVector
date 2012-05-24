@@ -13,35 +13,119 @@ Identification and detection of languages are two very related tasks in language
 Given a hypothesized language, a language detection system will either accept or reject the claimed language based on a set of observations. The confidence the language detection system requires for its decisions will vary on application, but we say that we accept the hypothesis if the probability that it is the hypothesized language, $l_i$, given the systems knowledge of languages, $\theta$, and observations, $S$, is greater than some threshold, $t$. The acceptance criteria can also be written as
 
 \begin{equation*}
-P(l_i | \theta, X) \geq t.
-\end{equation}
+p(l_i | \theta, X) \geq t.
+\end{equation*}
 Any claim that doesn't satisfy the equation will be rejected.
 
  In language identification, our goal is just to find the most probable language from the known languages, that is
 \begin{equation*}
-\underset{i}{\arg \max} P(l_i | \theta, X).
-\end{equation}
-This means that unless we are implementing a system for a real application, the distinction between the two language recognition problems aren't that important so long as we find $P(l_i | \theta, X)$. What is more important is that the model of the languages, $\theta$, is suited to distinguish languages.
+\underset{i}{\arg \max} p(l_i | \theta, X).
+\end{equation*}
+Since both recognition problems are quite straight forward after we've found $p(l_i | \theta, X)$, most effort in the field of language recognition is put into making $\theta$ a good model of the languages of interest.
 
 \subsection{Phoneme recognizer}
 \label{sect:phnrec}
 
-blabla $P(l_i | \theta, X) \approx P(l_i | \theta, X)$
-
-\section{Language Model Using Markov Chains}
 
 
 
+\subsection{Language models}
+\label{sect:basiclangmodel}
+
+From the phoneme recognizer, we are given a sequence of phonemes $S = s_1, s_2, ... , s_N$ for an unknown utterance. The language model is responsible for turning this sequence into a single score. From section \ref{sect:detvsid} we know that a we would get a high-performing recognition system if the score was close to $p(l_i|X)$. Since the scores produced by this system
+
+Since $p(S)$ is independent of the spoken language, it only serves as a constant to enforce that the probability of the utterance belonging to any language is $1$. The prior distribution of languages, $p(l_i)$, will depend on the application and should be left to the decision unit to adjust to it's needs. A suited score that can be used to make theoretically optimal decisions based on the phone sequence will then be $p(S|l_i$.This is a somewhat strict requirement since the socres will be further processed by the Gaussian backend, investigated in section ??, before any decisions are made. . A model that returns $p(S|l_i)$ will be a theoretically optimal score for the utterance with no loss of information other than what was incurred during tokenization.
+
+
+Using Bayes rule, the probability that the utterance stems from language $l_i$, will be
+
+\begin{equation}
+\label{basebayes}
+p(l_i|S) = \frac{p(S|l_i) \cdot p(l_i)}{p(S)}.
+\end{equation}
+This means that unless we are implementing a system for a real application, the distinction between the two language recognition problems aren't that important so long as we find $P(l_i | \theta, X)$. What is more important is that the model of the languages, $\theta$, is suited to distinguish languages.
+
+BIAS VARIANCE TRADEOFF
+
+In INFOFINNING???[311] it is shown that there are two sources that affect the expected performance of a system trained with a given learning algorithm. Since the performance measure
+
+
+\subsection{Phoneme recognizer}
+\label{sect:phnrec}
 
 
 
+\subsection{Backend Processing of score vectors}
+\label{sect:backendscoring}
 
+\section{Language Modeling Using Markov Chains}
 
+We will here look at how the baseline system utilizes the phoneme sequences from the phone recognizer to construct language models, which then are used to differentiate languages with other phoneme sequences. This is the only module that the baseline system exclusively uses. Intuitively the best performing system will be determined by the total information loss from its modules, so the performance difference between the two systems will be determined by the information loss from assumptions made in this module versus the iVector specific modules. In section \ref{sect:basetrain} we will present how to train a model and use it to decode an utterance. In section \ref{sect:basesmooth} the concept of smoothing the language models will be presented to make the language model better fit unseen utterances.
 
+\subsection{Scoring Utterances}
+\label{sect:basescore}
 
+\subsection{Model training}
+\label{sect:basetrain}
 
+An estimate of this score could be found by letting $p(S|l_i, \theta)$ equal the frequency the phoneme sequence appears in the training data for that language. Unfortunately the number of possible phoneme sequences grows exponentially with the sequence length, $N$. With an almost infinite number of parameters to train for the model, it will be impossible to train. 
 
+The probability of the phoneme sequence can also be written as chain of random events
+\begin{equation}
+\label{chainproduct}
+p(S|l_i) = \prod_{j=1}^Np(s_i|S_1^{j-1}, l_i)
+\end{equation}
+where $S_a^b = s_{\max(a,1)}, s_{\max(a+1,1)}, ... , s_{\max(b, 1)}$. We can limit the number of parameters that need to be estimated by making the $(n-1)$-th order Markov assumption \cite[p. 376]{talegk}, that the outcome of the event occurring at time $i$, only depends on the $n-1$ previous outcomes. We call the phoneme sequence $S_{j-n+1}^j$ an $n$-gram. Equation \ref{chainproduct} can then be approximated to
+\begin{equation}
+\label{markovchain}
+p(S|l_i) \approx \prod_{j=1}^Np(s_j|S_{j-n+1}^{j-1},l_i).
+\end{equation}
+Our model can then be estimated from training data as
+\begin{equation}
+\label{baselinetrain}
+p(s_j|S_{j-n+1}^j, l_i, \theta) = 
+\begin{cases} 
+\dfrac{C_i(S_{j-n+1}^j)}{C_i(S_{j-n+1}^{j-1})} & \text{if $n \geq 2$} \\ \\
+\dfrac{C_i(s_j)}{C_i(s)} & \text{if $n = 1$}
+\end{cases}
+\end{equation}
+where $C_i(S_a^b)$ is the number of times the phoneme sequence $S_a^b$ occurs- and $C_i(s)$ the total number of phonemes in the training data for language $l_i$. Using these estimates, an unknown utterance can be scored for each language by
 
+\begin{equation}
+\label{basescore}
+p(S|l_i, \theta) = \prod_{j=1}^Np(s_j|S_{j-n+1}^{j-1}, l_i, \theta).
+\end{equation}
+Since the first $n$ phonemes in equation \ref{basescore} has less than $n-1$ preceding phonemes, the transition probabilities given less than $n$ previous states has to be estimated as well.
+
+We can view $p(s_j|S_{j-n+1}^j, l_i)$ as multinomial distributions (one for each state, $S_{j-n+1}^j$). With $C_i(S_{j-n+1}^{j-1})$ draws from the distribution the variance in $p(s_j|S_{j-n+1}^j, l_i, \theta)$ will be
+\begin{equation}
+\label{baselinevar}
+\operatorname{VAR}(p(s_j|S_{j-n+1}^j, l_i, \theta)) = \frac{p(s_j|S_{j-n+1}^{j-1}, l_i)(1-p(s_j|S_{j-n+1}^{j-1}, l_i))}{C_i(S_{j-n+1}^{j-1})}
+\end{equation}
+ By definition $C_i(S_{j-n+1}) \leq C_i(S_{j-(n-1)+1})$ so using a smaller value for $n$ will produce a model with less variance. But this will also make the model more biased, as it will only capture short term dependencies between phonemes. Returning to the discussion in section \ref{sect:basiclangmodel}, $n$ has to be set as a tradeoff between model bias and variance. Clearly a too high value for $n$ will make the model unfit to measure the probability of unseen sequences.
+
+\subsection{Model Smoothing}
+\label{sect:basesmooth}
+
+A problem with equation \ref{basescore} is that any trigram not observed in the training set will make the probability of observing the whole sequence zero.  Furthermore, the granularity of equation \ref{baselinetrain} is no more than $C_i(S_{j-n+1}^{j-1})$. This means that for rare events, the relative error between the true and estimated probabilities is unbounded. By estimating the probability of rare events with lower order $n$-grams, the granularity will increase.With only a few observation of an $n$-gram, it is unlikely that we will find useful dependencies between phonemes spaced far apart, making a high order Markov assumption unnecessary complicated. The method described is known as backoff smoothing \cite[p. 559]{talegk}. The smoothed probability, $\hat{p}$ of a $n$-gram will be given by
+
+\begin{equation}
+\label{basesmooth}
+\hat{p}(s_j|S_{j-n+1}^{j-1}, l_i, \theta) = 
+\begin{cases}
+p(s_i|S_{j-n+1}^{j-1}, l_i, \theta) & \text{if $C_i(S_{j-n+1}^j > k_i)$} \\
+\alpha_i(S_{j-n+1}^{j-1})\hat{p}(s_j|S_{j-n+2}^{j-1}, l_i, \theta) & \text{if $C_i(S_{j-n+1}^j \leq k_i$)}
+\end{cases}
+\end{equation}
+where $k_i$ is some possibly language dependent constant, and $\alpha_i(S_{j-n+1}^{j-1})$ is a constant that makes the sum of probabilities for any $n$-gram with a given history equal $1$. We find $\alpha_i$ by 
+\begin{align}
+\sum_{s_j:C_i(S_{j-n+1}^j \leq k} p(s_j | S_{j-n+1}^{j-1}, l_i, \theta)
+&= \sum_{s_j:C_i(S_{j-n+1}^j \leq k} \alpha_i(S_{j-n+1}^{j-1})\hat{p}p(s_j | S_{j-n+2}^{j-1}, l_i, \theta) \nonumber \\
+\alpha_i(S_{j-n+1}^{j-1})
+&= \frac{\sum_{s_j:C_i(S_{j-n+1}^j \leq k}p(s_i|S_{j-n+1}^{j-1}, l_i, \theta)}{\sum_{s_j:C_i(S_{j-n+1}^j \leq k}\hat{p}(s_j | S_{j-n+2}^{j-1}, l_i, \theta)} \nonumber \\
+&=\frac{1-\sum_{s_j:C_i(S_{j-n+1}^j > k}p(s_i|S_{j-n+1}^{j-1}, l_i, \theta)}{1-\sum_{s_j:C_i(S_{j-n+1}^j > k}p(s_j | S_{j-n+2}^{j-1}, l_i, \theta)}
+\end{align}
+Since both the granularity and variance should be good for unigrams ($1$-grams), the values for $\alpha_i$ can be found iteratively for larger values of $n$ by assuming that the unigram frequency requires no smoothing. When much of the probability mass for a given context belongs to frequently seen events, $\alpha_i$ will likely penalize having to use lower order $n$-gram statistics which is a useful trait. 
 
 \section{More on the iterative update process}
 
