@@ -28,10 +28,12 @@ for i = 1:size(thresholds, 2),
     %x(i) = fa*100.0/tot;
 end
 
+[none, i] = min(abs(thresholds));
+
 if nargin == 2,
-    plot(x, y)
+    plot(x, y, 'b', x(i), y(i), 'bx', 'MarkerSize', 15)
 else
-    plot(x, y, color)
+    plot(x, y, color, x(i), y(i), [color 'x'], 'MarkerSize', 15)
 end
 
 

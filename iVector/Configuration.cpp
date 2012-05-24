@@ -73,7 +73,7 @@ Configuration::Configuration(int argc, char *argv[]) {
 			exit(0);
 		}
 		else if (paramName == PARAM_FEATURE_COLUMN) {
-			setPositiveValue(paramName, argv[i+1], featureColumn);
+			setPositiveValue(paramName, argv[i+1], &featureColumn);
 		}
 		else if (paramName == PARAM_USE_TWO_TRAIN_SETS) {
 			useTwoTrainSets = parseBool(string(argv[i+1]));
