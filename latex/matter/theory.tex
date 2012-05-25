@@ -21,7 +21,13 @@ Any claim that doesn't satisfy the equation will be rejected.
 \begin{equation*}
 \underset{i}{\arg \max} p(l_i | \theta, X).
 \end{equation*}
-Since both recognition problems are quite straight forward after we've found $p(l_i | \theta, X)$, most effort in the field of language recognition is put into making $\theta$ a good model of the languages of interest.
+This means that unless we are implementing a system for a real application, the distinction between the two language recognition problems aren't that important so long as we find $P(l_i | \theta, X)$. What is more important is that the model of the languages, $\theta$, is suited to distinguish languages.
+
+\subsection{System Overview}
+\label{sect:sysoverview}
+
+It could be possible to write a set of rules that scores the utterances against languages. The approach taken by many recent language recognition systems is to build a statistical model from training data. Without speculating on how much time it would take to create a rule based system, a statistical driven system should at least be easier to extend to new languages.
+
 
 \subsection{Phoneme recognizer}
 \label{sect:phnrec}
@@ -32,27 +38,47 @@ Since both recognition problems are quite straight forward after we've found $p(
 \subsection{Language models}
 \label{sect:basiclangmodel}
 
-From the phoneme recognizer, we are given a sequence of phonemes $S = s_1, s_2, ... , s_N$ for an unknown utterance. The language model is responsible for turning this sequence into a single score. From section \ref{sect:detvsid} we know that a we would get a high-performing recognition system if the score was close to $p(l_i|X)$. Since the scores produced by this system
+The responsibility of the language model is to output a single score per language from a phoneme sequence $S$. Since our final recognition decision will be based on the probability that an utterance belongs to a language, $p(l_i, | S)$, it seems natural to have the scores approximate that probability. This is a somewhat strict requirement for systems as described in section \ref{sect:sysoverview} since the scores will be further processed by the backend. At the very least, a good language model should give scores that are easily transformable to an estimate of this probability. 
 
-Since $p(S)$ is independent of the spoken language, it only serves as a constant to enforce that the probability of the utterance belonging to any language is $1$. The prior distribution of languages, $p(l_i)$, will depend on the application and should be left to the decision unit to adjust to it's needs. A suited score that can be used to make theoretically optimal decisions based on the phone sequence will then be $p(S|l_i$.This is a somewhat strict requirement since the socres will be further processed by the Gaussian backend, investigated in section ??, before any decisions are made. . A model that returns $p(S|l_i)$ will be a theoretically optimal score for the utterance with no loss of information other than what was incurred during tokenization.
+In order for the system to perform well for languages with limited available training data, it will be beneficial that the language model is easily trained. A too complex model will not be able to see patterns in the data, it will instead be over-fitted to explain each utterance independently which makes it unfit to score utterances outside of the training set \cite[311]{information}. Over-fitting can be reduced by using a larger training set \cite[147]{machinelearningbook}, but it is clearly an undesirable feature for a language models. This is also the reason why we need a separate data set to evaluate the recognition system. The systems recognition performance on the data it was trained for will not necessarily extend to unseen data.
+
+If we introduce the notion that training and test data are generated from a random process, the systems ability to correctly estimate $p(l_i | S)$, and thereby make correct recognition decisions, will be given by two error sources called model \emph{bias} and \emph{variance} \cite[149]{machinelearningbook}. \emph{Bias} is high if the system consistently over- or underestimate $p(l_i | S)$ for some documents regardless of the training set. In this way it represents the systems inability to correctly predict certain documents. Model \emph{variance} is the variance in the probability estimate of an utterance belonging to a language when the model is trained with different data. It represents the systems sensitivity to noise in the training data. Over-fitting is a symptom of a high variance system where the model is only expected to give correct probability estimates for utterances that are very close to a training utterance. A system with limited training data can generally not have both low variance and bias \cite[312]{information}, so a concession between the two errors has to be made.
+
+This was only a shallow introduction to language models due to the variety of techniques used in language recognition systems. A more detailed survey will be given when we discuss specific language models in section \ref{sect:basetrain} and ???.
 
 
-Using Bayes rule, the probability that the utterance stems from language $l_i$, will be
+
+
+Since $p(S)$ is independent of the spoken language, it only serves as a constant to enforce that the probability of the utterance belonging to any language is $1$. The prior distribution of languages, $p(l_i)$, will depend on the application and should be left to the decision unit to adjust to it's needs. A suited score that can be used to make theoretically optimal decisions based on the phone sequence will then be $p(S|l_i)$.This is a somewhat strict requirement since the socres will be further processed by the Gaussian backend, investigated in section ??, before any decisions are made. . A model that returns $p(S|l_i)$ will be a theoretically optimal score for the utterance with no loss of information other than what was incurred during tokenization.
+
+
+
+
+\subsection{Back-end Calibration of Score Vectors}
+\label{sect:backendscoring}
+
+The back-end will calibrate the scores from the language model into the posterior, $p(l_i | S, \theta)$, so that so that they can be applied to the recognition decisions discussed in section \ref{sect:detvsid}. Like the language model, this calibration can be trained using real data. A separate calibration step allows us to ignore application dependent information like what other languages should the system recognize, and the prior probability of a user speaking each language. The language models for each language can then be trained independently since it only needs to return some number that in some way correlates with the posterior probability for it's language. Even if the language model is trained to return estimates of the posterior, there may still be some benefits calibrating the score vectors as there might exist patterns in the scores that can be exploited. Furthermore, the back-end can be used to fuse scores for an utterance from multiple systems using different phoneme recognizers or language models. The fused system is then expected to perform better than each of the individual systems as long as the errors each system makes are somewhat uncorrelated \cite[818]{lidbok}.
+
+\subsubsection{Gaussian Backend}
+
+It is likely that the best calibration method will depend on the nature of the score-vectors given from the language models. A very flexible tool to perform calibration that impose little demands on the score vector is to use a multivariate Gaussian mixture model (GMM). With this framework, the scores from each language, $y$ is assumed to be produced from a generative statistical model. The likelihood of a utterance in language $l_i$ to produce a score vector, $y$ is then
 
 \begin{equation}
-\label{basebayes}
-p(l_i|S) = \frac{p(S|l_i) \cdot p(l_i)}{p(S)}.
+\label{gmmeq}
 \end{equation}
-This means that unless we are implementing a system for a real application, the distinction between the two language recognition problems aren't that important so long as we find $P(l_i | \theta, X)$. What is more important is that the model of the languages, $\theta$, is suited to distinguish languages.
-
-BIAS VARIANCE TRADEOFF
-
-In INFOFINNING???[311] it is shown that there are two sources that affect the expected performance of a system trained with a given learning algorithm. Since the performance measure
 
 
 
-\subsection{Backend Processing of score vectors}
-\label{sect:backendscoring}
+While the aim of the language model is to loose as little information as possible when it compresses a phoneme sequence into scores for each language, 
+
+E.g. if the language model gives more reliable posterior estimates for one of the languages, then this score could be more heavily weighted. A separate calibration step also allows us to delay incorporating application dependent information like the prior distribution of languages spoken in the user group.
+
+
+If that language's posterior is highest, but still well under $0.5$During identification 
+
+
+ Even if the score vector estimates this probability, there may still be some benefits of doing further processing of the score vectors. 
+Since we don't necessarily want to restrict our language model to produce 
 
 \section{Language Modeling Using Markov Chains}
 
@@ -63,6 +89,14 @@ We will here look at how the baseline system utilizes the phoneme sequences from
 
 \subsection{Model training}
 \label{sect:basetrain}
+
+Using Bayes rule, the probability that the utterance stems from language $l_i$, will be
+
+\begin{equation}
+\label{basebayes}
+p(l_i|S) = \frac{p(S|l_i) \cdot p(l_i)}{p(S)}.
+\end{equation}
+
 
 An estimate of this score could be found by letting $p(S|l_i, \theta)$ equal the frequency the phoneme sequence appears in the training data for that language. Unfortunately the number of possible phoneme sequences grows exponentially with the sequence length, $N$. With an almost infinite number of parameters to train for the model, it will be impossible to train. 
 
