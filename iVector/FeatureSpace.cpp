@@ -1,4 +1,5 @@
 #include "FeatureSpace.h"
+#include <boost/numeric/ublas/matrix_proxy.hpp>
 
 using namespace boost::numeric::ublas;
 
@@ -12,6 +13,7 @@ FeatureSpace::FeatureSpace(unsigned int height, unsigned int width, std::vector<
 	this->width = width;
 	generatetMatrix(seed);
 	generatemVector(documents);
+	//scaleSpaceByVar(documents);
 }
 FeatureSpace::FeatureSpace(matrix<double> tMatrix, std::vector<Document> & documents) {
 	height = tMatrix.size1();
@@ -53,3 +55,17 @@ void FeatureSpace::generatemVector(std::vector<Document> & documents) {
 		mVector(i) = log(mVector(i)/documents.size());
 	}
 }
+
+void FeatureSpace::scaleSpaceByVar(std::vector<Document> & documents) {
+	for (unsigned int i = 0; i < height; i++) {
+		double avg = exp(mVector(i));
+		if (avg != 0.0) {
+			double var = 0;
+			for (unsigned int j = 0; j < documents.size(); j++) {
+				var += pow(avg-documents[j].getGammaValue(i), 2);
+			}
+			row(tMatrix, i) = (sqrt(var/(documents.size()-1))/width) * row(tMatrix, i);
+		}
+	}
+}
+
