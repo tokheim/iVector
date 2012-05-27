@@ -21,5 +21,6 @@ struct FeatureSpace {
 	FeatureSpace(boost::numeric::ublas::matrix<double> tMatrix, boost::numeric::ublas::vector<double> mVector);
 	void generatetMatrix(unsigned int seed);
 	void generatemVector(std::vector<Document> & documents);
+	void scaleSpaceByVar(std::vector<Document> & documents);
 };
 #endif
