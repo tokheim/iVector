@@ -1,11 +1,11 @@
-\chapter{Theory}
+
 \label{sect:Theory}
 
-\section{Introduction to languages}
+\chapter{Introduction to languages}
 
-\section{Language Recognition systems}
+\chapter{Language Recognition systems}
 
-\subsection{Language Detection vs Identification}
+\section{Language Detection vs Identification}
 \label{sect:detvsid}
 
 Identification and detection of languages are two very related tasks in language recognition. In both tasks languages are constricted to be in a set of classes. Each class can be a single language, dialect, or a set of languages, and the goal of our system is to separate these classes. In this thesis we will only look at formulations where each class is a single language and possibly one class that consists of all other languages, which we refer to as an \emph{out of set language}. We call it an \emph{open set} recognition problem When the set includes an out of set language, and \emph{closed set} otherwise. With this formulation in mind, we drop the notion of classes, and just call each class a language. 
@@ -23,19 +23,19 @@ Any claim that doesn't satisfy the equation will be rejected.
 \end{equation*}
 This means that unless we are implementing a system for a real application, the distinction between the two language recognition problems aren't that important so long as we find $P(l_i | \theta, X)$. What is more important is that the model of the languages, $\theta$, is suited to distinguish languages.
 
-\subsection{System Overview}
+\section{System Overview}
 \label{sect:sysoverview}
 
 It could be possible to write a set of rules that scores the utterances against languages. The approach taken by many recent language recognition systems is to build a statistical model from training data. Without speculating on how much time it would take to create a rule based system, a statistical driven system should at least be easier to extend to new languages.
 
 
-\subsection{Phoneme recognizer}
+\section{Phoneme recognizer}
 \label{sect:phnrec}
 
 
 
 
-\subsection{Language models}
+\section{Language models}
 \label{sect:basiclangmodel}
 
 The responsibility of the language model is to output a single score per language from a phoneme sequence $S$. Since our final recognition decision will be based on the probability that an utterance belongs to a language, $p(l_i, | S)$, it seems natural to have the scores approximate that probability. This is a somewhat strict requirement for systems as described in section \ref{sect:sysoverview} since the scores will be further processed by the backend. At the very least, a good language model should give scores that are easily transformable to an estimate of this probability. 
@@ -54,40 +54,81 @@ Since $p(S)$ is independent of the spoken language, it only serves as a constant
 
 
 
-\subsection{Back-end Calibration of Score Vectors}
+\section{Back-end Calibration of Score Vectors}
 \label{sect:backendscoring}
 
 The back-end will calibrate the scores from the language model into the posterior, $p(l_i | S, \theta)$, so that so that they can be applied to the recognition decisions discussed in section \ref{sect:detvsid}. Like the language model, this calibration can be trained using real data. A separate calibration step allows us to ignore application dependent information like what other languages should the system recognize, and the prior probability of a user speaking each language. The language models for each language can then be trained independently since it only needs to return some number that in some way correlates with the posterior probability for it's language. Even if the language model is trained to return estimates of the posterior, there may still be some benefits calibrating the score vectors as there might exist patterns in the scores that can be exploited. Furthermore, the back-end can be used to fuse scores for an utterance from multiple systems using different phoneme recognizers or language models. The fused system is then expected to perform better than each of the individual systems as long as the errors each system makes are somewhat uncorrelated \cite[818]{lidbok}.
 
-\subsubsection{Gaussian Backend}
+\subsection{Gaussian Backend}
 
-It is likely that the best calibration method will depend on the nature of the score-vectors given from the language models. A very flexible tool to perform calibration that impose little demands on the score vector is to use a multivariate Gaussian mixture model (GMM). With this framework, the scores from each language, $y$ is assumed to be produced from a generative statistical model. The likelihood of a utterance in language $l_i$ to produce a score vector, $y$ is then
+It is likely that the best calibration method will depend on the nature of the score-vectors given from the language models. A very flexible tool to perform calibration that impose little demands on the score vector is to use a multivariate Gaussian mixture model (GMM). With this framework, the score vector, $\mathbf{y}$, for a given language is assumed to be produced from a generative statistical model. The likelihood of a $r$-dimensional Gaussian component $k$ to produce a score vector $\mathbf{y}$ is then
 
 \begin{equation}
 \label{gmmeq}
+p(\mathbf{y} | \mathbf{\mu}_k, \mathbf{\Sigma}_k, K = k) = \frac{1}{(2\pi)^{r/2}|\mathbf{\Sigma}_k|^{1/2}}\exp(-\frac{1}{2}(\mathbf{y}-\mathbf{\mu_k})^T\mathbf{\Sigma}_k^{-1}(\mathbf{x}-\mathbf{\mu_k}))
 \end{equation}
+where $\mathbf{\mu_k}$ is the $r$-dimensional mean of the score vectors produced by the mixture, $\mathbf{\Sigma}_k$ is the covariance of the mixture and $|\mathbf{\Sigma}_k|$ it's determinant \cite[p. 94]{talegk}. From Bayes rule we have that
+\begin{align}
+p(K=k | \mathbf{\mu}_k, \mathbf{\Sigma}_k, \mathbf{y}) &= 
+\frac{p(\mathbf{y} | \mu_k, \Sigma_k, K= k) \cdot p(K=k )}{p(\mathbf{y})} \nonumber \\
+&= \frac{p(\mathbf{y} | \mu_k, \sigma_k, K=k) \cdot p(K=k)}{\sum_{i = 1}^{|K|} p(\mathbf{y} | \mu_i, \Sigma_i, K=i) \cdot p(K=i)} \label{gmmchoose}
+\end{align}
+where $p(K=k)$ is the prior probability of the score vector being generated from mixture $k$. If we know what mixture each score vector in a training set belongs to, then $\mathbf{\mu}_k$ can be estimated as
+\begin{equation}
+\label{muest}
+\mathbf{\mu}_k = \operatorname{E}(\mathbf{y} | \mathbf{y} \in k)
+\end{equation}
+and $\mathbf{\Sigma}_k$ as
+\begin{equation}
+\label{sigmaest}
+\mathbf{\Sigma}_k = \operatorname{E}\left( (\mathbf{y}-\mathbf{\mu}_k)(\mathbf{y}-\mu_k)^T | \mathbf{y} \in k \right)
+\end{equation}
+where $E(a|b)$ is the conditional expectation \cite[p. 94]{talegk}. The power of the Gaussian mixture model we have now described is that it is enable to model any probability distribution \cite[p. 95]{talegk}. Even for a training set, we will generally only know the language of an utterance, but not the mixture the score vector belongs to. This means that equation \ref{muest} and \ref{sigmaest} cannot directly be solved. We can still estimate the parameters using the iterative EM-algorithm covered in section \ref{sect:emgmmest}. With one mixture per language, equation \ref{muest} and \ref{sigmaest} can be solved by noting that $\mathbf{y} \in k$ is equivalent to that the score vector stems from the given language, $l_i$.
+
+Desisjon/threshold
+
+\subsection{Gaussian Mixture Parameter Estimation Using Expectation Maximization}
+\label{sect:emgmmest}
+
+In the EM-algorithm, the number of mixtures per language is assumed to be fixed to some value. Initial values for $\mu$, $\Sigma$ and priors for mixtures are random or from some crude estimate. Since we know the language of all score-vectors used for training, we will estimate parameters for the given language using score-vectors from only that language. The presented algorithm is taken from \cite[o. 439]{machinelearningbook}
+
+For each step we first estimate the probability that the score vector is generated from each of the mixtures using equation \ref{gmmchoose}. When finding new estimates for $\mu_k$ and $\Sigma_k$ we can weight the contribution of a score-vector to a cluster with the probability that it was generated from that mixture. The new value for $\mu_k$, called $\mu_k(\text{NEW})$ is then
+
+\begin{equation}
+\label{emmuest}
+\mu_k(\text{NEW}) = \frac{1}{\hat{N}_k}\sum_{\forall \mathbf{y}} p(K=k | \mu_k, \Sigma_k, \mathbf{y})\mathbf{y}
+\end{equation}
+and $\Sigma_k(\text{NEW})$ is given by
+
+\begin{equation}
+\label{emsigmaest}
+\mathbf{\Sigma}_k(\text{NEW}) = \frac{1}{\hat{N}_k}\sum_{\forall \mathbf{y}} p(K=k | \mu_k, \Sigma_k, \mathbf{y})(\mathbf{y}-\mu_k(\text{NEW}))(\mathbf{y}-\mu_k(\text{NEW})^T
+\end{equation}
+where $\hat{N}_k$ is 
+\begin{equation}
+\label{emnkest}
+\hat{N}_k = \sum_{\forall \mathbf{y}} p(K=k | \mu_k, \Sigma_k, \mathbf{y}).
+\end{equation}
+We can then update the priors for each cluster using the new means and variances,
+\begin{equation}
+\label{empriorest}
+p(K=k) = \frac{\sum_{\forall \mathbf{y}}p(K=k | \mu_k(\text{NEW}), \Sigma_k(\text{NEW}), \mathbf{y})}{\sum_{\forall \mathbf{y}} 1}.
+\end{equation}
+These steps are repeated until some convergence criterion is met.
+
+It turns out that the best fitted model to any training data would be to have as many mixtures as training vectors, each with a covariance of 0. This is clear since $\mathbf{y}$ is continuous, so making the GMM generate only a discrete set of vectors is the only way to get a non-zero probability of generating exactly $\mathbf{y}$. Such a model would clearly be over-fitted to the training data. In order to avoid a model with too high variance, the number of mixtures per language must be carefully constrained.
+
+\subsection{Recognition Decisions and System Performance}
 
 
-
-While the aim of the language model is to loose as little information as possible when it compresses a phoneme sequence into scores for each language, 
-
-E.g. if the language model gives more reliable posterior estimates for one of the languages, then this score could be more heavily weighted. A separate calibration step also allows us to delay incorporating application dependent information like the prior distribution of languages spoken in the user group.
-
-
-If that language's posterior is highest, but still well under $0.5$During identification 
-
-
- Even if the score vector estimates this probability, there may still be some benefits of doing further processing of the score vectors. 
-Since we don't necessarily want to restrict our language model to produce 
-
-\section{Language Modeling Using Markov Chains}
+\chapter{Language Modeling Using Markov Chains}
 
 We will here look at how the baseline system utilizes the phoneme sequences from the phone recognizer to construct language models, which then are used to differentiate languages with other phoneme sequences. This is the only module that the baseline system exclusively uses. Intuitively the best performing system will be determined by the total information loss from its modules, so the performance difference between the two systems will be determined by the information loss from assumptions made in this module versus the iVector specific modules. In section \ref{sect:basetrain} we will present how to train a model and use it to decode an utterance. In section \ref{sect:basesmooth} the concept of smoothing the language models will be presented to make the language model better fit unseen utterances.
 
-\subsection{Scoring Utterances}
+\section{Scoring Utterances}
 \label{sect:basescore}
 
-\subsection{Model training}
+\section{Model training}
 \label{sect:basetrain}
 
 Using Bayes rule, the probability that the utterance stems from language $l_i$, will be
@@ -134,7 +175,7 @@ We can view $p(s_j|S_{j-n+1}^j, l_i)$ as multinomial distributions (one for each
 \end{equation}
  By definition $C_i(S_{j-n+1}) \leq C_i(S_{j-(n-1)+1})$ so using a smaller value for $n$ will produce a model with less variance. But this will also make the model more biased, as it will only capture short term dependencies between phonemes. Returning to the discussion in section \ref{sect:basiclangmodel}, $n$ has to be set as a tradeoff between model bias and variance. Clearly a too high value for $n$ will make the model unfit to measure the probability of unseen sequences.
 
-\subsection{Model Smoothing}
+\section{Model Smoothing}
 \label{sect:basesmooth}
 
 A problem with equation \ref{basescore} is that any trigram not observed in the training set will make the probability of observing the whole sequence zero.  Furthermore, the granularity of equation \ref{baselinetrain} is no more than $C_i(S_{j-n+1}^{j-1})$. This means that for rare events, the relative error between the true and estimated probabilities is unbounded. By estimating the probability of rare events with lower order $n$-grams, the granularity will increase.With only a few observation of an $n$-gram, it is unlikely that we will find useful dependencies between phonemes spaced far apart, making a high order Markov assumption unnecessary complicated. The method described is known as backoff smoothing \cite[p. 559]{talegk}. The smoothed probability, $\hat{p}$ of a $n$-gram will be given by
@@ -157,11 +198,11 @@ where $k_i$ is some possibly language dependent constant, and $\alpha_i(S_{j-n+1
 \end{align}
 Since both the granularity and variance should be good for unigrams ($1$-grams), the values for $\alpha_i$ can be found iteratively for larger values of $n$ by assuming that the unigram frequency requires no smoothing. When much of the probability mass for a given context belongs to frequently seen events, $\alpha_i$ will likely penalize having to use lower order $n$-gram statistics which is a useful trait. 
 
-\section{More on the iterative update process}
+\chapter{More on the iterative update process}
 
 Here we are going to look more closely at the Newton Raphson update steps for producing i-vectors and the variability matrix. In a real-time implementation we would need to extract i-vectors using these updates for live data which makes the operation time-sensitive. At the same time these updates involve linear algebra on a high-dimension space, making the operations computationally expensive. An unefficient implementation of these updates will therefore severely impact the computational requirements for training and live usage of the system. It is also critical for the total performance of the system that the i-vectors convey meaningful information about an utterance. A thorough study of the Newton Raphson update process is therefore warranted. 
 
-\subsection{Solving the Newton Raphson systems}
+\section{Solving the Newton Raphson systems}
 
 To avoid issues with numeric instability, it is often desirable not to calculate the inverse of a matrix \cite[p. 743]{cormen}. We can rewrite the linear systems in equation ??? and ??? to
 
@@ -191,8 +232,5 @@ In order to achieve a high likelihood from equation ???, $\mathbf{T}$ needs to m
 We will here show that the achievable likelihood only depends on the column span of $\mathbf{T}$. This means that techniques like orthogonalizing $\mathbf{T}$ won't have any effect on 
 
 
-
-
-\section{Gaussian backend}
 
 

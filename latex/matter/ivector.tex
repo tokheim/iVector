@@ -1,129 +1,34 @@
-\chapter{OLDiVectors}
-\label{sect:iVector}
-\label{chapterfive}
+\chapter{iVector Subspace Modeling}
 
-As mentioned in the previous section, the main problem with vector-based phonotactic language recognition is the huge dimension of the vector representing speech. This makes these LID-systems computationally expensive, and might limit the data the system can be trained on. There has been many successful approaches to reduce the dimension of speech vectors, e.g. principle component analysis \cite{pcaLID}. Using iVectors is a technique which was used for speaker verification in \cite{sviVector}. Since then it was introduced to the field of language identification in \cite{liiVector}. The theory and implementation details are based heavily on these papers.
+\section{More on the iterative update process}
 
-\section{iVector Theory}
-\label{theory}
+Here we are going to look more closely at the Newton Raphson update steps for producing i-vectors and the variability matrix. In a real-time implementation we would need to extract i-vectors using these updates for live data which makes the operation time-sensitive. At the same time these updates involve linear algebra on a high-dimension space, making the operations computationally expensive. An unefficient implementation of these updates will therefore severely impact the computational requirements for training and live usage of the system. It is also critical for the total performance of the system that the i-vectors convey meaningful information about an utterance. A thorough study of the Newton Raphson update process is therefore warranted. 
 
-The idea for iVectors first came from joint factor analysis (JFA) model used in speaker verification in \cite{oldiVector}. In JFA, speech features for a given speaker is assumed to be generated from a Normal distribution with means given by the vector $M$ as shown under \cite{oldiVector}.
+\subsection{Solving the Newton Raphson systems}
 
-\begin{equation}\label{JFA}
-M=m+Vy+Ux
+To avoid issues with numeric instability, it is often desirable not to calculate the inverse of a matrix \cite[p. 743]{cormen}. We can rewrite the linear systems in equation ??? and ??? to
+
+\begin{equation}\label{lupeqN}
+\mathbf{H}_n(\text{old}) \delta\mathbf{w}_n = \mathbf{g}_n
 \end{equation}
-
-Here $m$ is the mean features for an utterance, $y$ and $x$ are vectors of low-dimensional latent variables representing the speaker and channel respectively while $V$ and $U$ are matrices. This means that features for an utterance are affected additively by a linear transformation of the speaker and channel latent variables. You could however model both the speaker and channel with a single vector given that you can separate the speaker and channel from the vector later. This is certainly appealing in phonotactic language recognition where the features are given from a transcription of the utterance. The language model itself doesn't need to adjust for channel variability since this should be done during transcription. Combining the channel and speaker latent variables gives rise to a simplified JFA model for speech utterances
-
-\begin{equation}\label{iVector}
-\phi=m+tw
+and
+\begin{equation}\label{lupeqC}
+\mathbf{H}_c(\text{old}) \delta \mathbf{t}_c = \mathbf{g}_c(\text{old})
 \end{equation}
+respectively where $\delta$ means the difference between the new and old vectors. It is beneficial to ensure that these equations have one, and just one, solution. More than one solution would indicate that some of the dimensions in the rows of $\mathbf{T}$ or i-vector is redundant, making us solve a more complicated problem than strictly needed. The requirements on $\mathbf{T}$ and i-vectors to guarantee just one solution, is shown in appendix \ref{posdefproof}. As long as our goal is to find global relationships between utterances, and not overfit i-vectors to each utterance (by letting the i-vector dimension approach the number of training utterances or unique features), these requirements should be met. One exception is when we update rows of $\mathbf{T}$ that correspond to features not seen in the training set. Since it is unlikely that we gain much information from such features anyways, we can assume that those rows are always all zero. The rows can then be ignored during i-vector updates without much, if any, loss in performance.
 
-As in equation \ref{JFA} $m$ is a mean vector, $t$ is a matrix and $w$ a low-dimensional vector called an iVector. Now $w$ can be looked at as a hidden set of coordinates in the subspace given by $t$'s columns. For this to be a good model, the column vectors from $t$ then needs to span the subspace that makes $\phi$ best fit the observed features in the utterances. Equation \ref{iVector} is a generative model for continuous features. In \cite{sviVector}, Kockmann et al. altered the model $\phi$ to
+In appendix \ref{posdefproof} we also show that the Hessian in equation \ref{lupeqN} and \ref{lupeqC} are positive definite. This enables us to use simple algorithms like LU decomposition to solve the systems \cite[p. 749]{cormen}. With an i-vector dimension of $R$, LU decomposition will solve the systems in $\mathcal{O}(R^3)$ asymptotic time CORMEN REF. While there are faster solvers for positive definite systems like the $\mathcal{O}(R^2)$ solver in \cite{tewfik1994fast}, $R$ should be of a size that probably doesn't necessitate excessive optimization.
 
-\begin{equation}\label{phi}
-\phi_{nc}=\frac{\exp(m_c+t_cw_n)}{\sum_{i=1}^{C}\exp(m_i+t_iw_n)}
-\end{equation}
+In equation ??? $\mathbf{H}_n$ is found by calculating the outer product of rows of $\mathbf{T}$ $C$ times, making the asymptotic runtime $\Omega(CR^2)$. Similary for $\mathbf{H}_c$ the asymptotic runtime of equation ??? is  $\Omega(NR^2)$. Since $R$ should be significantly less than $N$ and $C$ to ensure that the linear systems only have one solution, calculating the Hessian will be more computationally demanding than solving the resulting linear systems. In appendix \ref{symproof} we show that the Hessian is symmetric, which enables us to only calculate the upper (or lower) half of the Hessians. While the asymptotic runtime remains the same, the actual runtime of should be nearly halved. 
 
-Here $m_c$ is the $c$-th element of vector $m$, $t_c$ is the $c$-th row of $t$ and $w_n$ is the low-dimension iVector for utterance $n$. In equation \ref{iVector}, $\phi$ is a generative model for continuous features, while in equation \ref{phi} $\phi_{nc}$ is the event probability of observing a discrete feature $c$ in a given frame in utterance $n$. As required, $\phi_{nc}$ can only take values between 0 and 1, and the sum over all features equals 1. The log-likelihood of observing a set of features can then be given by a multinomial distribution
+\subsection{Achieving higher performance}
 
-\begin{equation}\label{logliken}
-\log(P(\gamma_n |\phi_n)) = \sum_{c=1}^{C}\gamma_{nc}\log(\phi_{nc})
-\end{equation}
+In an iterative algorithm it is important to ensure that each iteration brings you closer to the solution of the problem. The Newton Raphson method is oblivious to high-order derivatives, and we only use an approximation to the Hessian, so an increase in likelihood is not guaranteed from updates using equation \ref{lupeqN} and \ref{lupeqC}. In \cite{kockmann2010prosodic}, Kockmann et. al. would halve the update step until the likelihood from equation ??? increased when updating either row of $\mathbf{T}$ or i-vectors. If a higher likelihood wasn't achieved after some attempts, the old vector would be used.  
 
-where $\gamma_{nc}$ is the number of times feature $c$ was observed in utterance $n$. As pointed out in \cite{liiVector} a multinomial distribution is slightly inaccurate when using n-grams as features since the outcomes aren't independent, but their results suggest that this is a reasonable approximation. The log-likelihood of observing a sequence of features in a set of utterances is
+A common problem in svm classification is that the feature vector is dominated by some high-variance feature \cite{wan2005speaker}. In our subspace modeling, a high-variance in the counts of some trigrams might be a cause of concern as well. A good model of such features would likely be crucial to maximize equation ???. Not only because the number of occurrences will vary greatly between utterances, but also since a high variance implies that the feature occurs very frequently in at least some utterances. Many dimensions of the i-vector may then be spent on accurately controlling the multinomial distributions probability of producing those features. It is not clear if we gain much information from this precise fitting, rather than having coarser knowledge about the exact frequency of those features, and having more degrees of freedom in the i-vector to model other features. In \cite{soufifar2011ivector} the i-vector system's performance increased when the square root of elements in the document vector, $\gamma_n$, was used instead. By taking the square root, frequent features will be a smaller part of the total feature count, and the variance will be decreased. This should spread the importance of modeling each feature more evenly across the whole document vector.
 
-\begin{equation}\label{loglike}
-\log(P(\gamma |\phi) = \sum_{n=1}^{N}\log(P(X_n=\gamma_n |\phi_n))
-\end{equation}
 
-For $\phi$ to hold meaningful information about utterances, we want these likelihoods to be high. Although it would be possible to find language dependent values for parameters in equation \ref{logliken}, and use it to calculate likelihoods for an unknown utterance belonging to each language, this is not how we intend to distinguish languages. The classifier would in fact then be equal to the one in the baseline system, apart from using $\phi_{nc}$ as an approximation for n-gram probabilities. Instead we want to find a common values for $t$ and $m$ across all languages. Since phonemes are language- and not speaker dependent, $w_n$ should then hold latent information about the language used in an utterance. 
 
-\section{Estimating iVector parameters}
-\label{itrain}
+In order to achieve a high likelihood from equation ???, $\mathbf{T}$ needs to model the variability between utterances. T
 
-We have the statistical models needed to describe the languages, but we need to find appropriate values for $m$ and $t$ for $w_n$ to carry information about utterances. In \cite{liiVector} $m$ was given the very sensible values
-
-\begin{equation}\label{optm}
-m_c=log\left(\frac{1}{N}\sum_{n=1}^{N}\gamma_{nc}\right)
-\end{equation}
-
-which when $w_n$ is all zero makes $\phi_{nc}$ equal the frequency of feature $c$. The optimal values for $t$ should maximize the log-likelihood in equation \ref{loglike}. According to \cite{liiVector}, the log-likelihood is a concave function which means that the point where the gradient is zero will correspond to the absolute maximum log-likelihood. The gradient of equation \ref{loglike} with respect to a row $c$ of $t$ is
-
-\begin{equation}\label{gradt}
-g_c=\sum_{i=1}^N(\gamma_{ic}-\phi_{ic}\sum_{j=1}^{C}\gamma_{ij})w_i
-\end{equation}
-
-Unfortunately equation \ref{gradt} is dependent on the values for the iVectors, $w_n$. In order to estimate optimal values for $t$ we need to find the optimal iVectors. The gradient of equation \ref{loglike} with respect to an iVector is
-
-\begin{equation}\label{gradw}
-g_n=\sum_{i=1}^Ct_i^T(\gamma_{ni}-\phi_{ni}\sum_{j=1}^C \gamma_{nj})
-\end{equation}
-
-where $t_i^T$ is the transpose of $t_i$. This equation is again dependent on $t$. In \cite{sviVector} they used an iterative method to find appropriate values for $t$ and the iVectors. By alternating between updating each row in $t$ and all the iVectors with a form of the Newton Raphson method, both $t$ and the iVectors converged to their optimal values maximizing the log-likelihood in equation \ref{loglike}. Instead of calculating the jacobian of $g_c$ and $g_n$ they used a simplification of it proposed in \cite{jacobian}. The simplified jacobian used for updating $w_n$ in \cite{sviVector} was
-
-\begin{equation}\label{jacobianw}
-H_n = -\sum_{i=1}^Ct_i^Tt_imax(\gamma_{ni}, \phi_ni\sum_{j=1}^C\gamma_{nj})
-\end{equation}
-
-and for $t_c$
-
-\begin{equation}\label{jacobiant}
-H_c= -\sum_{i=1}^{N}max(\gamma_{ic}, \phi_{ic}\sum_{j=1}^C\gamma_{ij})w_nw_n^T
-\end{equation}
-
-The linear equations for a Newton Raphson update for $w_n$ is then
-
-\begin{equation}\label{newtonw}
-w_n(NEW)=w_n(OLD)-H_n^{-1}(OLD)g_n(OLD)
-\end{equation}
-
-where $w_n(NEW)$ is the new approximation of $w_n$'s optimal values, while OLD indicates to use the approximation from the previous update step. Similarly the set of equations for updating $t$ is then
-
-\begin{equation}\label{newtont}
-t_c^T(NEW)=t_c^T(OLD)-H_c^{-1}(OLD)g_c(OLD)
-\end{equation}
-
-where the same convention for NEW/OLD is used. Since there are some issues with the numeric instability of calculating the inverse of a matrix \cite[section 28.4]{cormen}, it is better to solve equation \ref{newtonw} and \ref{newtont} after left-multiplying the equations with their jacobian. The linear equations can then be solved using a number of fast algorithms like LU-factorization \cite[section 20.2]{kreyszig}.
-
-In \cite{liiVector} $t$ was initialized with small random numbers. Although this shouldn't be much of a problem if $w_n$ converges closely to the optimal solution, I am reluctant to introduce more randomness to the vector used to train the classifier. Because of this crude argument $w_n$ could be initialized with some common constants for all iVectors. These values are not so important, after all these initial values should only affect the number of update steps required to converge to the solution, not the solution itself. In \cite{sviVector} the iVectors where initialized with zero so $phi_{nc}$ is only dependent on $m_c$. When initializing the iVectors with zero, they would have to be updated first, since $H_c^{-1}$ then is undefined.
-
-In order to not overtrain the system, iterations of updating $t_c$ and $w_n$ should be stopped when equation \ref{loglike} doesn't produce a higher likelihood for unseen data \cite{liiVector}. This means that equation \ref{newtonw} should update iVectors from both the training and devtest set. The updated iVectors from the training set will be used in equation \ref{newtont} to update $t$, while the iVectors from the devtest set will together with $t$ be used to check the stopping criteria. Since $t$ only is a tool to produce iVectors, equation \ref{newtonw} should be the last to be updated. This should ensure that $w_n$ has a good convergence to the optimal solution. The iVectors from the training and devtest sets can then both be used to train the classifier. The process of training the iVector system is given in table \ref{algtrain}.
-
-\begin{table}
-\begin{tabular}{ | p{12cm} | }
-\hline
-\\
-\textbf{Algorithm iVectorTrain}
-\\
-This algorithm computes the iVectors and trained matrix $t$ using a set of spoken document vectors from both training and devtest data with $C$ features. The dimension of the computed iVectors are given by parameter $r$.
-\begin{enumerate}
-  \item Calculate vector $m$ from equation \ref{optm} 
-  \item Initialize $C$x$r$ matrix $t$ with random numbers
-  \item Find $r$ dimension iVectors for both training and devtest data using equation \ref{newtonw} with $w_n(OLD)$ equal zero  
-  \item \label{enumerateT} Find new matrix $t$ using equation \ref{newtont} on only iVectors from the training set.
-  \item \label{enumerateW} Find new iVectors from both training and devtest set using equation \ref{newtonw}
-  \item \label{stopcondition} Check likelihood of devtest data using equation \ref{loglike}. If likelihood has:
-  \begin{enumerate}
-    \item increased then go to step \ref{enumerateT}
-    \item decreased then return the last matrix $t$ and iVectors that did increase the likelihood.
-  \end{enumerate}
-\end{enumerate}
-\\
-\hline
-\end{tabular}
-\caption{Training algorithm for iVector system}
-\label{algtrain}
-\end{table}
-
-A concern in \cite{sviVector} was that equation \ref{newtonw} and \ref{newtont} sometimes made too large update steps to converge to the solution. Although this problem wasn't mentioned in the paper using iVectors for LID \cite{liiVector}, their solution could easily be implemented if needed. When doing step \ref{enumerateT} and \ref{enumerateW} in the training algorithm in table \ref{algtrain} we can check if the log-likelihood for training data with equation \ref{loglike} has increased since the last iteration. If not, then recursively halve the change to the new matrix $t$ or iVectors and check the likelihood again. Now in the stopping condition from step \ref{stopcondition} it might be that the devtest data produces a lower likelihood because of large update steps, and not overtraining. This motivates us to find the iVectors for devtest utterances in the same recursive manner as for training data. We would then stop the training algorithm when we fail to find better iVectors for the devtest utterances within a reasonably number of attempts at halving.
-
-\section{iVector extraction}
-
-After $m$ and $t$ has been estimated is it possible to extract iVectors from test-sets or live data. We can again use the iterative algorithm in section \ref{itrain} to estimate $w_n$ by using equation \ref{newtonw}. The initial values for $w_n$ should then be the same as the constants used during training. In order to not have to retrain the classifier on new iVectors after each utterance, $t$ needs to stay unchanged when extracting iVectors from test- or live data. But if  $t$ isn't updated, the system won't overtrain, which makes the previous stopping criteria unusable. 
-
-A simple stopping criteria might be to use a fixed number of iterations. A suitable value for the number of iterations can be found by plotting the performance of the classifier on data from the devtest set against the number of iterations used. A tradeoff between performance and computational requirements can then be made. 
-
-Different utterances are likely to have i-vectors that converge to their optimal values at different rates. This might have a negative impact on the classifier, reducing its performance. A better stopping criteria might therefore be to check the Euclidean distance between iVectors before and after an update are smaller than some threshold. When also using some minimum number of iterations, this should ensure some convergence to the true solution. The drawback is of course the added computational requirements during live usage.
-
-Because of the slightly different process used to extract iVectors from the training and the test sets, it might be beneficial to discard the iVectors found during training, and extract them with the above method before training the classifier. Doing this would ensure that iVectors from the training set have converged to their optimal values just as much as the ones from the test set will. If both methods produce iVectors that are very close to their optimal values, this retraining is likely to be more or less redundant.
+We will here show that the achievable likelihood only depends on the column span of $\mathbf{T}$. This means that techniques like orthogonalizing $\mathbf{T}$ won't have any effect on 
