@@ -1,2 +1,30 @@
-\chapter{Classifier}
+\chapter{Discriminative Classification}
 
+In this section we will look at discriminative classifiers that can be used to differentiate utterances defined in the vector space discussed in section ???. Discriminative classifiers differ from the generative gaussian mixture model approach given in section ?? in that it cannot be used to generate syntethic data. This often results in a simpler optimization problem which is easier to train to give good performance \cite[p. 204]{machinelearningbook}. Discriminative classifiers can be used on both the full sized document vector or one that is compressed using subspace modelling. We will first look at binary classifiers, where each utterance can take one of two classes in section ?? and ??, and then extend the technique to multiple classes in section ??. Finally we will explore techniques that can increase the effectiveness of the classifier in section ??.
+
+\section{Support Vector Machines}
+
+The Support Vector Machine (SVM) has been extensively used and represents the state-of-the-art classifier for text-classification problems \cite[319]{information}. During training, the binary SVM will find a hyperplane that seperates the two classes (known as $+1$ and $-1$ class). Any coordinates, $\mathbf{x}$, that lie on this plane will satisfy
+\begin{equation*}
+\mathbf{w}^T\mathbf{x}+b=0
+\end{equation*}
+where $\mathbf{w}$ is the normal vector to the plane and $b$ a scalar. Classification is performed by checking what side of the hyperplane a document, $\mathbf{y}$, lies on by
+\begin{equation}
+\label{svmclassify}
+\operatorname{sign}(\mathbf{w}^T\mathbf{y}+b)
+\end{equation}
+where $\operatorname{sign}(a)$ returns $+1$ if $a$ is positive and $-1$ otherwise \ref[322]{information}. Since the plane can be defined using both $\mathbf{w}$ and $-\mathbf{w}$, we can choose a planar equation during training so that the output from equation \ref{svmclassify} can be directly interpreted as the most probable identity of document $y$ . A natural measure of our confidence in the labeling of document $y$ would be the geometric distance between a document and the decision boundary. If the distance is high, then the document is far inside the region where typical documents of the region's class lie. On the other hand, a small distance implies that minor changes in the document vector or the seperating hyperplane could result in a different classification. The euclidean distance between a document and the hyperplane will be the absolute value of \cite[p. 323]{information}
+\begin{equation}
+\label{svmeucdist}
+\frac{\mathbf{w}^T\mathbf{y}+b}{|\mathbf{w}|}.
+\end{equation}
+This equation is quite similar to equation \ref{svmclassify} except that it is invariant to the vector-length of $\mathbf{w}$.
+
+During training of the SVM we need to find the hyperplane that separates the training data. For now we will assume that the data is lineary separable, so that there exists at least one such plane. If there exist more than one plane that separates the classes, we would prefer to use the separating plane that has the largest geometric distance from all document in the training set. Since planes can be defined by normal vectors of any length, we can let the length of $1/|\mathbf{w}|$ be the minimum geometric distance between the plane defined by $\mathbf{w}$ and $b$, and any training vector. This can be stated as the constraint \cite[p. 324]{information}
+\begin{equation}
+\label{svmconstraint}
+c_i(\mathbf{w}^T\mathbf{y}_i+b) \geq 1, \forall i
+\end{equation}
+where $c_i \in \{ -1, +1 \}$ is the true class of training document $y_i$. The hyperplane with the largest geometric margin between any training vector can then be found by minimizing $|\mathbf{w}|$ while upholding the constraints in equation \ref{svmconstraint}.
+
+Since it generally cannot be expected that all classes can be linearly separated, there will be some data sets where the constraints in equation \ref{svmconstraint} cannot be fullfilled. Even if the constraints can be fullfilled, there might be some sets where a few unrepresentative document vectors force us to settle with a decision boundry with very little margin between the two classes, just so that we can correctly classify those vectors with any margin at all. 
