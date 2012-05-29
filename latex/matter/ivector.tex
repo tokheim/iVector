@@ -1,5 +1,13 @@
 \chapter{iVector Subspace Modeling}
 
+iVectors are one example of subspace modelling approaches that can be used to reduce the dimensionality of the data before training and applying classifiers to recognize the language used in an utterance. The dimensionality reduction should make training of the classifiers less computational expensive, which could enable us to train the system with more data. The goal of the reduction is to separate trends in the data that are common to all languages from the information that is unique between utterances. If this separation is properly performed, 
+
+\section{Background}
+
+
+
+
+
 \section{More on the iterative update process}
 
 Here we are going to look more closely at the Newton Raphson update steps for producing i-vectors and the variability matrix. In a real-time implementation we would need to extract i-vectors using these updates for live data which makes the operation time-sensitive. At the same time these updates involve linear algebra on a high-dimension space, making the operations computationally expensive. An unefficient implementation of these updates will therefore severely impact the computational requirements for training and live usage of the system. It is also critical for the total performance of the system that the i-vectors convey meaningful information about an utterance. A thorough study of the Newton Raphson update process is therefore warranted. 

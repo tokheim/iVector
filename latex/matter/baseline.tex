@@ -1,9 +1,6 @@
-\chapter{Language Modeling Using Markov Chains}
+\chapter{Language Modeling Using the $n$-gram Assumption}
 
 We will here look at how the baseline system utilizes the phoneme sequences from the phone recognizer to construct language models, which then are used to differentiate languages with other phoneme sequences. This is the only module that the baseline system exclusively uses. Intuitively the best performing system will be determined by the total information loss from its modules, so the performance difference between the two systems will be determined by the information loss from assumptions made in this module versus the iVector specific modules. In section \ref{sect:basetrain} we will present how to train a model and use it to decode an utterance. In section \ref{sect:basesmooth} the concept of smoothing the language models will be presented to make the language model better fit unseen utterances.
-
-\section{Scoring Utterances}
-\label{sect:basescore}
 
 \section{Model training}
 \label{sect:basetrain}
@@ -14,21 +11,19 @@ Using Bayes rule, the probability that the utterance stems from language $l_i$, 
 \label{basebayes}
 p(l_i|S) = \frac{p(S|l_i) \cdot p(l_i)}{p(S)}.
 \end{equation}
-
-
-An estimate of this score could be found by letting $p(S|l_i, \theta)$ equal the frequency the phoneme sequence appears in the training data for that language. Unfortunately the number of possible phoneme sequences grows exponentially with the sequence length, $N$. With an almost infinite number of parameters to train for the model, it will be impossible to train. 
+Since $p(S)$ is independent of the spoken language, it only serves as a constant to enforce that the probability of the utterance belonging to any language is $1$. The prior distribution of languages, $p(l_i)$, will depend on the application and can be set by the Gaussian beck-end discussed in section \ref{sect:backendscoring}. A suited score with no loss of information will be $p(S|l_i)$. An estimate of this score could be found by letting $p(S|l_i, \theta)$ equal the frequency the phoneme sequence appears in the training data for that language. Unfortunately the number of possible phoneme sequences grows exponentially with the sequence length, $N$. With an almost infinite number of parameters of probabilities to measure, it will be impossible to train. 
 
 The probability of the phoneme sequence can also be written as chain of random events
 \begin{equation}
 \label{chainproduct}
 p(S|l_i) = \prod_{j=1}^Np(s_i|S_1^{j-1}, l_i)
 \end{equation}
-where $S_a^b = s_{\max(a,1)}, s_{\max(a+1,1)}, ... , s_{\max(b, 1)}$. We can limit the number of parameters that need to be estimated by making the $(n-1)$-th order Markov assumption \cite[p. 376]{talegk}, that the outcome of the event occurring at time $i$, only depends on the $n-1$ previous outcomes. We call the phoneme sequence $S_{j-n+1}^j$ an $n$-gram. Equation \ref{chainproduct} can then be approximated to
+where $S_a^b = s_{\max(a,1)}, s_{\max(a+1,1)}, ... , s_{\max(b, 1)}$. We can limit the number of parameters that need to be estimated by making the $n$-gram assumption, that the probability for the current phoneme will only depend on the $n-1$ previous outcomes. We call the phoneme sequence $S_{j-n+1}^j$ an $n$-gram at position $j$. Equation \ref{chainproduct} can then be approximated to
 \begin{equation}
 \label{markovchain}
 p(S|l_i) \approx \prod_{j=1}^Np(s_j|S_{j-n+1}^{j-1},l_i).
 \end{equation}
-Our model can then be estimated from training data as
+Phonemes with this model can be seen as drawn from multinomial distributions, with one distribution per phonemes history, $S_{j-n+1}^{j-1}$. The probability of events occurring in the multinomial models can then be estimated from training data as
 \begin{equation}
 \label{baselinetrain}
 p(s_j|S_{j-n+1}^j, l_i, \theta) = 
@@ -45,12 +40,12 @@ p(S|l_i, \theta) = \prod_{j=1}^Np(s_j|S_{j-n+1}^{j-1}, l_i, \theta).
 \end{equation}
 Since the first $n$ phonemes in equation \ref{basescore} has less than $n-1$ preceding phonemes, the transition probabilities given less than $n$ previous states has to be estimated as well.
 
-We can view $p(s_j|S_{j-n+1}^j, l_i)$ as multinomial distributions (one for each state, $S_{j-n+1}^j$). With $C_i(S_{j-n+1}^{j-1})$ draws from the distribution the variance in $p(s_j|S_{j-n+1}^j, l_i, \theta)$ will be
+With $C_i(S_{j-n+1}^{j-1})$ draws from a multinomial distribution the variance in $p(s_j|S_{j-n+1}^j, l_i, \theta)$ will be
 \begin{equation}
 \label{baselinevar}
 \operatorname{VAR}(p(s_j|S_{j-n+1}^j, l_i, \theta)) = \frac{p(s_j|S_{j-n+1}^{j-1}, l_i)(1-p(s_j|S_{j-n+1}^{j-1}, l_i))}{C_i(S_{j-n+1}^{j-1})}
 \end{equation}
- By definition $C_i(S_{j-n+1}) \leq C_i(S_{j-(n-1)+1})$ so using a smaller value for $n$ will produce a model with less variance. But this will also make the model more biased, as it will only capture short term dependencies between phonemes. Returning to the discussion in section \ref{sect:basiclangmodel}, $n$ has to be set as a tradeoff between model bias and variance. Clearly a too high value for $n$ will make the model unfit to measure the probability of unseen sequences.
+ By definition $C_i(S_{j-n+1}) \leq C_i(S_{j-(n-1)+1})$ so using a smaller value for $n$ will produce a model with less variance. But this will also make the model more biased, as it will only capture short term dependencies between phonemes. Returning to the discussion in section \ref{sect:basiclangmodel}, $n$ has to be set as a trade-off between model bias and variance. Clearly a too high value for $n$ will make the model unfit to measure the probability of unseen sequences.
 
 \section{Model Smoothing}
 \label{sect:basesmooth}
