@@ -39,9 +39,7 @@ The speech signal is first split into short frames using a window function to re
 The size of each frame is limited, in order to make the speech signal in each frame approximately stationary, but this doesn't mean that the neighboring frames have no information about the phoneme uttered in the current frame. Many recent phone recognizers use long temporal context techniques to capture the evolution of the signal outside of the frame \cite[p. 8]{butphnrec}. One such technique is to concatenate the $n$ cepstral coefficients in the current frame together with the $k$ past and future frames \cite[9]{butphnrec}, resulting in a $n(2k+1)$-dimensional feature vector. The high number of parameters in the long temporal context feature vector can make it difficult to train the phoneme recognizer without having huge amounts of training material. By assuming that the coefficients in past frames are independent of future frames, we can split the vector into a left and right context. This enables us to first classify each context separately, and then merge the results into a final decision of what phoneme was spoken \cite[p. 36]{butphnrec}. We can use GMMs for both classifying steps. The halving of the feature vector then increases the probability of observing similar features in the training set, reducing the need for much training data.
 
 
-Due to the limited size of each frame, analysis has shown that there is a lot of information about the phoneme uttered in a frame in the neighboring frames.
-
-The MFCC transform approximates how the ear hears sound, by taking the signal in the frequency domain through a set of band pass filters.  It is shown that significant information about a phoneme is outside of the stationary frame
+Et eller annet om at språk på fonemgjennkjenneren ikke trenger å stemme
 
 
 \section{Language models}
@@ -58,7 +56,7 @@ This was only a shallow introduction to language models due to the variety of te
 
 
 
-Since $p(S)$ is independent of the spoken language, it only serves as a constant to enforce that the probability of the utterance belonging to any language is $1$. The prior distribution of languages, $p(l_i)$, will depend on the application and should be left to the decision unit to adjust to it's needs. A suited score that can be used to make theoretically optimal decisions based on the phone sequence will then be $p(S|l_i)$.This is a somewhat strict requirement since the socres will be further processed by the Gaussian backend, investigated in section ??, before any decisions are made. . A model that returns $p(S|l_i)$ will be a theoretically optimal score for the utterance with no loss of information other than what was incurred during tokenization.
+
 
 
 
