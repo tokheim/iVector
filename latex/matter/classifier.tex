@@ -1,8 +1,10 @@
 \chapter{Discriminative Classification}
+\label{sect:classify}
 
 In this section we will look at discriminative classifiers that can be used to differentiate utterances defined in the vector space discussed in section ???. Discriminative classifiers differ from the generative gaussian mixture model approach given in section ?? in that it cannot be used to generate syntethic data. This often results in a simpler optimization problem which is easier to train to give good performance \cite[p. 204]{machinelearningbook}. Discriminative classifiers can be used on both the full sized document vector or one that is compressed using subspace modelling. We will first look at binary classifiers, where each utterance can take one of two classes in section ?? and ??, and then extend the technique to multiple classes in section ??. Finally we will explore techniques that can increase the effectiveness of the classifier in section ??.
 
 \section{Support Vector Machines}
+\label{sect:svm}
 
 The Support Vector Machine (SVM) has been extensively used and represents the state-of-the-art classifier for text-classification problems \cite[319]{information}. During training, the binary SVM will find a hyperplane that seperates the two classes (known as $+1$ and $-1$ class). Any coordinates, $\mathbf{x}$, that lie on this plane will satisfy
 \begin{equation*}
@@ -30,11 +32,45 @@ where $c_i \in \{ -1, +1 \}$ is the true class of training document $y_i$. The h
 Since it generally cannot be expected that all classes can be linearly separated, there will be some data sets where the constraints in equation \ref{svmconstraint} cannot be fullfilled. Even if the constraints can be fullfilled, there might be some sets where a few unrepresentative document vectors force us to settle with a decision boundry with very little margin between the two classes, just so that we can correctly classify those vectors with any margin at all. Since a single document can have a drastic effect on the decision boundary, the constraints in equation \ref{svmconstraint} will make the classifier have a high model variance. In order to give the learning method less variance, it might be better to have a more biased model that isn't able to correctly classify all documents in the training set. Because of this, SVM often solves an unconstrained problem, where some documents may disregard the constraints in equation \ref{svmconstraint}. One such problem is that of a l2 regularized SVM, where we find
 \begin{equation}
 \label{svmregularized}
-\underset{w}{\arg \min} \frac{1}{2}|\mathbf{w}|+C\sum_{\forall i} \max(1-c_i(\mathbf{w}^Tx_i+b), 0)^2
+\underset{\mathbf{w}, b}{\arg \min} \frac{1}{2}|\mathbf{w}|+C\sum_{\forall i} \max(1-c_i(\mathbf{w}^Tx_i+b), 0)^2
 \end{equation}
 where $C > 0$ is a penalty or regularization parameter that can be set to adjust for model bias or variance \cite{liblinear}. Here a penalty is only given if a document fails to meet the conditions in equation \ref{svmconstraint}, and when $C$ goes to infinity, the regularized SVM will solve the constrained problem.
 
 For some types of data there might not be any plane that comes close to separate the two classes. For such problems, it is possible to use a nonlinear SVM. Such SVMs first map a document to a higher dimension where it is lineary separable by using a kernel function, and then apply a linear SVM \cite[p. 331]{information}. 
 
 \section{Logistic Regression}
+
+Logistic Regression (LR) is an other discriminative classifier where the confidence measure takes a probabilistic, and not geometric approach. With two classes, the probability of a given class can be written as
+\begin{align}
+p(C = 1| \mathbf{y}) &= \frac{p(\mathbf{y}|C = 1)p(C = 1)}{p(\mathbf{y}|C=1)p(C=1)+p(\mathbf{y}|C=-1)p(C=-1)} \nonumber \\
+&= \frac{1}{1+\exp(-\ln\frac{p(\mathbf{y}|C = 1)p(C=1)}{p(\mathbf{y}|C=-1)p(C=-1)})} \nonumber \\
+&= \frac{1}{1+\exp(-a)} = \sigma(a) \label{logisticsigmoid}
+\end{align}
+where $\sigma(a)$ is called the \emph{logistic sigmoid} function \cite[p. 197]{machinelearningbook}, and $a$ is
+\begin{equation}
+\label{logistica}
+a = \ln \frac{p(\mathbf{y}|C = 1)p(C=1)}{p(\mathbf{y}|C=-1)p(C=-1)}.
+\end{equation}
+The advantage of this seemingly inconvenient expression for $p(C=1 | \mathbf{y})$ is that $a$ can take any real value, and $\sigma(a)$ will transform $a$ to a value between $0$ and $1$. In section \ref{sect:svm} we argued that the distance from a separating hyperplane could be used as a measure of confidence in our classification.  With logistic regression, we can use this distance from a given hyperplane as a measure the log probability ratio \cite[p. 205]{machinelearningbook}
+\begin{equation}
+\label{logisticdist}
+a = \ln \frac{p(\mathbf{y}|C=1)p(C=1)}{p(\mathbf{y}|C=-1)p(C=-1)} = \mathbf{w}^T\mathbf{y}+b.
+\end{equation}
+We can then find the hyperplane that maximize the probability of a set of documents belonging to their true class
+\begin{align}
+\underset{\mathbf{w}, b}{\arg \max} \prod_{\forall i} p(c_i | y_i)  &= 
+\underset{\mathbf{w}, b}{\arg \max} \prod_{\forall i} \sigma(c_i(\mathbf{w}^T\mathbf{y}_i+b)) \nonumber \\
+\underset{\mathbf{w}, b}{\arg \min} -\sum_{\forall i} \ln p(c_i | y_i) &= 
+\underset{\mathbf{w}, b}{\arg \max} \sum_{\forall i} \ln \frac{1}{1+\exp(-c_i(\mathbf{w}^T\mathbf{y}_i+b))} \nonumber \\
+&= \underset{\mathbf{w}, b}{\arg \min} \ln(1+\exp(-c_i(\mathbf{w}^T\mathbf{y}_i+b))). \label{simplelogistic}
+\end{align}
+Given that there exists a hyperplane that separates the classes, we can always find a hyperplane where $p(c_i | y_i) = 1$ for all the training documents by giving the normal vector, $\mathbf{w}$, an infinite length. As with the SVM we need an incentive to separate the classes with a plane that has a large euclidean distance to documents in each class. A more suited formulation is to penalize hyperplanes that makes a documents true class improbable using equation \ref{simplelogistic}, and maximize $1/|\mathbf{w}|$ so that the log probability ratio given in equation \ref{logisticdist} isn't oversensitive to small euclidean changes in the document vector $\mathbf{y}$. A formulation that should give models with less variance could then be \cite{liblinear}
+\begin{equation}
+\label{logisticreg}
+\underset{\mathbf{w}, b}{\arg \min} \frac{1}{2}|\mathbf{w}|+C\sum_{\forall_i} \ln(1+\exp(-c_i(\mathbf{w}^T\mathbf{y}_i+b)))
+\end{equation}
+where $C$ is a regularization parameter to avoid over-fitting. Other than using a different penalty-function, this optimization problem is then the same as the one from equation \ref{svmregularized} that was used to train SVMs. After we've found the hyperplane parameters from a training set, we can use $\sigma(\mathbf{w}^T\mathbf{y}_i+b)$ as an estimate of the probability $p(C=1|\mathbf{y})$.
+
+\section{Extending Binary Classification to Multi-class Problems}
+
 
