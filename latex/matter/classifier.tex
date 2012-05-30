@@ -27,4 +27,14 @@ c_i(\mathbf{w}^T\mathbf{y}_i+b) \geq 1, \forall i
 \end{equation}
 where $c_i \in \{ -1, +1 \}$ is the true class of training document $y_i$. The hyperplane with the largest geometric margin between any training vector can then be found by minimizing $|\mathbf{w}|$ while upholding the constraints in equation \ref{svmconstraint}.
 
-Since it generally cannot be expected that all classes can be linearly separated, there will be some data sets where the constraints in equation \ref{svmconstraint} cannot be fullfilled. Even if the constraints can be fullfilled, there might be some sets where a few unrepresentative document vectors force us to settle with a decision boundry with very little margin between the two classes, just so that we can correctly classify those vectors with any margin at all. 
+Since it generally cannot be expected that all classes can be linearly separated, there will be some data sets where the constraints in equation \ref{svmconstraint} cannot be fullfilled. Even if the constraints can be fullfilled, there might be some sets where a few unrepresentative document vectors force us to settle with a decision boundry with very little margin between the two classes, just so that we can correctly classify those vectors with any margin at all. Since a single document can have a drastic effect on the decision boundary, the constraints in equation \ref{svmconstraint} will make the classifier have a high model variance. In order to give the learning method less variance, it might be better to have a more biased model that isn't able to correctly classify all documents in the training set. Because of this, SVM often solves an unconstrained problem, where some documents may disregard the constraints in equation \ref{svmconstraint}. One such problem is that of a l2 regularized SVM, where we find
+\begin{equation}
+\label{svmregularized}
+\underset{w}{\arg \min} \frac{1}{2}|\mathbf{w}|+C\sum_{\forall i} \max(1-c_i(\mathbf{w}^Tx_i+b), 0)^2
+\end{equation}
+where $C > 0$ is a penalty or regularization parameter that can be set to adjust for model bias or variance \cite{liblinear}. Here a penalty is only given if a document fails to meet the conditions in equation \ref{svmconstraint}, and when $C$ goes to infinity, the regularized SVM will solve the constrained problem.
+
+For some types of data there might not be any plane that comes close to separate the two classes. For such problems, it is possible to use a nonlinear SVM. Such SVMs first map a document to a higher dimension where it is lineary separable by using a kernel function, and then apply a linear SVM \cite[p. 331]{information}. 
+
+\section{Logistic Regression}
+
