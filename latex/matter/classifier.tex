@@ -1,7 +1,7 @@
 \chapter{Discriminative Classification}
 \label{sect:classify}
 
-In this section we will look at discriminative classifiers that can be used to differentiate utterances defined in the vector space discussed in section ???. Discriminative classifiers differ from the generative gaussian mixture model approach given in section ?? in that it cannot be used to generate syntethic data. This often results in a simpler optimization problem which is easier to train to give good performance \cite[p. 204]{machinelearningbook}. Discriminative classifiers can be used on both the full sized document vector or one that is compressed using subspace modelling. We will first look at binary classifiers, where each utterance can take one of two classes in section ?? and ??, and then extend the technique to multiple classes in section ??. Finally we will explore techniques that can increase the effectiveness of the classifier in section ??.
+In this section we will look at discriminative classifiers that can be used to differentiate utterances defined in the vector space discussed in section ???. Discriminative classifiers differ from the generative gaussian mixture model approach given in section \ref{sect:gmmscore} in that it cannot be used to generate syntethic data. This often results in a simpler optimization problem which is easier to train to give good performance \cite[p. 204]{machinelearningbook}. Discriminative classifiers can be used on both the full sized document vector or one that is compressed using subspace modelling. We will first look at binary classifiers, where each utterance can take one of two classes in section \ref{sect:svm} and \ref{sect:logisticregression}, and then extend the technique to multiple classes in section \ref{sect:multiclass}. Finally we will explore techniques that can increase the effectiveness of the classifier in section \ref{sect:svmnormal}.
 
 \section{Support Vector Machines}
 \label{sect:svm}
@@ -32,13 +32,14 @@ where $c_i \in \{ -1, +1 \}$ is the true class of training document $y_i$. The h
 Since it generally cannot be expected that all classes can be linearly separated, there will be some data sets where the constraints in equation \ref{svmconstraint} cannot be fullfilled. Even if the constraints can be fullfilled, there might be some sets where a few unrepresentative document vectors force us to settle with a decision boundry with very little margin between the two classes, just so that we can correctly classify those vectors with any margin at all. Since a single document can have a drastic effect on the decision boundary, the constraints in equation \ref{svmconstraint} will make the classifier have a high model variance. In order to give the learning method less variance, it might be better to have a more biased model that isn't able to correctly classify all documents in the training set. Because of this, SVM often solves an unconstrained problem, where some documents may disregard the constraints in equation \ref{svmconstraint}. One such problem is that of a l2 regularized SVM, where we find
 \begin{equation}
 \label{svmregularized}
-\underset{\mathbf{w}, b}{\arg \min} \frac{1}{2}|\mathbf{w}|+C\sum_{\forall i} \max(1-c_i(\mathbf{w}^Tx_i+b), 0)^2
+\underset{\mathbf{w}, b}{\arg \min} \frac{1}{2}|\mathbf{w}|^2+C\sum_{\forall i} \max(1-c_i(\mathbf{w}^Tx_i+b), 0)^2
 \end{equation}
 where $C > 0$ is a penalty or regularization parameter that can be set to adjust for model bias or variance \cite{liblinear}. Here a penalty is only given if a document fails to meet the conditions in equation \ref{svmconstraint}, and when $C$ goes to infinity, the regularized SVM will solve the constrained problem.
 
 For some types of data there might not be any plane that comes close to separate the two classes. For such problems, it is possible to use a nonlinear SVM. Such SVMs first map a document to a higher dimension where it is lineary separable by using a kernel function, and then apply a linear SVM \cite[p. 331]{information}. 
 
 \section{Logistic Regression}
+\label{sect:logisticregression}
 
 Logistic Regression (LR) is an other discriminative classifier where the confidence measure takes a probabilistic, and not geometric approach. With two classes, the probability of a given class can be written as
 \begin{align}
@@ -67,10 +68,29 @@ We can then find the hyperplane that maximize the probability of a set of docume
 Given that there exists a hyperplane that separates the classes, we can always find a hyperplane where $p(c_i | y_i) = 1$ for all the training documents by giving the normal vector, $\mathbf{w}$, an infinite length. As with the SVM we need an incentive to separate the classes with a plane that has a large euclidean distance to documents in each class. A more suited formulation is to penalize hyperplanes that makes a documents true class improbable using equation \ref{simplelogistic}, and maximize $1/|\mathbf{w}|$ so that the log probability ratio given in equation \ref{logisticdist} isn't oversensitive to small euclidean changes in the document vector $\mathbf{y}$. A formulation that should give models with less variance could then be \cite{liblinear}
 \begin{equation}
 \label{logisticreg}
-\underset{\mathbf{w}, b}{\arg \min} \frac{1}{2}|\mathbf{w}|+C\sum_{\forall_i} \ln(1+\exp(-c_i(\mathbf{w}^T\mathbf{y}_i+b)))
+\underset{\mathbf{w}, b}{\arg \min} \frac{1}{2}|\mathbf{w}|^2+C\sum_{\forall_i} \ln(1+\exp(-c_i(\mathbf{w}^T\mathbf{y}_i+b)))
 \end{equation}
 where $C$ is a regularization parameter to avoid over-fitting. Other than using a different penalty-function, this optimization problem is then the same as the one from equation \ref{svmregularized} that was used to train SVMs. After we've found the hyperplane parameters from a training set, we can use $\sigma(\mathbf{w}^T\mathbf{y}_i+b)$ as an estimate of the probability $p(C=1|\mathbf{y})$.
 
 \section{Extending Binary Classification to Multi-class Problems}
+\label{sect:multiclass}
 
+So far the classification methods that have been described can only differentiate two classes. This is a problem since a general language identification problem will have numerous classes. There exists generalizations of the classifiers that we have discussed that support multiple classes \cite[p. 209]{machinelearningbook,hsu2002comparison}, but these are often avoided due to the additional training time required \cite{hsu2002comparison}. A more commonly used approach is to train multiple classifiers on different classes, and then fuse the results to scores for each language. The merging of the results can be done by training gaussian mixtures discussed in seciton \ref{sect:gmmscore} to recognize the typical scores from equation \ref{svmeucdist} or the probability scores for the positive class when using LR.
 
+With $N$ classes, the \emph{One vs Rest} (OVR) approach is to train $N$ classifiers. Each of the classes will act as the $+1$ class in one classifier, and the $-1$ class in all the other classifiers. The pattern in the scores that should emerge from such a setup is that the classifier trained with a document's true class as $+1$ class should give the highest score \ref{hsu2002comparison}. This means that without backend calibration of the scores, a simple way to perform language identification would be to label a vector to belong to the $+1$ class of the classifier that gave the highest score.
+
+Another approach to multiclass classification is to train $N(N-1)/2$ classifiers in a $One vs One$ (OVO) pattern. One classifier is then trained for all pairs of classes \cite{hsu2002comparison}. Each class is then tested against the $n-1$ other classes as either the positive or negative class. Identification without performing score calibration can be performed by either selecting the class that won most of it's $n-1$ trials \cite{hsu2002comparison}.
+
+Although there are more classifiers to train in the OVO approach, this setup should still be faster to train since each classifier require only documents from two classes \cite[832]{lidbok}. The performance of the two methods should be comparable \cite{Rifkin:2004:DOC:1005332.1005336}.
+
+\section{Normalization of Document Vectors for Classification}
+\label{sect:svmnormal}
+
+In both the optimization problems for the SVM and LR, we would like to find a hyperplane that separates the data with a large euclidean distance between documents from the two classes. Dimensions where the document vectors have a very high variance can have a large effect on the euclidean distance between documents and a hyperplane \cite{wan2005speaker}. This doesn't necessarily mean that those dimensions have more information about the class identity than the dimensions with lower variance. To make the euclidean distance a more suited confidence measure, document vectors are often whitened by giving each dimension zero mean and unit variance. 
+
+After whitening another problem might be that the inner product between the document vector and hyperplane vector can take a very large dynamic range \cite{wan2005speaker}. This can be avoided by giving the whitened document vector, $\mathbf{y}$ unit length. The range of the inner product will then be limited by the length of the hyperplane's normal. Simply dividing the document vector by its euclidean norm would be a many-to-one mapping that looses information. In \cite{wan2005speaker} a more elegant lossless transformation was given wher the new score vector, $\mathbf{\hat{y}}$, is
+\begin{equation}
+\label{svmnormalize}
+\mathbf{\hat{y}} = \frac{[\mathbf{y}^T, D]^T}{|[\mathbf{y}^T, D]|}
+\end{equation}
+where the variable $D$ is some constant for all documents. The extra dimension can then be used to separate document vectors of different lengths. The significanse of keeping length-information will likely depend on the distribution of document vectors.
