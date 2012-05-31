@@ -4,9 +4,30 @@ iVectors are one example of subspace modelling approaches that can be used to re
 
 \section{Background}
 
-A well known technique
+The idea for iVectors first came from the joint factor analysis (JFA) model used in speaker verification \cite{dehak2011front}. In JFA continuous speech features are generated from a multivariate Gaussian model
+\begin{equation}
+\label{jfa}
+\mathbf{M}=\mathbf{m}+\mathbf{Vy}+\mathbf{Ux}+\mathbf{Dz}
+\end{equation}
+where $\mathbf{y}$, $\mathbf{x}$ and $\mathbf{z}$ are low dimensional normal distributed vectors with zero mean and unit diagonal covariance \cite{dehak2011front}, while $\mathbf{m}$ is the mean distribution vector. By careful training the column span of $\mathbf{U}$ should model the possible effects of channel variability, while $\mathbf{V}$ and $\mathbf{D}$ should model variations in speakers. By having $\mathbf{m}$, $\mathbf{V}$ and $\mathbf{D}$ is fixed for all utterances, the speaker dependent information in the utterance would be isolated in the low-dimensional vectors $\mathbf{y}$ and $\mathbf{z}$ which then can be used to recognize speakers. In \cite{dehak2011front} it was proposed to use a total variability matrix to model the distribution of $\mathbf{M}$ by
+\begin{equation}
+\label{ffa}
+\mathbf{M}=\mathbf{m}+\mathbf{Tw}.
+\end{equation}
+The low-dimensional vector $\mathbf{w}$, called iVector, would now be affected by channel characteristics. Recognition of the speaker could still be performed by first filtering out channel-dependent information in $\mathbf{w}$. This framework was then adapted in \cite{srivector} to model discrete features by assuming a multinomial distribution where the probability of feature $c$ given utterance $n$ would be 
+\begin{equation}
+\label{phieq}
+\phi_{nc}=\frac{\exp(m_c+\mathbf{t}_c \cdot \mathbf{w}_n)}{\sum_{i=1}^C \exp(m_i+\mathbf{t}_i \cdot \mathbf{w}_n)}
+\end{equaiton}
+where $C$ is the total number of discrete features, $\mathbf{t}_i$ is the $i$-th row of the total variability matrix $\mathbf{T}$, and $m_i$ the $i$-th element of the $\mathbf{m}$-vector. This model was then utilized for language recognition in \cite{lrivector}.
 
+\section{Interpretation of iVector Model}
 
+ The iVector can be seen as a low-dimensional set of parameters that govern the probability distribution for features in any utterance. The columns of $\mathbf{T}$ should then span the subspace of likely probability distributions for features \cite{srivector}. 
+
+\section{Model Training}
+
+\section{Model Recognition}
 
 \section{More on the iterative update process}
 
