@@ -119,7 +119,7 @@ void trainiVectors(Configuration config) {
 	}
 
 
-	//branchTraining(traindocs, devtestdocs, testdocs, space, outLoc, threads);
+	//branchTraining(traindocs, devtestdocs, testdocs, space, config.outLoc, config.threads);
 
 	extractiVectors(traindocs, devtestdocs, testdocs, space, config.threads, config.outLoc);
 }
