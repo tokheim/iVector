@@ -1,4 +1,5 @@
 \chapter{Language Modeling Using the $n$-gram Assumption}
+\label{sect:baselinetheory}
 
 We will here look at how the baseline system utilizes the phoneme sequences from the phone recognizer to construct language models, which then are used to differentiate languages with other phoneme sequences. This is the only module that the baseline system exclusively uses. Intuitively the best performing system will be determined by the total information loss from its modules, so the performance difference between the two systems will be determined by the information loss from assumptions made in this module versus the iVector specific modules. In section \ref{sect:basetrain} we will present how to train a model and use it to decode an utterance. In section \ref{sect:basesmooth} the concept of smoothing the language models will be presented to make the language model better fit unseen utterances.
 

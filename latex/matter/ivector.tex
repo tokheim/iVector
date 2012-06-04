@@ -14,7 +14,7 @@ where $\mathbf{y}$, $\mathbf{x}$ and $\mathbf{z}$ are low dimensional normal dis
 \label{ffa}
 \mathbf{M}=\mathbf{m}+\mathbf{Tw}.
 \end{equation}
-The low-dimensional vector $\mathbf{w}$, called iVector, would now be affected by channel characteristics. Recognition of the speaker could still be performed by first filtering out channel-dependent information in $\mathbf{w}$. This framework was then adapted in \cite{srivector} to model discrete features by assuming a multinomial distribution where the probability of feature $c$ given utterance $n$ would be 
+The low-dimensional vector $\mathbf{w}$, called iVector, would now be affected by channel characteristics. Recognition of the speaker could still be performed by first filtering out channel-dependent information in $\mathbf{w}$. This framework was then adapted in \cite{srivector} to model discrete features by assuming a multinomial distribution where the probability of feature $c$ in utterance $n$ would be 
 \begin{equation}
 \label{phieq}
 \phi_{nc}=\frac{\exp(m_c+\mathbf{t}_c \cdot \mathbf{w}_n)}{\sum_{i=1}^C \exp(m_i+\mathbf{t}_i \cdot \mathbf{w}_n)}
@@ -23,7 +23,19 @@ where $C$ is the total number of discrete features, $\mathbf{t}_i$ is the $i$-th
 
 \section{Interpretation of iVector Model}
 
- The iVector can be seen as a low-dimensional set of parameters that govern the probability distribution for features in any utterance. The columns of $\mathbf{T}$ should then span the subspace of likely probability distributions for features \cite{srivector}. 
+From equation \ref{phieq} we can see the iVector as a set of parameters that govern the probability distribution for features in any utterance. The columns of $\mathbf{T}$ should then span the subspace of likely probability distributions for features in order for the model to fit the actual data \cite{srivector}. Discrete features like phoneme $n$-grams should not require us to filter out channel noise, as channel variability should be handled the phoneme recognizer. In this respect, the total variability model should be more fit for discrete features. Using the assumption of a multinomial model, the log-likelihood of an utterance will be
+\begin{equation}
+\label{utterancelike}
+\log(p(\gamma_n | \phi_n)) = \sum_{c=1}^C \gamma_{nc} \log(\phi_{nc})
+\end{equation}
+where $\gamma_{nc}$ is the number of times feature $c$ was observed in utterance $n$. If features are $n$-grams, then the likelihood given from this model will be quite similar to the model presented in section \ref{sect:baselinetheory} except that only one multinomial distrbution is used, not one per possible $n$-gram history. This is a slight inaccuracy in the model when using $n$-grams, since per defintion, only a fraction of the $n$-grams can follow the previous $n$-gram. But like JFA, the recognition decision will be based solely on the latent vector, or iVector in our case. We will perhaps model some redundant information since the model requires us to estimate probabilites for $n$-grams that cannot occur in the utterance. The iVector should make these probabilites low so that there is more probability mass for features that do occur, but even if the likelihood estimate we use is inaccurate, the iVectors should still in some way reflect the $n$-grams in an utterance so that languages can be separated.
+
+The log-likelihood for a set of utterances will simply be
+\begin{equation}
+\label{iloglike}
+\log(p(\gamma | \phi)) = \sum_{n=1}^N \log(p(\gamma_n | \phi_n)).
+\end{equation}
+
 
 \section{Model Training}
 
