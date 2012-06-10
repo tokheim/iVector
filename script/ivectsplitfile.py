@@ -7,11 +7,16 @@ Each unsplitted file is about 30 mins
 '''
 import os
 import math
+import sys
 
 
-devtargetmicros = 30 * 10000000;#Target microseconds of each file for devtest data
+devtargetmicros = 30 * 10000000#Target microseconds of each file for devtest data
 devtimeslack = 0.1
 devtargetFiles = 100#Target number of devtest files per language
+
+#For creating dev files for 10 and 3 seconds
+shortdevtargetmicros = devtargetmicros/3
+shortdevtimeslack = 0.2
 
 shortTraintargetLength = 30 * 10000000;
 traintargetFiles = 250#Target number of train files per language
@@ -50,7 +55,7 @@ def writefile(fullpath, linelist, toindex):
     linelist.reverse()
 
 
-def splitfile(docfile, outdir, targetlength, targetslack):
+def splitfile(docfile, outdir, targetlength, targetslack, maxfiles = sys.maxint):
     infile = open(docfile.path+docfile.fname)
     linelist = []
     lastpauseindex = 0
@@ -59,6 +64,9 @@ def splitfile(docfile, outdir, targetlength, targetslack):
     num = 0
     outbase = outdir+docfile.fname.replace('.rec', '')+'_'
     for line in infile:
+        if num >= maxfiles:
+            break
+        
         splitline = line.split(' ')
         if len(splitline) > 3:
             if isSilence(splitline[2]) or isNoise(splitline[2]):
@@ -105,14 +113,18 @@ for language in languages:
     train_outdir = './CallFriend/' + language + '/vectsplit/train/'
     short_train_outdir = './CallFriend/'+language+ '/vectsplit/shorttrain/'
     dev_outdir = './CallFriend/' + language + '/vectsplit/devtest/'
+    #For 10 and 3 second dev
+    short_dev_outdir = './CallFriend/' + language + '/vectsplit/shortdevtest/'
     
     
     os.system('mkdir -p '+train_outdir)
     os.system('mkdir -p '+dev_outdir)
     os.system('mkdir -p '+short_train_outdir)
+    os.system('mkdir -p '+short_dev_outdir)
     os.system('rm '+train_outdir+'*.*')
     os.system('rm '+dev_outdir+'*.*')
     os.system('rm '+short_train_outdir+'*.*')
+    os.system('rm '+short_dev_outdir+'*.*')
     
     
     for subdir in subdirs:
@@ -143,6 +155,10 @@ for language in languages:
                     break
         fileListArray.remove(docfile)
         numFiles += splitfile(docfile, dev_outdir, devtargetmicros, devtimeslack)
+        
+        #Write short dev files
+        splitfile(docfile, short_dev_outdir, shortdevtargetmicros, shortdevtimeslack, docfile.length/devtargetmicros)
+        
         print 'Written '+str(numFiles)+' devtest files for '+language
         
     timeleft = 0

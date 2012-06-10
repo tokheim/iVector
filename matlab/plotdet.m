@@ -29,6 +29,8 @@ for i = 1:size(thresholds, 2),
 end
 
 [none, i] = min(abs(thresholds));
+[none, eeri] = min(abs(y-x));
+disp(['EER: ' num2str(y(eeri))])
 
 if nargin == 2,
     plot(x, y, 'b', x(i), y(i), 'bx', 'MarkerSize', 15)

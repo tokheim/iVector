@@ -14,40 +14,84 @@ where $\mathbf{y}$, $\mathbf{x}$ and $\mathbf{z}$ are low dimensional normal dis
 \label{ffa}
 \mathbf{M}=\mathbf{m}+\mathbf{Tw}.
 \end{equation}
-The low-dimensional vector $\mathbf{w}$, called iVector, would now be affected by channel characteristics. Recognition of the speaker could still be performed by first filtering out channel-dependent information in $\mathbf{w}$. This framework was then adapted in \cite{srivector} to model discrete features by assuming a multinomial distribution where the probability of feature $c$ in utterance $n$ would be 
+The low-dimensional vector $\mathbf{w}$, called iVector, would now be affected by channel characteristics. Recognition of the speaker could still be performed by first filtering out channel-dependent information in $\mathbf{w}$. This framework was then adapted in \cite{svivector} to model discrete features by assuming a multinomial distribution where the probability of feature $c$ in utterance $n$ would be 
 \begin{equation}
 \label{phieq}
 \phi_{nc}=\frac{\exp(m_c+\mathbf{t}_c \cdot \mathbf{w}_n)}{\sum_{i=1}^C \exp(m_i+\mathbf{t}_i \cdot \mathbf{w}_n)}
-\end{equaiton}
+\end{equation}
 where $C$ is the total number of discrete features, $\cdot$ denotes the inner product, $\mathbf{t}_i$ is the $i$-th row of the total variability matrix $\mathbf{T}$, and $m_i$ the $i$-th element of the $\mathbf{m}$-vector. This model was then utilized for language recognition in \cite{lrivector}.
 
 \section{Interpretation of iVector Model}
 
-From equation \ref{phieq} we can see the iVector as a set of parameters that govern the probability distribution for features in any utterance. The columns of $\mathbf{T}$ should then span the subspace of likely probability distributions for features in order for the model to fit the actual data \cite{srivector}. Discrete features like phoneme $n$-grams should not require us to filter out channel noise, as channel variability should be handled the phoneme recognizer. In this respect, the total variability model should be more fit for discrete features. Using the assumption of a multinomial model, the log-likelihood of an utterance will be
+From equation \ref{phieq} we can see the iVector as a set of parameters that govern the probability distribution for features in any utterance. The columns of $\mathbf{T}$ should then span the subspace of likely probability distributions for features in order for the model to fit the actual data \cite{srivector}. Discrete features like phoneme $n$-grams should not require us to filter out channel noise, as channel variability should be handled the phoneme recognizer. In this respect, the total variability model should be more fit for discrete features. The mean vector $\mathbf{m}$ is used to move origo in the iVector parameter space. This vector should make iVectors and $\mathbf{T}$ invariant to the mean distribution of document vectors, so that degrees of freedom are only spent on modelling variariations in utterances.
+
+ Using the assumption of a multinomial model, the log-likelihood of an utterance will be
 \begin{equation}
 \label{utterancelike}
-\log(p(\gamma_n | \phi_n)) = \sum_{c=1}^C \gamma_{nc} \log(\phi_{nc})
+\log(p(\mathbf{\gamma}_n | \phi_n)) = \sum_{c=1}^C \gamma_{nc} \log(\phi_{nc})
 \end{equation}
 where $\gamma_{nc}$ is the number of times feature $c$ was observed in utterance $n$. If features are $n$-grams, then the likelihood given from this model will be quite similar to the model presented in section \ref{sect:baselinetheory} except that only one multinomial distrbution is used, not one per possible $n$-gram history. This is a slight inaccuracy in the model when using $n$-grams, since per defintion, only a fraction of the $n$-grams can follow the previous $n$-gram. But like JFA, the recognition decision will be based solely on the latent vector, or iVector in our case. We will perhaps model some redundant information since the model requires us to estimate probabilites for $n$-grams that cannot occur in the utterance. The iVector should make these probabilites low so that there is more probability mass for features that do occur, but even if the likelihood estimate we use is inaccurate, the iVectors should still in some way reflect the $n$-grams in an utterance so that languages can be separated. The log-likelihood for a set of utterances will simply be
 \begin{equation}
 \label{iloglike}
-\log(p(\gamma | \phi)) = \sum_{n=1}^N \log(p(\gamma_n | \phi_n)).
+\log(p(\gamma | \phi)) = \sum_{n=1}^N \log(p(\mathbf{\gamma}_n | \phi_n)).
 \end{equation}
 
-
 \section{Model Training}
+\label{sect:ivecttrain}
 
+We can find the parameters for our model by likelihood maximization of equation \ref{loglike}. In \cite{lrivector}, $\mathbf{m}$ was given the value
+\begin{equation}
+\label{mest}
+m_c=\log\left(\frac{1}{N} \sum_{n=1}^N \gamma_{nc}\right).
+\end{equation} 
+With theese values, $\phi_{nc}$ will equal the freqyency of feature $c$ when the iVector is all zero. There is no closed form solution to finding values for $\mathbf{T}$ maximizing equation \ref{loglike}, but in \cite{lrivector} the problem was given to be concave so that a gradient ascent method can be used to find the absolute maxima. The gradient of equation \ref{loglike} with respect to row $c$ of $\mathbf{T}$ is
+\begin{equation}
+\label{tgrad}
+\mathbf{g}_c = \sum_{i=1}^N\left(\gamma_{ic} - \phi_{ic} \sum_{j=1}^C \gamma_{ij} \right) \mathbf{w}_i
+\end{equation}
+This gradient will be all zero at any maxima. We can find this point by using the iterative Newton Rapshon method, there new estimates for row $c$ of $\mathbf{T}$ will be
+\begin{equation}
+\label{tupdate}
+\mathbf{t}_c(\text{new}) = \mathbf{t}_c(\text{old})-\mathbf{H}_c^{-1}(\text{old})\mathbf{g}_c(\text{old})
+\end{equation}
+where $\mathbf{t}_c(\text{new})$ denotes the new estiamte for $\mathbf{t}_c$, while $f(\text{old})$ means that the old values for the row should be used. $\mathbf{H}_c$ is the Hessian matrix of equaiton \ref{loglike} with respect to the row. In \ref{srivector} it was proposed to use an approximation of the Hessian to simplify calculations. The Hessian was approximated as
+\begin{equation}
+\label{thessian}
+\mathbf{H}_c = -\sum_{i=1}^N \max\left(\gamma_{ic}, \phi_{ic} \sum_{j=1}^C \gamma_{ij}\right)\mathbf{w}_n \mathbf{w}_n^T.
+\end{equation}
 
+A problem with this method is that the equations depend on the iVector, $\mathbf{w}_n$. This means that we cannot find the maximum in equation \ref{loglike} without both finding values for $\mathbf{T}$ and iVectors. As with $\mathbf{T}$, there is no closed form solution to finding iVectors maximizing the log-likelihood. In \cite{srivector} the same approach of using Newton Raphson updates were used to find values for iVectors. The gradient for $\mathbf{w}_n$ was given to be
+\begin{equation}
+\label{ivectgrad}
+\mathbf{g}_n = \sum_{i=1}^C \left(\gamma_{ni}-\phi_{ni}\sum_{j=1}^C \gamma_{nj}\right)\mathbf{t}_i,
+\end{equation}
+the approximate for the Hessian
+\begin{equation}
+\label{ivecthessian}
+\mathbf{H}_c = -\sum_{i=1}^C \max\left(\gamma_{ni}, \phi_{ni}\sum_{j=1}^C \gamma_{nj}\right)\mathbf{t}_i \mathbf{t}_i^T
+\end{equation}
+making the Newton Raphson update steps
+\begin{equation}
+\label{ivectupdate}
+\mathbf{w}_n(\text{new}) = \mathbf{w}_n(\text{old})-\mathbf{H}_n^{-1}(\text{old})\mathbf{g}_n(\text{old}).
+\end{equation}
 
-\section{Model Recognition}
+To find values for $\mathbf{T}$ maximizing equation \ref{loglike}, we can do iterations of updating $\mathbf{T}$ and iVectors from a training set. In order to avoid over-fitting the model to the training data, we can check that an update of $\mathbf{T}$ enables us to increase the likelihood of an other set of documents using equation \ref{loglike}. We will then have to find iVectors for this set as well, but under no circumstance use these documents to update $\mathbf{T}$. In \cite{lrivector}, $\mathbf{T}$ was initialized with small random numbers. This indicates that the updates should converge to the local maxima from most values. 
+
+\section{Extracion of iVectors from the Model}
+
+In the previous section we found values for the model parameters $\mathbf{T}$ and $\mathbf{m}$. As a by-product, the training method also found iVectors for the training data. During extraction, when we use the iVector model to find subspace representations of documents, the same process of iteratively finding iVectors using equation \ref{ivectupdate} can be used. This vector should then represent the most important traits of an utterance, and can be used for language classification. Since the classifiers shown in section \ref{sect:classify} requires training as well, the iVectors for training utterances will also be needed. It would be possible to use the iVectors found during training of $\mathbf{T}$, but theese vectors might be more (or less) converged to the likelihood maxima than the vectors produced during extraction, making them unrepresentative for iVectors found when only performing updates of equation \ref{ivectupdate}.  A minor point that might benefit the system performance is to discard the iVectors found when training $\mathbf{T}$.
+
+In order for the iVector extraction to be determenistic, the iVectors should be initialized with fixed values. It seems natural to initialize the iVectors as an all zero vector, since origo in the iVector space should correspond to the mean feature distribution in utterances. The same initial values can be used when we find $\mathbf{T}$ as long as the first step is to update the iVectors. This is because all zero ivectors would cause $\mathbf{g}_c$ and $\mathbf{H}_c$ to be zero as well.
 
 \section{More on the iterative update process}
+\label{sect:deeperivect}
 
-Here we are going to look more closely at the Newton Raphson update steps for producing i-vectors and the variability matrix. In a real-time implementation we would need to extract i-vectors using these updates for live data which makes the operation time-sensitive. At the same time these updates involve linear algebra on a high-dimension space, making the operations computationally expensive. An unefficient implementation of these updates will therefore severely impact the computational requirements for training and live usage of the system. It is also critical for the total performance of the system that the i-vectors convey meaningful information about an utterance. A thorough study of the Newton Raphson update process is therefore warranted. 
+Here we are going to look more closely at the Newton Raphson update steps for producing iVectors and the total variability matrix. In a real-time implementation we would need to extract iVectors using these updates for live data which makes the operation time-sensitive. At the same time these updates involve linear algebra on a high-dimension space, making the operations computationally expensive. An unefficient implementation of these updates will therefore severely impact the computational requirements for training and live usage of the system. It is also critical for the total performance of the system that the i-vectors convey meaningful information about an utterance. A thorough study of the Newton Raphson update process is therefore warranted. 
 
 \subsection{Solving the Newton Raphson systems}
 
-To avoid issues with numeric instability, it is often desirable not to calculate the inverse of a matrix \cite[p. 743]{cormen}. We can rewrite the linear systems in equation ??? and ??? to
+To avoid issues with numeric instability, it is often desirable not to calculate the inverse of a matrix \cite[p. 743]{cormen}. We can rewrite the linear systems in equation \ref{ivectupdate} and \ref{tupdate} to
 
 \begin{equation}\label{lupeqN}
 \mathbf{H}_n(\text{old}) \delta\mathbf{w}_n = \mathbf{g}_n
@@ -56,20 +100,15 @@ and
 \begin{equation}\label{lupeqC}
 \mathbf{H}_c(\text{old}) \delta \mathbf{t}_c = \mathbf{g}_c(\text{old})
 \end{equation}
-respectively where $\delta$ means the difference between the new and old vectors. It is beneficial to ensure that these equations have one, and just one, solution. More than one solution would indicate that some of the dimensions in the rows of $\mathbf{T}$ or i-vector is redundant, making us solve a more complicated problem than strictly needed. The requirements on $\mathbf{T}$ and i-vectors to guarantee just one solution, is shown in appendix \ref{posdefproof}. As long as our goal is to find global relationships between utterances, and not overfit i-vectors to each utterance (by letting the i-vector dimension approach the number of training utterances or unique features), these requirements should be met. One exception is when we update rows of $\mathbf{T}$ that correspond to features not seen in the training set. Since it is unlikely that we gain much information from such features anyways, we can assume that those rows are always all zero. The rows can then be ignored during i-vector updates without much, if any, loss in performance.
+respectively where $\delta$ means the difference between the new and old vectors. It is beneficial to ensure that these equations have one, and just one, solution. More than one solution would indicate that some of the dimensions in the rows of $\mathbf{T}$ or iVector is redundant, making us solve a more complicated problem than strictly needed. The requirements on $\mathbf{T}$ and iVectors to guarantee just one solution, is shown in appendix \ref{posdefproof}. As long as our goal is to find global relationships between utterances, and not overfit iVectors to each utterance (by letting the iVector dimension approach the number of training utterances or unique features), these requirements should be met. One exception is when we update rows of $\mathbf{T}$ that correspond to features not seen in the training set. Since it is unlikely that we gain much information from such features anyways, we can assume that those rows are always all zero. The rows can then be ignored during iVector updates without much, if any, loss in performance.
 
-In appendix \ref{posdefproof} we also show that the Hessian in equation \ref{lupeqN} and \ref{lupeqC} are positive definite. This enables us to use simple algorithms like LU decomposition to solve the systems \cite[p. 749]{cormen}. With an i-vector dimension of $R$, LU decomposition will solve the systems in $\mathcal{O}(R^3)$ asymptotic time CORMEN REF. While there are faster solvers for positive definite systems like the $\mathcal{O}(R^2)$ solver in \cite{tewfik1994fast}, $R$ should be of a size that probably doesn't necessitate excessive optimization.
+In appendix \ref{posdefproof} we also show that the Hessian in equation \ref{lupeqN} and \ref{lupeqC} are positive definite. This enables us to use simple algorithms like LU decomposition to solve the systems \cite[p. 749]{cormen}. With an i-vector dimension of $R$, LU decomposition will solve the systems in $\mathcal{O}(R^3)$ asymptotic time \ref[p. 750]{cormen}. While there are faster solvers for positive definite systems like the $\mathcal{O}(R^2)$ solver in \cite{tewfik1994fast}, $R$ should be of a size that probably doesn't necessitate excessive optimization.
 
-In equation ??? $\mathbf{H}_n$ is found by calculating the outer product of rows of $\mathbf{T}$ $C$ times, making the asymptotic runtime $\Omega(CR^2)$. Similarly for $\mathbf{H}_c$ the asymptotic runtime of equation ??? is  $\Omega(NR^2)$. Since $R$ should be significantly less than $N$ and $C$ to ensure that the linear systems only have one solution, calculating the Hessian will be more computationally demanding than solving the resulting linear systems. In appendix \ref{symproof} we show that the Hessian is symmetric, which enables us to only calculate the upper (or lower) half of the Hessians. While the asymptotic runtime remains the same, the actual runtime of should be nearly halved. 
+In equation \ref{ivecthessian} $\mathbf{H}_n$ is found by calculating the outer product of rows of $\mathbf{T}$ $C$ times, making the asymptotic runtime $\Omega(CR^2)$. Similarly for $\mathbf{H}_c$ the asymptotic runtime of equation \ref{thessian} is  $\Omega(NR^2)$. Since $R$ should be significantly less than $N$ and $C$ to ensure that the linear systems only have one solution, calculating the Hessian will be more computationally demanding than solving the resulting linear systems. In appendix \ref{symproof} we show that the Hessian is symmetric, which enables us to only calculate the upper (or lower) half of the Hessians. While the asymptotic runtime remains the same, the actual runtime of should be nearly halved. 
 
 \subsection{Achieving higher performance}
 
-In an iterative algorithm it is important to ensure that each iteration brings you closer to the solution of the problem. The Newton Raphson method is oblivious to high-order derivatives, and we only use an approximation to the Hessian, so an increase in likelihood is not guaranteed from updates using equation \ref{lupeqN} and \ref{lupeqC}. In \cite{kockmann2010prosodic}, Kockmann et. al. would halve the update step until the likelihood from equation ??? increased when updating either row of $\mathbf{T}$ or i-vectors. If a higher likelihood wasn't achieved after some attempts, the old vector would be used.  
+In an iterative algorithm it is important to ensure that each iteration brings you closer to the solution of the problem. The Newton Raphson method is oblivious to high-order derivatives, and we only use an approximation to the Hessian, so an increase in likelihood is not guaranteed from updates using equation \ref{lupeqN} and \ref{lupeqC}. In \cite{kockmann2010prosodic}, Kockmann et. al. would halve the update step until the likelihood from equation \ref{totlike} increased when updating either row of $\mathbf{T}$ or iVectors. If a higher likelihood wasn't achieved after some attempts, the old vector would be used.  
 
-A common problem in svm classification is that the feature vector is dominated by some high-variance feature \cite{wan2005speaker}. In our subspace modeling, a high-variance in the counts of some trigrams might be a cause of concern as well. A good model of such features would likely be crucial to maximize equation ???. Not only because the number of occurrences will vary greatly between utterances, but also since a high variance implies that the feature occurs very frequently in at least some utterances. Many dimensions of the i-vector may then be spent on accurately controlling the multinomial distributions probability of producing those features. It is not clear if we gain much information from this precise fitting, rather than having coarser knowledge about the exact frequency of those features, and having more degrees of freedom in the i-vector to model other features. In \cite{soufifar2011ivector} the i-vector system's performance increased when the square root of elements in the document vector, $\gamma_n$, was used instead. By taking the square root, frequent features will be a smaller part of the total feature count, and the variance will be decreased. This should spread the importance of modeling each feature more evenly across the whole document vector.
+In section \ref{sect:svmnormal} we argued that using unscaled features could cause the classifier to label data only based on high-variance features. This problem might apply to the iVector model as well. A good model of high-variancce features would likely be crucial to maximize equation \ref{totlike}. Not only because the number of occurrences will vary greatly between utterances, but also since a high variance implies that the feature occurs very frequently in at least some utterances. This implies that the precision for the multinomial models probability mass assigned to the feature should have a greater effect on the total likelihood. Many dimensions of the iVector may then be spent on accurately controlling $\phi$ for those features. It is not clear if we gain much information from this precise fitting, rather than having coarser knowledge about the exact frequency of those features, and having more degrees of freedom in the i-vector to model other features. In \cite{soufifar2011ivector} the iVector system's performance increased when the square root of elements in the document vector, $\gamma_n$, was used. By taking the square root, frequent features will be a smaller part of the total feature count, and their variance between utterances will decrease. This should spread the importance of modeling each feature more evenly across the whole document vector.
 
-
-
-In order to achieve a high likelihood from equation ???, $\mathbf{T}$ needs to model the variability between utterances. T
-
-We will here show that the achievable likelihood only depends on the column span of $\mathbf{T}$. This means that techniques like orthogonalizing $\mathbf{T}$ won't have any effect on 

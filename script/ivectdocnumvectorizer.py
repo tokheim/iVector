@@ -10,14 +10,14 @@ import math
 languages = [ 'ARABIC_EGYPT', 'ENG_GENRL', 'ENG_SOUTH', 'FARSI', 'FRENCH_CAN', 'GERMAN', 'HINDI', 'JAPANESE', 'KOREAN', 'MANDARIN_M', 'MANDARIN_T', 'SPANISH', 'SPANISH_CAR', 'TAMIL', 'VIETNAMESE' ]
 inbasedir = './CallFriend/?/vectsplit/'
 nistindir = './NIST/2003/lid03e1/transcripts/30/'
-setdir = ['train/', 'devtest/', 'shorttrain/']
+setdir = ['train/', 'devtest/', 'shorttrain/', 'shortdevtest/']
 outbasedir = './CallFriend/?/docnumvectors/'
 unigramlistin = './other/unigramList.txt'
 #unigramlistin = './other/fullUnigramList.txt'
-outfilelistnames = ['./other/train_list.txt', './other/devtest_list.txt', './other/short_train_list.txt','./other/nist_list.txt']
+outfilelistnames = ['./other/train_list.txt', './other/devtest_list.txt', './other/short_train_list.txt', './other/short_devtest_list.txt', './other/nist_list.txt']
 nistoutdir = './NIST/2003/lid03e1/docnumvectors/30/'
 nistkeyfile = '/talebase/data/speech_raw/NIST_LR/2003/docs/LID03_KEY.v3'
-onlyTrigrams = 0
+onlyTrigrams = 1
 
 #Parameter initialization
 allunigrams = {}
@@ -123,7 +123,7 @@ for line in keyfile:
     splitline = line.split(' ')
     vectorize(nistindir, nistoutdir, splitline[0]+'.rec')
     alldocs.append(DocInfo(nistoutdir+splitline[0]+'.txt', splitline[1]))
-outfile = open(outfilelistnames[3], 'w')
+outfile = open(outfilelistnames[4], 'w')
 for doc in alldocs:
     outfile.write(doc.lang+' '+doc.fname+'\n')
     

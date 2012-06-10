@@ -1,0 +1,49 @@
+\chapter{Data Preparation}
+
+\section{Training and Development Corpus}
+
+To train the systems we used data from the CallFriend corpus. This database contains several hours of unscripted telephone conversations for twelve languages. The languages are shown in table \ref{tab:callfriend}.
+\begin{table}[hbt]
+	\begin{center}
+	\caption{Languages in the CallFriend corpus}
+	\begin{tabular}{ | c | c | c | c |}
+	\hline
+	American English & Canadian French & Egyptian Arabic & Farsi \\ \hline
+	German & Hindi & Japanese & Korean \\ \hline
+	Mandarin Chinese & Spanish & Tamil & Vietnamese \\ \hline
+	\hline
+	\end{tabular}
+	\label{tab:callfriend}
+	\end{center}
+\end{table}
+For the English, Mandarin and Spanish languages the database includes speech from two dialects.The dialects are given in table \ref{tab:callfrienddial}.
+\begin{table}[hbt]
+	\begin{center}
+	\caption{Dialects included in the CallFriend Database}
+	\begin{tabular}{| l | c | c |}
+		\cline{2-3}
+		\multicolumn{1}{l}{}  & \multicolumn{2}{|c|}{\textbf{Dialects}} \\ \hline
+		\textbf{American English} & Non-Southern & Southern \\ \hline 
+		\textbf{Mandarin Chinese} & Mainland & Taiwan \\ \hline 
+		\textbf{Spanish} & Non-Caribbean & Caribbean \\
+		\hline
+	\end{tabular}
+	\label{tab:callfrienddial}
+	\end{center}
+\end{table}	
+For each language or dialect there is about 60 hours of speech. Approximately 50 minutes of speech from each dialect was used as development data. This data set is used to test the performance of the system during development. By using a separate data set for the final evaluation, the performance of the system will be given from unseen data. If implementation decisions were too be influenced by the data set used for the final performance evaluation, then the resulting score might be too optimistic. To make sure that the system recognizes languages and not persons, no speaker was present in both the training and development set. 
+
+\section{Evaluation Set}
+
+For the final evaluation of the systems the 2003 NIST Language Recognition Evaluation set was used \footnote{\url{http://www.itl.nist.gov/iad/mig/tests/lre/2003/}}. By using a standardized test set, we can easily compare the performance of our system with others. The NIST set mostly includes data collected for (but not used in) the CallFriend corpus \cite{martin2003nist} so the conditions for the test segments should be similar to the training data. The NIST set includes the same twelve target languages that were included in the training set given in table \ref{tab:callfriend}. The set also includes out of set utterances in Russian. The Russian segments can be used to test the systems ability to recognize if any of the trained languages were spoken at all. In accordance with the evaluation rules \cite{martin2003nist}, no attempts were made to prepare the system specifically for Russian out of set segments.
+
+The NIST set includes data of 3, 10 and 30 seconds duration of speech. While our main focus has been on the 30 second segments, we will report results for the other segment lengths as well. The segment lengths were enforced by using an automatic speech activity algorithm to split utterances to the correct size. For each language and duration more than 80 segments from 40 speakers were provided. 
+
+\section{Evaluation Metrics}
+
+As briefly explained in section \ref{sect:detvsid}, it is not clear how we should evaluate the system's performance without knowing the application it will be used for. For intermediate results when comparing design decisions, we have used the percentage of correctly identified utterances given by equation \ref{lreiddec}. This score easily calculated and should be correlated with our other metrics. A more thorough understanding of the system's performance is given by it's \emph{detection error tradeoff-} or DET-curve. This is a plot of the false accept rate against the false reject rate when using different detection thresholds in equation \ref{lredeceq}. The equal error rate (EER) is the point where the system makes just as many false accepts as false rejects. This is a commonly used metric to reducie the information from the DET-curve down to a single number. We have also included the $C_{\text{Det}}$ metric which measures the expected cost of making a deteciton decision. This is the primary evaluation metric used for the NIST evaluations, and is for each target language defined to be \cite{martin2003nist}
+\begin{align*}
+C_{\text{Det}} &=(C_{\text{False reject}}P_{\text{False reject} | \text{Target}}P_{\text{Target}})+\\
+&(C_{\text{False accept}}P_{\text{False accept} | \text{Non-target}}P_{\text{Non-target}}).
+\end{align*}
+By adjusting the cost of making different errors, this metric can be used to evaluate the system for a wide range of application requirements. In the NIST evaluation plan both costs are set to $1$, and the priors to $0.5$. 

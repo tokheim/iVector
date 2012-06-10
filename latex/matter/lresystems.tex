@@ -14,9 +14,10 @@ p(l_i | \theta, X) \geq t.
 Any claim that doesn't satisfy the equation will be rejected. There are two sources of error associated with a decision in equation \ref{lredeceq}. First we can choose to accept that language $l_i$ was used in the given utterance, when it actually was another language. This is called an \emph{false accept}. The second error type is when we reject the hypothesized language even though it  was true, which is called an  \emph{false reject}. The tolerance for false accepts and false reject will vary for different applications. From equation \ref{lredeceq} we see that the errors should be inversely correlated, so there is no universally best threshold-value for any system. E.g. an recognition system that redirects phone customers to an operator that knows the customers language, could want to minimize the number of false accepts, and rather have the caller type in his language when there is much doubt.
 
  In language identification, our goal is just to find the most probable language from the known languages, that is
-\begin{equation*}
+\begin{equation}
+\label{lreiddec}
 \underset{i}{\arg \max} p(l_i | \theta, X).
-\end{equation*}
+\end{equation}
 This means that unless we are implementing a system for a real application, the distinction between the two language recognition problems aren't that important so long as we find $P(l_i | \theta, X)$. What is more important is that the model of the languages, $\theta$, is suited to distinguish languages.
 
 \subsection{Performance Measures}
