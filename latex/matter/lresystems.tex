@@ -20,9 +20,14 @@ Any claim that doesn't satisfy the equation will be rejected. There are two sour
 \end{equation}
 This means that unless we are implementing a system for a real application, the distinction between the two language recognition problems aren't that important so long as we find $P(l_i | \theta, X)$. What is more important is that the model of the languages, $\theta$, is suited to distinguish languages.
 
-\subsection{Performance Measures}
+\section{Evaluation Metrics}
 
-blabla
+As explained in the previous section, it is not clear how we should evaluate the system's performance without knowing the application it will be used for. For intermediate results when comparing design decisions, we have used the percentage of correctly identified utterances given by equation \ref{lreiddec}. This score easily calculated and should be correlated with our other metrics. A more thorough understanding of the system's performance is given by it's \emph{detection error tradeoff-} or DET-curve. This is a plot of the false accept rate against the false reject rate when using different detection thresholds in equation \ref{lredeceq}. The equal error rate (EER) is the point where the system makes just as many false accepts as false rejects. This is a commonly used metric to reducie the information from the DET-curve down to a single number. We have also included the $C_{\text{Det}}$ metric which measures the expected cost of making a deteciton decision. This is the primary evaluation metric used for the NIST evaluations, and is for each target language defined to be \cite{martin2003nist}
+\begin{align*}
+C_{\text{Det}} &=(C_{\text{False reject}}P_{\text{False reject} | \text{Target}}P_{\text{Target}})+\\
+&(C_{\text{False accept}}P_{\text{False accept} | \text{Non-target}}P_{\text{Non-target}}).
+\end{align*}
+By adjusting the cost of making different errors, this metric can be used to evaluate the system for a wide range of application requirements. In the NIST evaluation plan both costs are set to $1$, and the priors to $0.5$. 
 
 \section{System Overview}
 \label{sect:sysoverview}
