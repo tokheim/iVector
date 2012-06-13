@@ -1,0 +1,76 @@
+\chapter{Implementation of iVector System}
+
+In this chapter we will go over the implementation details of the iVector system. Since we couldn't test the system using the Gaussian backend during development, most implementation decisions in this chapter were decided with the identification rate of classifier on 30 second development iVectors using the max score wins techinque described in section \ref{sect:multiclass}.
+
+\section{Classifier}
+
+To classify iVectors, we used the LIBLINEAR library \footnote{\url{http://www.csie.ntu.edu.tw/~cjlin/liblinear/}}. It is optimized for linear classification on large sets of data and features \cite{liblinear}, well documented and supports both SVM-based or logistic regression classification. We normalized iVectors according to the techniques in section \ref{sect:svmnormal}. Using a standard iVector implementation, we tested both the OVO and OVR approach to multiclass classification. We found a slight adaption of the OVR approach to perform best. When a dialect was the $+1$ class, we didn't use the other dialect of the same language in the $-1$ class. This simpler classification task greatly reduced the identification error rate for the two-dialect languages, while the identification rate for the other languages remained more or less the same. This technique did not extend that easily to OVO classification as dialects would then have less tests than the other languages. The number of wins, or sum of scores for a language would then have to be normalized by the number of classes it was tested against. This more complicated treatment of dialects had little effect on the identification performance which was about the same as we got when using standard OVR. 
+
+We tested three approaches to set the penalty-parameter for the regularized classifier. For all three approaches we tested a finite set of parameters against development vectors. In the first test we assumed that each classifier would use the same penalty-parameter, and simply chose the parameter that got the highest total identification rate. For the other two approaches the penalty-parameter was set independently for each classifier the OVR-bank consisted of. This was performed by either maximizing the number of correctly labeled utterances minus the incorrectly labeled, or maximizing the sum of soft scores for a document belonging to it's true class. Using the same penalty parameter slightly but consistently outperformed the other methods. 
+
+In our identification tests, the SVM and logistic regression gave comparable results. The similar iVector system from \cite{lrivector} still reported that the system performed better on language detection tasks when it used logistic regression. This is perhaps not so unexpected if we use backend score-calibration since the soft-scores from the logistic regression is a more meaningfull interpretation of the class assignment confidence than the distance from decisionboundary-score we get from SVMs. Allthough we didn't get to verify this argument, we decided to logistic regression.
+
+LIBLINEAR also uses the same interface as LIBSVM \footnote{\url{http://www.csie.ntu.edu.tw/~cjlin/libsvm/}} which allowed us easily to experiment with non-linear classifiers as well. For the non-linear SVM we followed the developers of LIBSVM's guide to SVM classification \cite{practicalsvm}. Their recommendations did not yield a classifier that performed better on iVectors than the linear classifiers. The required time to search for SVM parameters did however take considerably longer for the non-linear classifier. Since it seemed like the iVectors were just as separable with a linear decision boundary, we did not investigate using non-linear SVMs further. 
+
+\section{Document Vector}
+
+We use the same process as in \ref{sect:phonetranscription} to generate the phoneme transcripts that are used to construct the document vectors. As expected, the system performed better when no mapping of the phoneme labels were used. Although this result was consistent for all the tests we ran, the savings in computational complexity was significant enough for us to use the mapping for some of our experiments. We used only trigrams as features in the document vector as bigram and unigram counts did not seem to add supplementary information to the vector. In fact the identification rate on 30 second development utterances slightly decreased when we included bigrams and unigrams as features. There was a more significant drop in performance when we used the square root of trigram counts as features. E.g. for a typical iVector-implementation, we experienced more than a $20$ \% relative decrease in the error rate when ordinary features were used. This result contradicts the findings from the similar iVector system given in \cite{lrivector}. A possible reason for this might be that the other system used phoneme lattices which would make the document vectors more rich in information. Without lattices, it might just be harmful to spread the significance of trigrams to those with lower counts.
+
+From the gradient equations \ref{tgrad} and \ref{ivectgrad} we see that a maxima isn't affected by the number of features in the utterance as long as the direction of the document vector is the same. We trained the total variability matrix using utterances with a length of about five minutes of speech. The reason for not matching the training utterance length with the test utterance length were twofold. It is difficult to exploit the sparsity of the document vectors, so having fewer training utterances with more features reduced the time required to train the system significantly. We also expect that the direction of the document vector will be more influenced by noise when the utterance is short. If the total variability matrix were trained on short vectors, then it would also have to model more of this noise that cannot be used to recognize languages. In a way, we can then view the shorter development and test utterances as projected into the less noisy subspace when we find their iVectors. This frees up dimensions in the iVector to model more important features. We didn't do an extensive search for the optimal training utterance length, but the identification rate was a bit higher when we used 5 minute rather than 4 or 6 minute training utterances.
+
+After training $\mathbf{T}$ with longer utterances, it might have been beneficial to train the classifier with iVectors from shorter utterances. The classifier would then have more training data available, and the training iVectors would come from utterances of more similar lengths to the test data. This turned out to be true for the mapped phonemes document vectors, where the absolute performance increased slightly when the classifier was trained with two miniute long utterances.Without the phoneme mapping, there was no change in the performance, but the classifier ended up with a less regularized model. This indicates that the classifier would more frequently mislabel some of the training vectors, but the decision boundaries were not much afftected. Since shorter training utterances would increase the training time and not provide any significant increase in performance, we opted to use the five minute utterances for training of the classifier as well.
+
+
+\section{Vanilla iVector system}
+\label{sect:vanillaivect}
+
+For the basic iVector system we implemented the techniques described in section \ref{sect:ivecttrain} and \ref{sect:ivectextract}. The total variability matrix is then trained with the iterative approach of one update of the ivectors from the train set using equation \ref{ivectupdate} and one update of the matrix using equation \ref{tupdate}. Pseudocode for the algorithm is given in appendix \ref{ap:vanivecttrain}. The log-likelihood for training and development documents during a typical training can be seen in figure \ref{fig:vanivecttrainlike}. 
+\begin{figure}[hbt]
+	\begin{center}
+	\includegraphics{figures/vanivecttrainlike.png}
+	\caption{Average log-likelihood per second of speech for training and development data during the training algorithm after 0 to 7 iterations. The iVector dimension was set to $200$.}
+	\label{fig:vanivecttrainlike}
+	\end{center}
+\end{figure}
+In the figure, the devtest documents can have a slightly higher log-likelihood than the training documents. This is because we ignore the features in the development document vectors that aren't seen in the training set since they would have an likelihood of $-\infty$. The development utterances then seem to have fewer features per second of speech. This effect makes it difficult to directly compare the training likelihoods against development likelihoods, but what we do see is the effect of over-fitting the model to the training data when we use too many iterations of the algorithm. For this reason we stop training $\mathbf{T}$ when a decrease in likelihood for development vectors are observed. In figure \ref{vanivecttrainlike} we would observe an decrease in likelihood during the 4th iteration, so the optimal matrix $\mathbf{T}$ would be the one we found in the 3rd iteration. We also implemented the safeguard against making too large update steps described in section \ref{sect:higherlike}, but it had only a minimal effect on the iVectors.
+
+When extracting iVectors either for training the classifier, or testing the performance of the classifier, we initialize the iVectors to zero. We then do a number of iterations of updating equation \ref{ivectupdate} using the total variability matrix we found during training. Since theese are the iVectors that will be used for classification, it seems natural to also take a look at how the iVectors during extraction react to the trained total variability matrix. In figure \ref{fig:vanextractlike} we show the achieved likelihood for the first 6 iterations of the extraction algorithm for total variability matrices trained in 0 to 7 iterations. Figure \ref{fig:vanextractdevlike} confirms what we saw in figure \ref{fig:vanivecttrainlike}, that too many iterations of updating $\mathbf{T}$ will give the model a worse fit to development utterances. This effect of over-fitting is however not so clear in this figure when the documents are given many iterations to find the likelihood maxima. Still the maximum, regardless of the number of iterations during extraction, is reached when the total variability matrix is trained with around 3 iterations.
+
+\begin{figure}[hbt]
+	\begin{center}
+		\subfloat[ ]{
+			\label{fig:vanextracttrainlike}
+			\includegraphics[width=0.8\textwidth]{figures/vanextracttrainlike.png}
+		}\\
+		\subfloat[ ]{
+			\label{fig:vanextractdevlike}
+			\includegraphics[width=0.77\textwidth]{figures/vanextractdevlike.png}
+		}
+	\end{center}
+	\caption{Average log-likelihood per second of speech when extracting iVectors with 1 to 6 iterations using a total variability matrix trained in 0 to 7 iterations. (a) likelihood for training documents, (b) development documents}
+	\label{fig:vanextractlike}
+\end{figure}
+
+Figure \ref{fig:vanextracttrainlike}
+
+
+
+
+
+
+
+
+
+
+
+
+%Strain 92.6732673267 - 4min
+%Ltrain 92.6732673267 - rett under 5 min
+%new200 92.9372937294 - 6min
+%new200 94.9834983498
+%bigram 92.1452145215
+
+%nomap nolimit 95.7755775578
+%nomap            94.5214521452
+
+%twosetord 93.33333333

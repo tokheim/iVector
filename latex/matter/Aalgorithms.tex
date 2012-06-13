@@ -1,0 +1,32 @@
+\chapter{Algorithms for iVector system}
+
+\section{Training of vanilla iVector system}
+\label{ap:vanivecttrain}
+
+This is the standard training algorithm for the total variability matrix $\mathbf{T}$. The updates of iVectors or $\mathbf{T}$ may include checking the likelihoods before and after an update, and decrease the update step if needed.
+
+\begin{table}
+\begin{tabular}{ | p{12cm} | }
+\hline
+\\
+\textbf{Algorithm for standard iVector training}
+\\
+This algorithm computes the iVectors and trained matrix $t$ using a set of spoken document vectors from both training and devtest data with $C$ features. The dimension of the computed iVectors are given by parameter $r$.
+\begin{enumerate}
+  \item Calculate the mean vector, $\mathbf{m}$, from equation \ref{mest} 
+  \item Initialize $C$x$r$ matrix $\mathbf{T}$ with random numbers, and iVectors as zero
+  \item \label{enumerateW} Find new iVectors from both training and development set using equation \ref{ivectupdate}
+  \item \label{stopcondition} Check likelihood of development data using equation \ref{iloglike}. If likelihood has:
+  \begin{enumerate}
+    \item increased then continue
+    \item decreased then return the last matrix $\mathbf{T}$ that did increase the likelihood.
+  \end{enumerate}
+  \item \label{enumerateT} Find new matrix $\mathbf{T}$ using equation \ref{enumerateW} on only iVectors from the training set.
+
+\end{enumerate}
+\\
+\hline
+\end{tabular}
+\caption{Training algorithm for iVector system}
+\label{algtrain}
+\end{table}

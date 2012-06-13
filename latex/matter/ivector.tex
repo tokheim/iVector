@@ -79,6 +79,7 @@ making the Newton Raphson update steps
 To find values for $\mathbf{T}$ maximizing equation \ref{loglike}, we can do iterations of updating $\mathbf{T}$ and iVectors from a training set. In order to avoid over-fitting the model to the training data, we can check that an update of $\mathbf{T}$ enables us to increase the likelihood of an other set of documents using equation \ref{loglike}. We will then have to find iVectors for this set as well, but under no circumstance use these documents to update $\mathbf{T}$. In \cite{lrivector}, $\mathbf{T}$ was initialized with small random numbers. This indicates that the updates should converge to the local maxima from most values. 
 
 \section{Extracion of iVectors from the Model}
+\label{sect:ivectextract}
 
 In the previous section we found values for the model parameters $\mathbf{T}$ and $\mathbf{m}$. As a by-product, the training method also found iVectors for the training data. During extraction, when we use the iVector model to find subspace representations of documents, the same process of iteratively finding iVectors using equation \ref{ivectupdate} can be used. This vector should then represent the most important traits of an utterance, and can be used for language classification. Since the classifiers shown in section \ref{sect:classify} requires training as well, the iVectors for training utterances will also be needed. It would be possible to use the iVectors found during training of $\mathbf{T}$, but theese vectors might be more (or less) converged to the likelihood maxima than the vectors produced during extraction, making them unrepresentative for iVectors found when only performing updates of equation \ref{ivectupdate}.  A minor point that might benefit the system performance is to discard the iVectors found when training $\mathbf{T}$.
 
@@ -90,6 +91,7 @@ In order for the iVector extraction to be determenistic, the iVectors should be 
 Here we are going to look more closely at the Newton Raphson update steps for producing iVectors and the total variability matrix. In a real-time implementation we would need to extract iVectors using these updates for live data which makes the operation time-sensitive. At the same time these updates involve linear algebra on a high-dimension space, making the operations computationally expensive. An unefficient implementation of these updates will therefore severely impact the computational requirements for training and live usage of the system. It is also critical for the total performance of the system that the i-vectors convey meaningful information about an utterance. A thorough study of the Newton Raphson update process is therefore warranted. 
 
 \subsection{Solving the Newton Raphson systems}
+\label{sect:solvivect}
 
 To avoid issues with numeric instability, it is often desirable not to calculate the inverse of a matrix \cite[p. 743]{cormen}. We can rewrite the linear systems in equation \ref{ivectupdate} and \ref{tupdate} to
 
@@ -107,6 +109,7 @@ In appendix \ref{posdefproof} we also show that the Hessian in equation \ref{lup
 In equation \ref{ivecthessian} $\mathbf{H}_n$ is found by calculating the outer product of rows of $\mathbf{T}$ $C$ times, making the asymptotic runtime $\Omega(CR^2)$. Similarly for $\mathbf{H}_c$ the asymptotic runtime of equation \ref{thessian} is  $\Omega(NR^2)$. Since $R$ should be significantly less than $N$ and $C$ to ensure that the linear systems only have one solution, calculating the Hessian will be more computationally demanding than solving the resulting linear systems. In appendix \ref{symproof} we show that the Hessian is symmetric, which enables us to only calculate the upper (or lower) half of the Hessians. While the asymptotic runtime remains the same, the actual runtime of should be nearly halved. 
 
 \subsection{Achieving higher performance}
+\label{sect:higherlike}
 
 In an iterative algorithm it is important to ensure that each iteration brings you closer to the solution of the problem. The Newton Raphson method is oblivious to high-order derivatives, and we only use an approximation to the Hessian, so an increase in likelihood is not guaranteed from updates using equation \ref{lupeqN} and \ref{lupeqC}. In \cite{kockmann2010prosodic}, Kockmann et. al. would halve the update step until the likelihood from equation \ref{totlike} increased when updating either row of $\mathbf{T}$ or iVectors. If a higher likelihood wasn't achieved after some attempts, the old vector would be used.  
 

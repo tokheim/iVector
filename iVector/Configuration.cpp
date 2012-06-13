@@ -11,7 +11,7 @@ This class  holds all the different options for iVector extraction, parsing inpu
 const static string PARAM_IN_FILELIST_DIR = "-i";
 const static string PARAM_IN_BASE_DIR = "-b";
 const static string PARAM_OUT_LOC = "-o";
-const static string PARAM_TRIGRAM_COUNT = "-C";
+const static string PARAM_TRIGRAM_COUNT = "-C";//Full map 205379, mapped with bi and unigram 37059, unmapped with bi and unigram 208919
 const static string PARAM_IVECT_COUNT = "-r";
 const static string PARAM_SEED = "-S";
 const static string PARAM_FEATURE_COLUMN = "-L";
