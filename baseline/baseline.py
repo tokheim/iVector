@@ -169,6 +169,8 @@ def printResult(docs, results, languageMapper, languages):
             if results[i][j] > results[i][bestIndex]:
                 bestIndex = j
         confMatrix[getLabelNum(docs[i].lang)][getLabelNum(languages[bestIndex])] += 1
+        if getLabelNum(docs[i].lang) != getLabelNum(languages[bestIndex]) and getLabelNum(docs[i].lang) == getLabelNum('VIETNAMESE'):
+            print docs[i].fpath
         tot += 1
     correct = 0.0
     for i in range(len(confMatrix)):

@@ -10,7 +10,7 @@ We tested three approaches to set the penalty-parameter for the regularized clas
 
 In our identification tests, the SVM and logistic regression gave comparable results. The similar iVector system from \cite{lrivector} still reported that the system performed better on language detection tasks when it used logistic regression. This is perhaps not so unexpected if we use backend score-calibration since the soft-scores from the logistic regression is a more meaningfull interpretation of the class assignment confidence than the distance from decisionboundary-score we get from SVMs. Allthough we didn't get to verify this argument, we decided to logistic regression.
 
-LIBLINEAR also uses the same interface as LIBSVM \footnote{\url{http://www.csie.ntu.edu.tw/~cjlin/libsvm/}} which allowed us easily to experiment with non-linear classifiers as well. For the non-linear SVM we followed the developers of LIBSVM's guide to SVM classification \cite{practicalsvm}. Their recommendations did not yield a classifier that performed better on iVectors than the linear classifiers. The required time to search for SVM parameters did however take considerably longer for the non-linear classifier. Since it seemed like the iVectors were just as separable with a linear decision boundary, we did not investigate using non-linear SVMs further. 
+LIBLINEAR also uses the same interface as LIBSVM \footnote{\url{http://www.csie.ntu.edu.tw/~cjlin/libsvm/}} which allowed us easily to experiment with non-linear classifiers as well. For the non-linear SVM we followed the developers of LIBSVM's guide to SVM classification \cite{practicalsvm}. Their recommendations did not yield a classifier that performed better on 200 dimensional iVectors than the linear classifiers. The required time to search for SVM parameters did however take considerably longer for the non-linear classifier. Since it seemed like the iVectors were just as separable with a linear decision boundary, we did not investigate using non-linear SVMs further. 
 
 \section{Document Vector}
 
@@ -55,16 +55,10 @@ Figure \ref{fig:vanextracttrainlike} showing the likelihood for training iVector
 
 %A notable difference between the likelihoods for training and development utterances, shown in figure \ref{fig:vanextractlike}, is that the development utterances has more potential to improve the likelihood than training utterances when $\mathbf{T}$ is untrained. This is probably because the development utterances are of shorter duration and sparser.
 
-\section{Improve performance}
-
-Figure \ref{fig:vanivecttrainlike} showed 
-
-
-\section{Reset Trained iVector System}
+\section{Reset-Trained iVector System}
 
 One possible solution to the problems with the default system would be to train the total variability matrix using the iVectors we would get during the first few iterations of iVector extraction. Instead of perforiming iterations of updating iVectors and then update $\mathbf{T}$, each iteration could be to train iVectors from zero and then update $\mathbf{T}$. For our system we only used one update of the iVectors per iteration. This keeps the computational requirements during training similar to the standard system, while the total variability matrix is optimized to give documents a high likelihood from the first iteration of the iVector extraction process. 
 
-The likelihoods for training and development documents during this training process is shown in figure \ref{resetlike}. From the figure we see that the likelihood for both training and development utterances ceases to increase after a few iterations and $\mathbf{T}$ never becomes over-fitted to the training data. Still the likelihoods during this training method is smaller than the likelihoods we got using the standard training method, shown in figure \ref{fig:vanivecttrainlike}. This is not so unexpected since we restrict the iVectors by resetting them before each iteration. During iVector extraction, where the iVectors are given more iterations to converge to their maxima, this difference in likelihood is vanishes. 
 \begin{figure}[hbt]
 	\begin{center}
 	\includegraphics{figures/resetlike.png}
@@ -73,8 +67,7 @@ The likelihoods for training and development documents during this training proc
 	\end{center}
 \end{figure}
 
-In figure \ref{fig:resetidrate} we compare the identification rate of the standard and reset-trained sytems on 30 second development vectors. As expected the reset-trained system has a higher identification rate when iVectors are extracted with few iterations. It is more surprising that the identification rate for the standard system doesn't exceed the reset-trained system at any iteration.
-
+The likelihoods for training and development documents during this training process is shown in figure \ref{resetlike}. From the figure we see that the likelihood for both training and development utterances ceases to increase after a few iterations and $\mathbf{T}$ never becomes over-fitted to the training data. Still the likelihoods during this training method is smaller than the likelihoods we got using the standard training method, shown in figure \ref{fig:vanivecttrainlike}. This is not so unexpected since we restrict the iVectors by resetting them before each iteration. During iVector extraction, where the iVectors are given more iterations to converge to their maxima, this difference in likelihood vanishes.
 
 \begin{figure}[hbt]
 	\begin{center}
@@ -83,6 +76,21 @@ In figure \ref{fig:resetidrate} we compare the identification rate of the standa
 	\label{fig:resetidrate}
 	\end{center}
 \end{figure}
+
+In figure \ref{fig:resetidrate} we compare the identification rate of the standard and reset-trained sytems on 30 second development vectors. As expected the reset-trained system has a higher identification rate when iVectors are extracted with few iterations. It is more surprising that the identification rate for the standard system doesn't exceed the reset trained system at any iteration. We're not sure of the reason for this, or if this improvement extends to other data-sets. It might be that the reset-training results in less \emph{model variance}, since $\mathbf{T}$ is trained on iVectors that have only captured coarse details of the utterances. 
+
+\section{iVector Dimension}
+
+A very important parameter that hasn't been much discussed is the iVector dimension. Since there will be more degrees of freedom, it seems natural that a higher iVector-dimension will result in lower likelihood for both training and development vectors. Still, this does not mean that we should use iVectors of high dimension. A high likelihood does not neccessarily mean that the system will perform better, and using low-dimension iVectors is less computational intensive.  In figure ?? we show the identification rate for the standard and reset-trained iVector system.
+
+
+Diskutere graf, nevne kernel-klassifisering
+Hvilken dimensjon blir brukt
+
+
+
+
+
 
 
 
