@@ -1,4 +1,5 @@
 \chapter{iVector Subspace Modeling}
+\label{sect:ivecttheory}
 
 iVectors are one example of subspace modelling approaches that can be used to reduce the dimensionality of the data before training and applying classifiers to recognize the language used in an utterance. The dimensionality reduction should make training of the classifiers less computational expensive, which could enable us to train the system with more data. The goal of the reduction is to separate trends in the data that are common to all languages from the information that is unique between utterances. If this separation is properly performed, 
 
@@ -44,7 +45,7 @@ We can find the parameters for our model by likelihood maximization of equation 
 \label{mest}
 m_c=\log\left(\frac{1}{N} \sum_{n=1}^N \gamma_{nc}\right).
 \end{equation} 
-With theese values, $\phi_{nc}$ will equal the freqyency of feature $c$ when the iVector is all zero. There is no closed form solution to finding values for $\mathbf{T}$ maximizing equation \ref{loglike}, but in \cite{lrivector} the problem was given to be concave so that a gradient ascent method can be used to find the absolute maxima. The gradient of equation \ref{loglike} with respect to row $c$ of $\mathbf{T}$ is
+Now $\phi_{nc}$ will equal the frequency of feature $c$ when the iVector is all zero. There is no closed form solution to finding values for $\mathbf{T}$ maximizing equation \ref{loglike}, but in \cite{lrivector} the problem was given to be concave so that a gradient ascent method can be used to find the absolute maxima. The gradient of equation \ref{loglike} with respect to row $c$ of $\mathbf{T}$ is
 \begin{equation}
 \label{tgrad}
 \mathbf{g}_c = \sum_{i=1}^N\left(\gamma_{ic} - \phi_{ic} \sum_{j=1}^C \gamma_{ij} \right) \mathbf{w}_i
@@ -52,12 +53,12 @@ With theese values, $\phi_{nc}$ will equal the freqyency of feature $c$ when the
 This gradient will be all zero at any maxima. We can find this point by using the iterative Newton Rapshon method, there new estimates for row $c$ of $\mathbf{T}$ will be
 \begin{equation}
 \label{tupdate}
-\mathbf{t}_c(\text{new}) = \mathbf{t}_c(\text{old})-\mathbf{H}_c^{-1}(\text{old})\mathbf{g}_c(\text{old})
+\mathbf{t}_c(\text{new}) = \mathbf{t}_c(\text{old})+\mathbf{H}_c^{-1}(\text{old})\mathbf{g}_c(\text{old})
 \end{equation}
 where $\mathbf{t}_c(\text{new})$ denotes the new estiamte for $\mathbf{t}_c$, while $f(\text{old})$ means that the old values for the row should be used. $\mathbf{H}_c$ is the Hessian matrix of equaiton \ref{loglike} with respect to the row. In \ref{srivector} it was proposed to use an approximation of the Hessian to simplify calculations. The Hessian was approximated as
 \begin{equation}
 \label{thessian}
-\mathbf{H}_c = -\sum_{i=1}^N \max\left(\gamma_{ic}, \phi_{ic} \sum_{j=1}^C \gamma_{ij}\right)\mathbf{w}_n \mathbf{w}_n^T.
+\mathbf{H}_c = \sum_{i=1}^N \max\left(\gamma_{ic}, \phi_{ic} \sum_{j=1}^C \gamma_{ij}\right)\mathbf{w}_n \mathbf{w}_n^T.
 \end{equation}
 
 A problem with this method is that the equations depend on the iVector, $\mathbf{w}_n$. This means that we cannot find the maximum in equation \ref{loglike} without both finding values for $\mathbf{T}$ and iVectors. As with $\mathbf{T}$, there is no closed form solution to finding iVectors maximizing the log-likelihood. In \cite{srivector} the same approach of using Newton Raphson updates were used to find values for iVectors. The gradient for $\mathbf{w}_n$ was given to be
@@ -68,12 +69,12 @@ A problem with this method is that the equations depend on the iVector, $\mathbf
 the approximate for the Hessian
 \begin{equation}
 \label{ivecthessian}
-\mathbf{H}_c = -\sum_{i=1}^C \max\left(\gamma_{ni}, \phi_{ni}\sum_{j=1}^C \gamma_{nj}\right)\mathbf{t}_i \mathbf{t}_i^T
+\mathbf{H}_c = \sum_{i=1}^C \max\left(\gamma_{ni}, \phi_{ni}\sum_{j=1}^C \gamma_{nj}\right)\mathbf{t}_i \mathbf{t}_i^T
 \end{equation}
 making the Newton Raphson update steps
 \begin{equation}
 \label{ivectupdate}
-\mathbf{w}_n(\text{new}) = \mathbf{w}_n(\text{old})-\mathbf{H}_n^{-1}(\text{old})\mathbf{g}_n(\text{old}).
+\mathbf{w}_n(\text{new}) = \mathbf{w}_n(\text{old})+\mathbf{H}_n^{-1}(\text{old})\mathbf{g}_n(\text{old}).
 \end{equation}
 
 To find values for $\mathbf{T}$ maximizing equation \ref{loglike}, we can do iterations of updating $\mathbf{T}$ and iVectors from a training set. In order to avoid over-fitting the model to the training data, we can check that an update of $\mathbf{T}$ enables us to increase the likelihood of an other set of documents using equation \ref{loglike}. We will then have to find iVectors for this set as well, but under no circumstance use these documents to update $\mathbf{T}$. In \cite{lrivector}, $\mathbf{T}$ was initialized with small random numbers. This indicates that the updates should converge to the local maxima from most values. 
@@ -81,7 +82,7 @@ To find values for $\mathbf{T}$ maximizing equation \ref{loglike}, we can do ite
 \section{Extracion of iVectors from the Model}
 \label{sect:ivectextract}
 
-In the previous section we found values for the model parameters $\mathbf{T}$ and $\mathbf{m}$. As a by-product, the training method also found iVectors for the training data. During extraction, when we use the iVector model to find subspace representations of documents, the same process of iteratively finding iVectors using equation \ref{ivectupdate} can be used. This vector should then represent the most important traits of an utterance, and can be used for language classification. Since the classifiers shown in section \ref{sect:classify} requires training as well, the iVectors for training utterances will also be needed. It would be possible to use the iVectors found during training of $\mathbf{T}$, but theese vectors might be more (or less) converged to the likelihood maxima than the vectors produced during extraction, making them unrepresentative for iVectors found when only performing updates of equation \ref{ivectupdate}.  A minor point that might benefit the system performance is to discard the iVectors found when training $\mathbf{T}$.
+In the previous section we found values for the model parameters $\mathbf{T}$ and $\mathbf{m}$. As a by-product, the training method also found iVectors for the training data. During extraction, when we use the iVector model to find subspace representations of documents, the same process of iteratively finding iVectors using equation \ref{ivectupdate} can be used. This vector should then represent the most important traits of an utterance, and can be used for language classification. Since the classifiers shown in section \ref{sect:classify} requires training as well, the iVectors for training utterances will also be needed. It would be possible to use the iVectors found during training of $\mathbf{T}$, but theese vectors might be more (or less) converged to the likelihood maxima than the vectors produced during extraction, making them unrepresentative for iVectors found when only performing updates of equation \ref{ivectupdate}.  A minor point that might benefit the system performance is therefore to discard the iVectors found when training $\mathbf{T}$.
 
 In order for the iVector extraction to be determenistic, the iVectors should be initialized with fixed values. It seems natural to initialize the iVectors as an all zero vector, since origo in the iVector space should correspond to the mean feature distribution in utterances. The same initial values can be used when we find $\mathbf{T}$ as long as the first step is to update the iVectors. This is because all zero ivectors would cause $\mathbf{g}_c$ and $\mathbf{H}_c$ to be zero as well.
 
@@ -111,7 +112,9 @@ In equation \ref{ivecthessian} $\mathbf{H}_n$ is found by calculating the outer 
 \subsection{Achieving higher performance}
 \label{sect:higherlike}
 
-In an iterative algorithm it is important to ensure that each iteration brings you closer to the solution of the problem. The Newton Raphson method is oblivious to high-order derivatives, and we only use an approximation to the Hessian, so an increase in likelihood is not guaranteed from updates using equation \ref{lupeqN} and \ref{lupeqC}. In \cite{kockmann2010prosodic}, Kockmann et. al. would halve the update step until the likelihood from equation \ref{totlike} increased when updating either row of $\mathbf{T}$ or iVectors. If a higher likelihood wasn't achieved after some attempts, the old vector would be used.  
+In appendix \ref{sect:orthproof} we show that the increase in likelihood by updating iVectors using the Newton Raphson method in equation \ref{lupeqN} will only depend on two factors. The iVector's values before the update and the column span of the total variability matrix. This means that tecniques like having $\mathbf{T}$ orthogonal should give no benefit in likelihood. There might still be performance benefits when the iVectors are classified as e.g. SVMs aren't invariant to linear transforms of the document vectors \ref{wan2005speaker}. Still there are some more promising methods that might increase the performance of the system.
+
+In an iterative algorithm it is important to ensure that each iteration brings you closer to the solution of the problem. The Newton Raphson method is oblivious to high-order derivatives, and we only use an approximation to the Hessian, so an increase in likelihood is not guaranteed from updates using equation \ref{lupeqN} and \ref{lupeqC}. In \cite{kockmann2010prosodic}, Kockmann et. al. would halve the update step until the likelihood from equation \ref{totlike} increased when updating either row of $\mathbf{T}$ or iVectors. If a higher likelihood wasn't achieved after some attempts, the old vector would be used.  Seemingly the only downside with such a check would be the additional computational requirements in an update.
 
 In section \ref{sect:svmnormal} we argued that using unscaled features could cause the classifier to label data only based on high-variance features. This problem might apply to the iVector model as well. A good model of high-variancce features would likely be crucial to maximize equation \ref{totlike}. Not only because the number of occurrences will vary greatly between utterances, but also since a high variance implies that the feature occurs very frequently in at least some utterances. This implies that the precision for the multinomial models probability mass assigned to the feature should have a greater effect on the total likelihood. Many dimensions of the iVector may then be spent on accurately controlling $\phi$ for those features. It is not clear if we gain much information from this precise fitting, rather than having coarser knowledge about the exact frequency of those features, and having more degrees of freedom in the i-vector to model other features. In \cite{soufifar2011ivector} the iVector system's performance increased when the square root of elements in the document vector, $\gamma_n$, was used. By taking the square root, frequent features will be a smaller part of the total feature count, and their variance between utterances will decrease. This should spread the importance of modeling each feature more evenly across the whole document vector.
 

@@ -29,16 +29,48 @@ C_{\text{Det}} &=(C_{\text{False reject}}P_{\text{False reject} | \text{Target}}
 \end{align*}
 By adjusting the cost of making different errors, this metric can be used to evaluate systems for a wide range of application requirements. In the NIST evaluation plan both costs are set to $1$, and the priors to $0.5$. 
 
+\section{Language Characterizations}
+
+There are many characteristics from speech that could be used to discriminate languages. The speech features that we use for language recognition is likely to impact the systems performance. In \cite[p. 801]{lidbok} a number of sources of discriminative information for spoken languages are given, including:
+
+\begin{itemize}
+\item \textbf{Spectral characteristics.} Languages are made up of different sounds, so it will be possible to distinguish languages based on the acoustic features present in the speech signal.
+\item \textbf{Phonological information.} In a language, a phoneme is the smallest unit of sound that can change the meaning of a word. Different languages use different collections of phonemes which makes them distinguishable by e.g. the frequency that a phoneme or a sequence of consecutive phonemes occur in a spoken utterance.
+\item \textbf{Lexical information.} Languages are separable by the vocabulary, or set of words, that they use.
+\end{itemize}
+
+A language recognition system doesn't neccessarily need to use just one of these sources. In practice, superior performances are reached by using a combination of the language traits for recognition \cite[p. 818]{lidbok}. This is because the different traits may yield complementary information about the spoken language. There are different benefits and drawbacks of using the different information sources. Lexical knowledge is often the most important discriminative information source for humans \cite[p. 787]{lidbkok}, and has been used by language recognition systems to achieve excellent performance \cite[p. 803]{lidbok}. Unfortunately such systems require speech recognizers for each language making it computationally expensive and thereby impractical when we need to distinguish many languages. For this thesis, we have only looked at phonotactically based language recognition.
+
 \section{System Overview}
 \label{sect:sysoverview}
 
-It could be possible to write a set of rules that scores the utterances against languages. The approach taken by many recent language recognition systems is to build a statistical model from training data. Without speculating on how much time it would take to create a rule based system, a statistical driven system should at least be easier to extend to new languages.
+In order to put the rest of the chapters into context, we will here present two typical phonetic language recognition systems. The first system depicted in figure \ref{fig:prlmoverview} is called a Phoneme Recognition followed by Language Modeling (PRLM) \cite[p. 817]{lidbok}. The speech signal is first turned into discrete tokens or phonemes by a phoneme recognizer.  The whole transcript is split into $n$-grams. We do this so that the language model only needs knowledge about a phoneme in the context of the $n-1$ previous phonemes. As we will see, this can simplify the rest of the components in the system. The $n$-grams from an utterance is then evaluated against language models for each language. The scores from the language models are then unified and calibrated before the final recognition decision.
+
+\begin{figure}[hbt!]
+	\begin{center}
+	\includegraphics[width=\textwidth]{figures/prlm.png}
+	\caption{Block diagram of a PRLM system, based on \cite[Fig. 41.5]{lidbok}}
+	\label{fig:prlmoverview}
+	\end{center}
+\end{figure}
+
+Another design for language recognition systems shown in figure \ref{fig:vscoverview} is based on an utterance's Vector Space Characterization (VSC). The technique is inspired from the information retrieval community where documents are represented by a document vector \ref[p. 826]{lidbok}. For language recognition systems we can construct spoken document vectors from the counts of $n$-grams in an utterance. If the distribution of $n$-grams is different for languages, then the documents for languages will lie in different regions of the document space. A classifier can then recognize languages based on the region that a document vector is situated in. The size of the document vectors will grow exponentially with $n$, often resulting in a sparse document vector of a very high dimension. This often makes it possible to reduce the dimension of the document vectors without the document space loosing its discriminative power. An example of such dimensionality reduction is iVectors, which is the topic in section \ref{sect:ivecttheory}
+
+\begin{figure}[hbt!]
+	\begin{center}
+	\includegraphics[width=\textwidth]{figures/vsc.png}
+	\caption{Block diagram of a VSC language recognition system. The use of dimensionality reduciton is optional.}
+	\label{fig:vscoverview}
+	\end{center}
+\end{figure}
+
+It would be possible to construct the two systems using rules to recognize languages. The approach taken by many recent language recognition systems is to build a statistical model from training data. Without speculating on how much time it would take to create a rule based system, a statistical driven system should at least be easier to extend to new languages.
 
 
 \section{Phoneme recognizer}
 \label{sect:phnrec}
 
-In a PRLM recognition system, we first transform the speech signal to a phoneme sequence or string. This is done by a phoneme recognizer. With the many-to-one mapping by the phoneme recognizer we hope that there still is enough information about the language identity of the utterance, while the computational requirements for further processing will benefit from the reduced complexity of the problem. Phone recognizers can utilize many of the techniques used in speech recognition,  where words often are recognized by their phoneme sequence \cite[p. 414]{talegk}. Here we will only present one such approach.
+In a PRLM or VSC recognition system, we first transform the speech signal to a phoneme sequence or string. This is done by a phoneme recognizer. With the many-to-one mapping by the phoneme recognizer we hope that there still is enough information about the language identity of the utterance, while the computational requirements for further processing will benefit from the reduced complexity of the problem. Even though each language uses its own set of phonemes, it is not neccessary to train the phoneme recognizer to identify phonemes from all languages. This is because the phoneme recognizer doesn't need to make an correct transcription for an utterance, the system just needs the transcripts to be distinct for each language \cite[p. 818]{lidbok}. For this reason it is possible to train the phoneme recognizer on a single language, that even may not have to be in the set of languages we are recognizing. Phone recognizers can utilize many of the techniques used in speech recognition,  where words often are recognized by their phoneme sequence \cite[p. 414]{talegk}. Here we will only present one such approach.
 
 The speech signal is first split into short frames using a window function to reduce spectrum leakage \cite[257]{talegk}. For each frame we can calculate the Mel-Frequency Cepstral Coefficients (MFCC). The transform takes the spectrum of the windowed signal through a set of filter banks that are spaced to approximate the Mel-frequency scale \cite[314]{talegk}. After taking the logarithm of the filter outputs, we use the discrete cosine transform to get the cepstral coefficients. The whole process approximates the way the human auditory system responds to sound, which means that it should be suited for automatic phoneme recognition as well \cite[314]{talegk}. Patterns in the cepstral coefficients when uttering a given phoneme can then be learned using labeled training data to train Gaussian Mixture Models (this is presented in section \ref{sect:backendscoring} for recognizing score-vectors).
 
@@ -47,12 +79,12 @@ The size of each frame is limited, in order to make the speech signal in each fr
 It is also possible for the phoneme recognizer to give multiple hypotesis for the phonemes used in an utterances. Such phoneme recognizers are said to be lattice based. Intuitively a lattice based phoneme recognizer will keep more of the information from the original speech signal, and has been shown to improve the performance of many language recognition systems \cite[p. 818]{lidbok}.
 
 
-\section{Language models}
+\section{Language models and Classifiers}
 \label{sect:basiclangmodel}
 
-The responsibility of the language model is to output a single score per language from a phoneme sequence $S$. Since our final recognition decision will be based on the probability that an utterance belongs to a language, $p(l_i, | S)$, it seems natural to have the scores approximate that probability. This is a somewhat strict requirement for systems as described in section \ref{sect:sysoverview} since the scores will be further processed by the backend. At the very least, a good language model should give scores that are easily transformable to an estimate of this probability. 
+The responsibility of a language model or classifier is to output a single score per language from the phoneme sequence $S$. Since our final recognition decision will be based on the probability that an utterance belongs to a language, $p(l_i, | S)$, it seems natural to want the scores to approximate that probability. This is a somewhat strict requirement for systems as described in section \ref{sect:sysoverview} since the scores will be further processed by the backend. At the very least, a good language model should give scores that are easily transformable to an estimate of this probability. 
 
-In order for the system to perform well for languages with limited available training data, it will be beneficial that the language model is easily trained. A too complex model will not be able to see patterns in the data, it will instead be over-fitted to explain each utterance independently which makes it unfit to score utterances outside of the training set \cite[311]{information}. Over-fitting can be reduced by using a larger training set \cite[147]{machinelearningbook}, but it is clearly an undesirable feature for a language models. This is also the reason why we need a separate data set to evaluate the recognition system. The systems recognition performance on the data it was trained for will not necessarily extend to unseen data.
+In order for the system to perform well for languages with limited available training data, it will be beneficial that the system is easily trained. A too complex classifier or language model will not be able to see patterns in the data, it will instead be over-fitted to explain each utterance independently which makes it unfit to score utterances outside of the training set \cite[311]{information}. Over-fitting can be reduced by using a larger training set \cite[147]{machinelearningbook}, but it is clearly an undesirable feature for a language models. This is also the reason why we need a separate data set to evaluate the recognition system. The systems recognition performance on the data it was trained for will not necessarily extend to unseen data.
 
 If we introduce the notion that training and test data are generated from a random process, the systems ability to correctly estimate $p(l_i | S)$, and thereby make correct recognition decisions, will be given by two error sources called model \emph{bias} and \emph{variance} \cite[149]{machinelearningbook}. \emph{Bias} is high if the system consistently over- or underestimate $p(l_i | S)$ for some documents regardless of the training set. In this way it represents the systems inability to correctly predict certain documents. Model \emph{variance} is the variance in the probability estimate of an utterance belonging to a language when the model is trained with different data. It represents the systems sensitivity to noise in the training data. Over-fitting is a symptom of a high variance system where the model is only expected to give correct probability estimates for utterances that are very close to a training utterance. A system with limited training data can generally not have both low variance and bias \cite[312]{information}, so a concession between the two errors has to be made.
 
@@ -61,7 +93,7 @@ If we introduce the notion that training and test data are generated from a rand
 \section{Back-end Calibration of Score Vectors}
 \label{sect:backendscoring}
 
-The back-end will calibrate the scores from the language model into the posterior, $p(l_i | S, \theta)$, so that so that they can be applied to the recognition decisions discussed in section \ref{sect:detvsid}. Like the language model, this calibration can be trained using real data. A separate calibration step allows us to ignore application dependent information like what other languages should the system recognize, and the prior probability of a user speaking each language. The language models for each language can then be trained independently since it only needs to return some number that in some way correlates with the posterior probability for it's language. Even if the language model is trained to return estimates of the posterior, there may still be some benefits calibrating the score vectors \cite[820]{lidbok} as there might exist patterns in the scores that can be exploited. Furthermore, the back-end can be used to fuse scores for an utterance from multiple systems using different phoneme recognizers or language models. The fused system is then expected to perform better than each of the individual systems as long as the errors each system makes are somewhat uncorrelated \cite[818]{lidbok}.
+The back-end will calibrate the scores from the classifier or language model into the posterior, $p(l_i | S, \theta)$, so that so that they can be applied to the recognition decisions discussed in section \ref{sect:detvsid}. This calibration can also be trained using real data. A separate calibration step allows us to ignore application dependent information like what other languages should the system recognize, and the prior probability of a user speaking each language. The language models for each language can then be trained independently since it only needs to return some number that in some way correlates with the posterior probability for it's language. Even if the language model is trained to return estimates of the posterior, there may still be some benefits calibrating the score vectors \cite[820]{lidbok} as there might exist patterns in the scores that can be exploited. Furthermore, the back-end can be used to fuse scores for an utterance from multiple systems using different phoneme recognizers or language models. The fused system is then expected to perform better than each of the individual systems as long as the errors each system makes are somewhat uncorrelated \cite[818]{lidbok}.
 
 \subsection{Gaussian Backend}
 \label{sect:gmmscore}

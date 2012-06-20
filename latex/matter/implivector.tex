@@ -10,7 +10,7 @@ We tested three approaches to set the penalty-parameter for the regularized clas
 
 In our identification tests, the SVM and logistic regression gave comparable results. The similar iVector system from \cite{lrivector} still reported that the system performed better on language detection tasks when it used logistic regression. This is perhaps not so unexpected if we use backend score-calibration since the soft-scores from the logistic regression is a more meaningfull interpretation of the class assignment confidence than the distance from decisionboundary-score we get from SVMs. Allthough we didn't get to verify this argument, we decided to logistic regression.
 
-LIBLINEAR also uses the same interface as LIBSVM \footnote{\url{http://www.csie.ntu.edu.tw/~cjlin/libsvm/}} which allowed us easily to experiment with non-linear classifiers as well. For the non-linear SVM we followed the developers of LIBSVM's guide to SVM classification \cite{practicalsvm}. Their recommendations did not yield a classifier that performed better on 200 dimensional iVectors than the linear classifiers. The required time to search for SVM parameters did however take considerably longer for the non-linear classifier. Since it seemed like the iVectors were just as separable with a linear decision boundary, we did not investigate using non-linear SVMs further. 
+LIBLINEAR also uses the same interface as LIBSVM \footnote{\url{http://www.csie.ntu.edu.tw/~cjlin/libsvm/}} which allowed us easily to experiment with non-linear classifiers as well. For the non-linear SVM we followed the developers of LIBSVM's guide to SVM classification \cite{practicalsvm}. Their recommendations did not yield a classifier that performed better than the linear classifiers regardless of the iVector dimension. We expect that with more experimentation we could have gotten better results with kernel based classifiers. There should be parameters that make some non-linear classifiers behave as if they are linear \cite{keerthi2003asymptotic}. This means that the performance of the linear classifier is a lower bound for the performance we could achieve with a non-linear classifier, but the time required to search for SVM parameters did however take considerably longer for the non-linear classifiers. Since it seemed like the iVectors were just as separable with a linear decision boundary, we did not investigate using non-linear SVMs further. 
 
 \section{Document Vector}
 
@@ -18,7 +18,7 @@ We use the same process as in \ref{sect:phonetranscription} to generate the phon
 
 From the gradient of $\mathbf{T}$ and iVectors given in equations \ref{tgrad} and \ref{ivectgrad} we see that a maxima isn't affected by the number of features in the utterance as long as the direction of the document vector is the same. We trained the total variability matrix using utterances with a length of about five minutes of speech. The reason for not matching the training utterance length with the test utterance length were twofold. It is difficult to exploit the sparsity of the document vectors, so having fewer training utterances with more features reduced the time required to train the system significantly. We also expect that the direction of the document vector will be more influenced by noise when the utterance is short. If the total variability matrix were trained on short vectors, then it would also have to model more of this noise that cannot be used to recognize languages. In a way, we can then view the shorter development and test utterances as projected into the less noisy subspace when we find their iVectors. This frees up dimensions in the iVector to model more important features. We didn't do an extensive search for the optimal training utterance length, but the identification rate was a bit higher when we used 5 minute rather than 4 or 6 minute training utterances.
 
-After training $\mathbf{T}$ with longer utterances, it might have been beneficial to train the classifier with iVectors from shorter utterances. The classifier would then have more training data available, and the training iVectors would come from utterances of more similar lengths to the test data. This turned out to be true for the mapped phonemes document vectors, where the absolute performance increased slightly when the classifier was trained with two miniute long utterances.Without the phoneme mapping, there was no change in the performance, but the classifier ended up with a less regularized model. This indicates that the classifier would more frequently mislabel some of the training vectors, but the decision boundaries were not much afftected. Since shorter training utterances would increase the training time and not provide any significant increase in performance, we opted to use the five minute utterances for training of the classifier as well.
+After training $\mathbf{T}$ with longer utterances, it might have been beneficial to train the classifier with iVectors from shorter utterances. The classifier would then have more training data available, and the training iVectors would come from utterances of more similar lengths to the test data. This turned out to be true for the mapped phonemes document vectors, where the absolute performance increased slightly when the classifier was trained with two miniute long utterances.Without the phoneme mapping, there was no change in the performance, but the classifier ended up with a less regularized model. This might indicate that even though there would be more variance the short duration iVectors, the decision boundaries between classes weren't much affected. Instead the classifier would more frequently mislabel some of the training vectors. Since shorter training utterances would increase the training time and not provide any significant increase in performance, we opted to use the five minute utterances for training of the classifier as well.
 
 
 \section{Vanilla iVector system}
@@ -36,7 +36,7 @@ In the figure, the devtest documents can have a slightly higher log-likelihood t
 
 When extracting iVectors either for training the classifier, or testing the performance of the classifier, we initialize the iVectors to zero. We then do a number of iterations of updating equation \ref{ivectupdate} using the total variability matrix we found during training. Since theese are the iVectors that will be used for classification, it seems natural to also take a look at how the iVectors during extraction react to the trained total variability matrix. In figure \ref{fig:vanextractlike} we show the achieved likelihood for the first 6 iterations of the extraction algorithm for total variability matrices trained in 0 to 7 iterations. Figure \ref{fig:vanextractdevlike} confirms what we saw in figure \ref{fig:vanivecttrainlike}, that too many iterations of updating $\mathbf{T}$ will give the model a worse fit to development utterances. This effect of over-fitting is however not so clear in this figure when the documents are given many iterations to find the likelihood maxima. Still the maximum, regardless of the number of iterations during extraction, is reached when the total variability matrix is trained with around iterations iterations.
 
-\begin{figure}[hbt]
+\begin{figure}[hbt!]
 	\begin{center}
 		\subfloat[ ]{
 			\label{fig:vanextracttrainlike}
@@ -59,7 +59,7 @@ Figure \ref{fig:vanextracttrainlike} showing the likelihood for training iVector
 
 One possible solution to the problems with the default system would be to train the total variability matrix using the iVectors we would get during the first few iterations of iVector extraction. Instead of perforiming iterations of updating iVectors and then update $\mathbf{T}$, each iteration could be to train iVectors from zero and then update $\mathbf{T}$. For our system we only used one update of the iVectors per iteration. This keeps the computational requirements during training similar to the standard system, while the total variability matrix is optimized to give documents a high likelihood from the first iteration of the iVector extraction process. 
 
-\begin{figure}[hbt]
+\begin{figure}[hbt!]
 	\begin{center}
 	\includegraphics{figures/resetlike.png}
 	\caption{Likelihood for training and development utterances during training when iVectors are reset to zero before each iteration. The iVector dimension was 200.}
@@ -69,10 +69,10 @@ One possible solution to the problems with the default system would be to train 
 
 The likelihoods for training and development documents during this training process is shown in figure \ref{resetlike}. From the figure we see that the likelihood for both training and development utterances ceases to increase after a few iterations and $\mathbf{T}$ never becomes over-fitted to the training data. Still the likelihoods during this training method is smaller than the likelihoods we got using the standard training method, shown in figure \ref{fig:vanivecttrainlike}. This is not so unexpected since we restrict the iVectors by resetting them before each iteration. During iVector extraction, where the iVectors are given more iterations to converge to their maxima, this difference in likelihood vanishes.
 
-\begin{figure}[hbt]
+\begin{figure}[hbt!]
 	\begin{center}
 	\includegraphics{figures/resetidentification.png}
-	\caption{Development identificaiton rate for 200-dimensional iVectors.}
+	\caption{Identificaiton rate for 200-dimensional iVectors. The horizontal axis denotes the number of iterations used during extraction to produce the iVectors for training and testing the system}
 	\label{fig:resetidrate}
 	\end{center}
 \end{figure}
@@ -81,7 +81,7 @@ In figure \ref{fig:resetidrate} we compare the identification rate of the standa
 
 \section{iVector Dimension}
 
-A very important parameter that hasn't been much discussed is the iVector dimension. Since there will be more degrees of freedom, it seems natural that a higher iVector-dimension will result in lower likelihood for both training and development vectors. Still, this does not mean that we should use iVectors of high dimension. A high likelihood does not neccessarily mean that the system will perform better, and using low-dimension iVectors is less computational intensive.  In figure ?? we show the identification rate for the standard and reset-trained iVector system.
+A very important parameter that hasn't been much discussed is the iVector dimension. Since there will be more degrees of freedom, it seems natural that a higher iVector-dimension will result in lower likelihood for both training and development vectors. Still, this does not mean that we should use iVectors of high dimension. A high likelihood does not neccessarily mean that the system will perform better, and using low-dimension iVectors is less computational intensive.  In figure ?? we show the identification rate for the standard and reset-trained iVector system. We have both trained and tested the classifier using iVectors that where extracted with the same number of Newton Raphson updates. 
 
 
 Diskutere graf, nevne kernel-klassifisering

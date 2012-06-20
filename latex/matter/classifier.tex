@@ -1,7 +1,7 @@
 \chapter{Discriminative Classification}
 \label{sect:classify}
 
-In this section we will look at discriminative classifiers that can be used to differentiate utterances defined in the vector space discussed in section ???. Discriminative classifiers differ from the generative gaussian mixture model approach given in section \ref{sect:gmmscore} in that it cannot be used to generate syntethic data. This often results in a simpler optimization problem which is easier to train to give good performance \cite[p. 204]{machinelearningbook}. Discriminative classifiers can be used on both the full sized document vector or one that is compressed using subspace modelling. We will first look at binary classifiers, where each utterance can take one of two classes in section \ref{sect:svm} and \ref{sect:logisticregression}, and then extend the technique to multiple classes in section \ref{sect:multiclass}. Finally we will explore techniques that can increase the effectiveness of the classifier in section \ref{sect:svmnormal}.
+Discriminative classifiers differ from the generative gaussian mixture model approach given in section \ref{sect:gmmscore} in that it cannot be used to generate syntethic data. This often results in a simpler optimization problem which is easier to train to give good performance \cite[p. 204]{machinelearningbook}. The classifiers we present here can be used on both the full sized document vector or one that is compressed using subspace modelling. We will first look at binary classifiers, where each utterance can take one of two classes in section \ref{sect:svm} and \ref{sect:logisticregression}, and then extend the technique to multiple classes in section \ref{sect:multiclass}. Finally we will explore techniques that can increase the effectiveness of the classifier in section \ref{sect:svmnormal}.
 
 \section{Support Vector Machines}
 \label{sect:svm}
@@ -93,4 +93,4 @@ After whitening another problem might be that the inner product between the docu
 \label{svmnormalize}
 \mathbf{\hat{y}} = \frac{[\mathbf{y}^T, D]^T}{|[\mathbf{y}^T, D]|}
 \end{equation}
-where the variable $D$ is some constant for all documents. The extra dimension can then be used to separate document vectors of different lengths. The significanse of keeping length-information will likely depend on the distribution of document vectors.
+where we concatenate some constant $D$ to each document vector. The scaling of the extra dimension by the length of the new document vector will reflect the length of the original document vector and can be used to separate document vectors of different lengths. The significanse of keeping length-information will likely depend on the distribution of document vectors.
