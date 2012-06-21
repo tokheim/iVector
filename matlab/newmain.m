@@ -1,20 +1,14 @@
 %%setup
-
+disp('--NEW TEST--')
 close all
 addpath(genpath('../../Focal'))
 
-%trainLoc = '../../map200dev.txt';
-%testLoc = '../../map200evl.txt';
-%trainLoc = '../../nomap200resetDev.txt';
-%testLoc = '../../nomap200resetEvl.txt';
-%trainLoc = '../../hamNomap200resetDev.txt';
-%testLoc = '../../hamNomap200resetEvl.txt';
+trainLoc = '../../results/10/nomap150resetDev.txt';
+testLoc = '../../results/10/nomap150resetEvl.txt';
 
 %Baseline systems
-trainLoc = '../../results/30/mapBaseDev.txt';
-testLoc = '../../results/30/mapBaseEvl.txt';
-%trainLoc = '../../nomapBaseDev.txt';%Worse performance
-%testLoc = '../../nomapBaseEvl.txt';%Worse performance
+%trainLoc = '../../results/3/mapBaseDev.txt';
+%testLoc = '../../results/3/mapBaseEvl.txt';
 
 %%Closed set testing
 
@@ -33,7 +27,7 @@ cdet = avg_detection_cost('cdet', decision, testLabels, 0);
 disp(['AVG cdet for closed set: ' num2str(cdet)]);
 
 figure(1)
-plotdet(llrs, testLabels)
+h1 = plotdet(llrs, testLabels);
 
 %%Open set testing
 [devScores, devLabels] = readScores(trainLoc, 'UBM');
@@ -51,46 +45,5 @@ cdet = avg_detection_cost('cdet', decision, testLabels, 1);
 disp(['AVG cdet for open set: ' num2str(cdet)]);
 
 hold on
-plotdet(llrs, testLabels, 'r')
-
-
-
-
-
-
-
-
-
-
-% [trainCellScores, trainSuperScores, trainlabels] = readScores('../../train.txt');
-% [devCellScores, devSuperScores, devlabels] = readScores('../../dev.txt');
-% [testCellScores, testSuperScores, testlabels] = readScores('../../nist.txt');
-% 
-% priors = ones(1, 12)/12;%flat prior
-% 
-% %Closed set
-% temp = [testlabels ~= 0];
-% cTestCellScores = {testCellScores{1}(:, temp), testCellScores{2}(:, temp)};%closed set test scores
-% cTestSuperScores = testSuperScores(:, temp);
-% cTestLabels = testlabels(temp);%closed set test labels
-% 
-% 
-% %llr fusion
-% [alpha, beta] = train_nary_llr_fusion(devCellScores, devlabels);
-% llrFuseScores = apply_nary_lin_fusion(cTestCellScores, alpha, beta);
-% 
-% %linear backend
-% [Trans, offset] = train_linear_backend(devSuperScores, devlabels, {'ppca', 11});
-% linScores = apply_linear_backend(cTestSuperScores, Trans, offset);
-% 
-% %Kjører linear backend igjen for  å få ned refinement
-% temp = apply_linear_backend(devSuperScores, Trans, offset);
-% [alpha, beta] = train_nary_llr_fusion(temp, devlabels);
-% llrLinFuseScores = apply_nary_lin_fusion(linScores, alpha, beta);
-% 
-% %quadratic backend
-% [CC, Mu] = train_quadratic_backend(devSuperScores, devlabels, {'ppca', 11}, 0.9);
-% quadScores = apply_quadratic_backend(cTestSuperScores, CC, Mu);
-% 
-% 
-% calref_plot({cTestCellScores{1}, cTestCellScores{2}, llrFuseScores, linScores, llrLinFuseScores, quadScores}, cTestLabels, {'Prim dialect', 'sec dialect', 'llrfuseScores', 'linScores', 'llr+lin fuse', 'quadScores'});
+h2 = plotdet(llrs, testLabels, 'r--');
+legend([h1(1) h2(1)], 'Closed set', 'Open set')

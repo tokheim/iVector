@@ -1,6 +1,6 @@
-function plotdet(llrs, labels, color)
+function plothandle = plotdet(llrs, labels, color)
 %plots det curves for given system
-maxaxis = 20;
+maxaxis = 20*5;
 thresholds = -70:0.1:70;
 
 numtrue = ones(1, size(llrs, 1));%array with i-th element equal number of classes with that label
@@ -33,9 +33,9 @@ end
 disp(['EER: ' num2str(y(eeri))])
 
 if nargin == 2,
-    plot(x, y, 'b', x(i), y(i), 'bx', 'MarkerSize', 15)
+    plothandle = plot(x, y, 'b', x(i), y(i), 'bx', 'MarkerSize', 15);
 else
-    plot(x, y, color, x(i), y(i), [color 'x'], 'MarkerSize', 15)
+    plothandle = plot(x, y, color, x(i), y(i), [color 'x'], 'MarkerSize', 15);
 end
 
 

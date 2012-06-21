@@ -1,0 +1,67 @@
+\chapter{Identification Results}
+
+For presenting identification results, it seemed beneficial to not use the likelihoods from the Gaussian back-end, and simply select the language that was given the highest likelihood by the language model or classifier. This enables us to compare the results from the NIST 2003 set with the development set. We will here only present the closed set reuslts for the two systems.
+
+\section{Baseline system}
+
+Table \ref{baseidresults} shows the identification performance of the baseline system on 30 second utterances from both the NIST and development set. For many of the languages there is a big difference in performance for the two sets. This variation seems to be because we used few different speakers in the dev set. For Vietnamese utterances where the error-rate is $0$\% and $27.7$\% on the NIST and development set respectively, all the errorunous classifications were from utterances by one speaker. For this speaker only $11$ out of $39$ utterances were correctly identified. This just illustrates why it was important to train the system on as many speakers as possible, the distribution of phonemes will vary amongst speakers, so it should be beneficial to train the system on a diverse set of speakers. The average identification rate over languages were $93.3$\% and $91.1$\% for the NIST set and development set respectively. Also, $93.0$\% of the 30 second NIST utterances were correctly identified, against $92.1$\% of the development utterances. 
+\begin{table}[hbt!]
+\begin{tabular}{| l | c | c | c | c | c | c | c | c | c | c | c | c |}
+\hline
+Language &Ar & En & Fa & Fr & Ge & Hi & Ja & Ko & Ma & Sp & Ta & Vi \\
+\hline
+Arabic       & 72 & 0 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 \\
+English       & 2 & 228 & 0 & 4 & 0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 \\
+Farsi          & 2 & 1 & 72 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\
+French       & 1 & 0 & 0 & 71 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+German      & 0 & 0 & 0 & 1 & 75 & 0 & 2 & 0 & 0 & 0 & 0 & 0 \\
+Hindi          & 0 & 0 & 0 & 0 & 0 & 72 & 0 & 0 & 0 & 1 & 0 & 0 \\
+Japanese   & 0 & 0 & 0 & 1 & 4 & 0 & 137 & 1 & 0 & 1 & 0 & 0 \\
+Korean       & 0 & 2 & 2 & 1 & 0 & 4 & 8 & 79 & 2 & 0 & 0 & 0 \\
+Mandarin    & 1 & 4 & 1 & 1 & 0 & 3 & 4 &  0 & 75 & 0 & 0 & 0 \\
+Spanish       & 1 & 1 & 0 & 0 &  0 & 0 & 4 & 0 & 0 & 76 & 0 & 0 \\
+Tamil           & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 79 & 0 \\
+Vietnamese & 0 & 3 & 4 & 1 & 0 & 0 & 4 & 0 & 2 & 0 & 1  & 80 \\
+\hline
+NIST ER \% & 10.0 & 5.0 & 10.0 & 11.3 & 6.3 & 10.0 & 14.4 & 1.3 & 6.3 & 5.0 & 1.3 & 0.0 \\
+\hline
+Dev ER \% & 1.9 & 2.4 & 9.9 & 7.9 & 23.8 & 9.0 & 3.0 & 0.0 & 2.0 & 5.4 & 13.9 & 27.7 \\
+\hline
+\end{tabular}
+\caption{Confusion matrix from identifying 30 second documents from the 30 second NIST 2003 evaluation set with the baseline system. The columns denote the true identity of the document, while rows denote the identified language. ER is the error-rate of the system, which is reported for both the development set and NIST set in the last two rows.}
+\label{baseidresults}
+\end{table}
+
+\section{iVector system}
+
+In table \ref{ivectidresults} we show the identification rate of the iVector system. Compared to the baseline system, we got a much higher identification rate on Vietnamese and Tamilian development utterances. German development utterances were however a problem for both systems. In the development set, $96.2$\% of the utterances were correctly identified, against only $92.8$\% in the NIST set. This drop in performance for the NIST set, that we didn't see in the baseline system, is probably because the utterances in the NIST-set on average were shorter than the development utterances. Development utterances were split when the phoneme recognizer had transcribed 30 seconds of speech, but the recognizer found on average only 20 seconds of speech in the NIST set. It is not clear whether this was because large parts of the conversation was labeled as noise, or the automatic speech activity algorithm used to split NIST utterances simply recognized more seconds of conversation. We simply weren't able to see this drop in identification rate for the baseline system, since it had severe trouble with recognizing utterances from some of the speakers in the development set. The average identification rate for each language was $95.5$\% for the development set and $92.9$\% for the NIST set
+\begin{table}[hbt!]
+\begin{tabular}{| l | c | c | c | c | c | c | c | c | c | c | c | c |}
+\hline
+Language &Ar & En & Fa & Fr & Ge & Hi & Ja & Ko & Ma & Sp & Ta & Vi \\
+\hline
+Arabic       & 73 & 1 & 1 & 1 & 2 & 2 & 0 & 1 & 0 & 1 & 0 & 0 \\
+English      & 2 & 223 & 0 & 1 & 0 & 0 & 1 & 0 & 2 & 1 & 0 & 0\\
+Farsi          & 1 & 1 & 74 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0\\
+French       & 1 & 3 & 0 & 73 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+German     & 0 & 0 & 0 & 1 & 74 & 1 & 0 & 0 & 2 & 0 & 0 & 0\\
+Hindi          & 1 & 1 & 0 & 0 & 0 & 67 & 2 & 0 & 0 & 0 & 0 & 2\\
+Japanese   & 0 & 1 & 1 & 0 & 3 & 0 & 147 & 1 & 1 & 1 & 0 & 0\\
+Korean       & 1 & 1 & 0 & 1 & 0 & 3 & 2 & 78 & 0 & 0 & 0 & 0\\
+Mandarin    & 0 & 3 & 2 & 1 & 0 & 1 & 4 & 0 & 73 & 0 & 1 & 0\\
+Spanish       & 0 & 2 & 0 & 1 & 0 & 2 & 2 & 0 & 0 & 76 & 0 & 1\\
+Tamil           & 1 & 3 & 1 & 0 & 0 & 3 & 0 & 0 & 0 & 1 & 79 & 0\\
+Vietnamese & 0 & 1 & 1 & 1 & 0 & 0 & 2 & 0 & 2 & 0 & 0 & 77\\
+\hline
+NIST ER \%& 8.8 & 7.1 & 7.5 & 8.8 &  7.5 & 16.3 & 8.1 & 2.5 & 8.8 & 5.0 & 1.3 & 3.8 \\
+\hline
+Dev ER \% & 1.0 & 0.0 & 4.0 & 5.0 & 16.8 &  5.9 & 8.0 & 0.0 & 1.0 & 3.0 & 3.0 & 5.9 \\
+\hline
+\end{tabular}
+\caption{Confusion matrix from identifying 30 second NIST utterances with the iVector system. The columns denote the true identity of the document, while rows denote the identified language. ER is the error-rate of the system, which is reported for both the development set and NIST set in the last two rows.}
+\label{ivectidresults}
+\end{table}
+
+%Both of the systems seems to perform well on the identification task when compared with other systems. In \cite{noor2006efficient} a SVM based language recognition system using anchor models correctly identified $90.5$\% of the utterances in the NIST 2003 set. The anchor models can be seen as a subspace modelling technique where an unknown utterance is scored against GMMs constructed for each speaker in the training set, known as anchor models. The likelihoods from each GMM is then stored in a vector which is classified by a SVM. Of the six systems that participated in the official 2003 NIST Language Recognition Evalution, only one of the systems had an identification rate above $90$\% \cite{martin2003nist}.  The rates were only shown in a figure, and the exact identification rate is unknown, 
+
+In \cite{noor2006efficient} a SVM based language recognition system using anchor models could correctly identify $90.5$\% of the utterances in the NIST 2003 set. Compared to this result, both of our systems performed well. The slightly higher performance might however just be the result of using a more modern phoneme recognizer. 

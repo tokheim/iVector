@@ -84,9 +84,9 @@ where
 \begin{equation*}
 k_{nc} = \left(b_{nc}\mathbf{\hat{t}}_c^T(\mathbf{\hat{w}}_n(\text{new})-\mathbf{\hat{w}}_n(\text{old})) - a_{nc}\right).
 \end{equation*}
-Since $\phi_{nc}(\text{old})$ is equal for total variability matrices and iVectors satisfying equation \ref{colpropEq}, $a_{nc}$, $b_{nc}$ and thereby $k_{nc}$ will also be unaffected by the change of matrix and iVectors. We can conclude the proof if $\mathbf{t}_c$ can be interchanged with $\mathbf{\hat{t}}_c$ in equation \ref{colspanproof} which can also be written as
+Since $\phi_{nc}(\text{old})$ is equal for total variability matrices and iVectors satisfying equation \ref{colpropEq}, $a_{nc}$, $b_{nc}$ and thereby $k_{nc}$ will also be unaffected by the change of matrix and iVectors. We can conclude the proof if $\mathbf{t}_c$ can be interchanged with $\mathbf{\hat{t}}_c$ in equation \ref{colspanproof} which also can be written as
 \begin{equation}
 \label{matcolspanproof}
 \mathbf{T}^T \mathbf{k}_n = 0,
 \end{equation}
-where the $i$-th element in the vector $\mathbf{k}_n$ is $k_{ni}$. Since the matrices span the same column space, $\mathbf{k}_n$ will either be orthogonal to neither or both the rows of  $\mathbf{T}^T$ and $\mathbf{\hat{T}}^T$. Assuming that the system is nonsingular, then equation \ref{matcolspanproof} will have a solution, and when equation \ref{colpropEq} is satisfied for the old iVectors the nonsingularity will imply that the only values for possible values for the new iVectors will also satisfy that constraint.
+where the $i$-th element in the vector $\mathbf{k}_n$ is $k_{ni}$. Since the matrices span the same column space, $\mathbf{k}_n$ will either be orthogonal to neither or both the rows of  $\mathbf{T}^T$ and $\mathbf{\hat{T}}^T$. Assuming that the system is nonsingular, then equation \ref{matcolspanproof} will have a solution, and when equation \ref{colpropEq} is satisfied for the old iVectors the nonsingularity will imply that the only possible values for the new iVectors will also satisfy that constraint.

@@ -1,0 +1,60 @@
+\chapter{Detection Performance}
+
+\section{Baseline 30 second}
+
+%closed c_det 0.032955
+%open c_det 0.047809
+%closed EER 4.9132
+%open EER 4.375
+
+\section{iVector 30 second}
+
+%closed_cdet 0.035314
+%open c_det 0.049353
+%closed EER 2.7604
+%open  EER 3.5938
+
+
+\section{Performance on Shorter Utterances}
+
+\begin{table}[hbt!]
+\begin{center}
+\begin{tabular}{| l | c  c | c  c |}
+\cline{2-5}
+\multicolumn{1}{c |}{} & \multicolumn{2}{  c | }{Closed set} & \multicolumn{2}{ c |}{Open set} \\ %\cline{2-5}
+\multicolumn{1}{c |}{} & $C_{\text{Det}}$ & EER (\%) & $C_{\text{Det}}$ & EER (\%) \\
+\hline
+iVector 10 sec. & 0.157 & 13.3 & 0.163 & 13.7 \\
+iVector 3 sec. & ? & ? & ? & ? \\
+\hline
+Baseline 10 sec. & 0.170 & 18.6 & 0.183 & 17.0 \\
+Baseline 3 sec. & 0.351 & 32.0 & 0.437 & 46.8 \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Detection performance for the iVector and baseline system on 3 and 10 second utterances.}
+\label{tab:shortdetrate}
+\end{table}
+ 
+
+
+%ivect 10:
+%closed c_det 0.15724
+%open c_det 0.1625
+%closed EER 13.2812
+%open EER 13.7153
+
+%base10
+%closed c_det 0.16981
+%open c_det 0.18289
+%closed EER 18.6285
+%open EER 17.0139
+
+%ivect 3:
+
+
+%base3:
+%closed c_det 0.35139
+%open c_det 0.43727
+%closed EER 32.0486
+%open EER 46.8056
