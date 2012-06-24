@@ -1,14 +1,14 @@
 %%setup
 disp('--NEW TEST--')
-close all
+%close all
 addpath(genpath('../../Focal'))
 
-trainLoc = '../../results/10/nomap150resetDev.txt';
-testLoc = '../../results/10/nomap150resetEvl.txt';
+%trainLoc = '../../results/3/nomap150resetDev.txt';
+%testLoc = '../../results/3/nomap150resetEvl.txt';
 
 %Baseline systems
-%trainLoc = '../../results/3/mapBaseDev.txt';
-%testLoc = '../../results/3/mapBaseEvl.txt';
+trainLoc = '../../results/3/mapBaseDev.txt';
+testLoc = '../../results/3/mapBaseEvl.txt';
 
 %%Closed set testing
 
@@ -27,7 +27,7 @@ cdet = avg_detection_cost('cdet', decision, testLabels, 0);
 disp(['AVG cdet for closed set: ' num2str(cdet)]);
 
 figure(1)
-h1 = plotdet(llrs, testLabels);
+h1 = plotdet(llrs, testLabels, 'b:');
 
 %%Open set testing
 [devScores, devLabels] = readScores(trainLoc, 'UBM');
@@ -45,5 +45,6 @@ cdet = avg_detection_cost('cdet', decision, testLabels, 1);
 disp(['AVG cdet for open set: ' num2str(cdet)]);
 
 hold on
-h2 = plotdet(llrs, testLabels, 'r--');
-legend([h1(1) h2(1)], 'Closed set', 'Open set')
+h2 = plotdet(llrs, testLabels, 'c-.');
+%legend([h1(1) h2(1)], 'Closed set 10s', 'Open set 10s')
+
