@@ -1,7 +1,48 @@
-\chapter{Introduciton}
+\chapter{Introduction}
 
-The purpose of automatic language recognition is to identify which language is spoken from a speech sample. Applications of language recognition are e.g. adding metadata to audio/video databases or  a preprocessing step for multilingual spoken user interfaces. One of the most popular approaches to language recognition is based on phonotactics, i.e. the assumption that the distribution of sound combinations, phone n-grams, is a distinguishing trait of a language. In these systems, a phone recognizer first creates a phonemic representation of the speech. The number of occurrences of phone n-grams in the recognized phone sequence is stored in a spoken document vector. 
+Human beings will usually recognize the spoken language from lexical knowledge or familiarization with more subtle language cues \cite[p. 785]{lidbok}. Learning to recognize a language requires a prolonged exposure to the language, making it unlikely for any human to familiarize themselves with all of the around 7000 spoken languages in the world \cite[p. 798]{lidbok}. As more multimedia content becomes available on the internet and the processing power of machines increases, computers are given the potential to exceed at language recognition to a level beyond what humans are capable of. The technology can in turn be applied e.g. to adding metadata to audio or video databases or as a preprocessing step for multilingual spoken user interfaces. 
 
-In the traditional approach, the document vector is scored against statistical phone n-gram models for each language to determine which language is the most likely. An alternative approach vector space modeling where the document vector is transformed from a pure count to a representation which emphasizes sound combinations distinctive to a language and de-emphasizes combinations which occur uniformly across languages. 
+To realize such a performance, machines will need intelligent learning methods to structure the vast amounts of information available from spoken data. Since some languages are spoken by very few people it might not be feasible for machines to be able to recognize all languages. Still, further research efforts will be necessary  in order to enable the machines to identify the over 300 languages that are spoken by more than 1 million people around the world \cite[p. 797]{lidbok}.
 
-Finally, it is possible to use the document vector directly for classification, using discriminative classifiers to separate the languages. This is the topic of this thesis. One problem with direct classification is that the dimensionality of the document vectors is very large. If the number of phones in the phone recognizer is 50, and we count 3-grams, the dimension is 125 000. By nature, the vectors are sparse, since only a fraction of the 125 000 possible 3-grams will occur in e.g. a 30-second utterance. Training classifiers on full-sized document vectors will be computationally wasteful, in addition to being difficult due to the limited coverage represented by any realistic training set. Techniques to reduce the vector's dimension is thus usually employed. iVector subspace modeling is a recent approach to dimensionality reduction that has shown promising results. The compressed vectors, called iVectors, are found through maximum likelihood estimation, making it significantly different from minimum squared error techniques like latent semantic mapping or principal component analysis. The assignment is to examine the iVector approach, construct an iVector language recognition system, and evaluate its performance against more traditional language recognizers.
+
+
+\section{Problem Description}
+
+The purpose of automatic language recognition is to identify which language is spoken from a speech sample. One of the most popular approaches to language recognition is based on phonotactics, i.e. the assumption that the distribution of sound combinations, phone n-grams, is a distinguishing trait of a language. In these systems, a phone recognizer first creates a phonemic representation of the speech. The number of occurrences of phone n-grams in the recognized phone sequence is stored in a spoken document vector. 
+
+In the traditional approach, the document vector is scored against statistical phone n-gram models for each language to determine which language is the most likely. An alternative approach is vector space modeling where the document vector is transformed from a pure count to a representation which emphasizes sound combinations distinctive to a language and de-emphasizes combinations which occur uniformly across languages. 
+
+Finally, it is possible to use the document vector directly for classification, using discriminative classifiers to separate the languages. This is the topic of this thesis. One problem with direct classification is that the dimensionality of the document vectors is very large. If the number of phones in the phone recognizer is 50, and we count 3-grams, the dimension is 125 000. By nature, the vectors are sparse, since only a fraction of the 125 000 possible 3-grams will occur in e.g. a 30-second utterance. Training classifiers on full-sized document vectors will be computationally wasteful, in addition to being difficult due to the limited coverage represented by any realistic training set. Techniques to reduce the vector's dimension are thus usually employed. iVector subspace modeling is a recent approach to dimensionality reduction that has shown promising results. The compressed vectors, called iVectors, are found through maximum likelihood estimation, making it significantly different from minimum squared error techniques like latent semantic mapping or principal component analysis. The assignment is to examine the iVector approach, construct an iVector language recognition system, and evaluate its performance against more traditional language recognizers.
+
+\section{Objectives for the Thesis}
+
+Our primary goal for this thesis is to construct an high-performing iVector language recognition system. This will require both an understanding of how iVector subspace modelling works, and experiments e.g. to ensure that the published approaches to best train the system will also apply to our training material. Since building a state-of-the-art language recognition system can be an huge undertaking, we will not focus on well-established techniques that should increase the recognition performance of almost any system. Example of such techniques are the use of lattices \cite[p. 817]{lidbok} or training the sytem with more material \cite[p. 836]{lidbok}.
+
+We can use standardized test-sets to compare the performance of the system to other systems but in order isolate the effect of only the iVector modeling, we will need to construct a baseline system.  If the two systems share all but the iVector related components, then any difference in performance can be linked to the usage of iVectors. The construction of a  baseline language recognition system is therefore essential to evaluate the fulfillment of our primary goal.
+
+\section{Structure}
+
+The rest of the thesis is structured as follows:
+
+\begin{itemize}
+\item \textbf{Part I - Theory}
+	\begin{itemize}
+	\item \textbf{Chapter 2 - Language Recognition Systems} introduces the goals and the theory behind common components of a spoken language recognition system
+	\item \textbf{Chapter 3 - Statistical Language Modeling}  explains the theory behind the language model used in the baseline system
+	\item \textbf{Chapter 4 - iVector Subspace Modeling} gives the theoretical background for iVectors
+	\item \textbf{Chapter 5 - Discriminative Classification} explains the vector based classifiers needed for an iVector system
+	\end{itemize}
+\item \textbf{Part II - Implementation}
+	\begin{itemize}
+	\item \textbf{Chapter 6 - Data Preparation} outlines what data-set will be used for training and testing the systems, and the tokenization of this data
+	\item \textbf{Chapter 7 - Baseline System} discusses the implementation of a PRLM system to compare the iVector system against
+	\item \textbf{Chapter 8 - iVector System} explains design choices for the iVector system
+	\end{itemize}
+\item \textbf{Part III - Results}
+	\begin{itemize}
+	\item \textbf{Chapter 9 - Identification Results} documents the performance of the system on language identification
+	\item \textbf{Chapter 10 - Detection Performance} compares the systems on the language detection task
+	\item \textbf{Chapter 11 - Summary} discusses our results for iVector based language recognition
+	\item \textbf{Chapter 12 - Conclusion} sums up the work in this thesis
+	\end{itemize}
+\end{itemize}

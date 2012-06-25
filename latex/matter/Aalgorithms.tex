@@ -1,32 +1,73 @@
-\chapter{Algorithms for iVector system}
+\chapter{Overview of the Implemented Systems}
 
-\section{Training of vanilla iVector system}
+We will here give a summary of the scripts and programs developed for the iVector and baseline system. The systems are in no way production ready, and any settings will for the most part be defined in constants. Complete source code can be found at \url{http://www.github.com/asmundto/ivector}.
+
+\section{Scripts}
+
+These are the script needed to run the baseline or iVector system.
+
+\begin{itemize}
+	\item \emph{convert.py} will convert the NIST sound-files to the \emph{.raw} format expected for the phoneme recognizer.
+	\item \emph{runphnrec.py} and \emph{NISTrunphnrec.py} runs the phoneme recognizer on speech-files from the CallFriend and NIST set respectively. Requires the BUT phoneme recognizer\footnote{\url{http://speech.fit.vutbr.cz/software/phoneme-recognizer-based-long-temporal-context}}.
+	\item \emph{splitfile.py} splits the phoneme transcripts from the CallFriend set into the desired length. This script will also define the training and development set. 
+	\item \emph{baseline.py} trains and then tests the baseline system on development and NIST utterances. The script will report the identification results for both development and NIST data in addition to creating score-vectors for the backend.
+	\item \emph{ivectdocnumvectorizer.py} creates the document vectors required for the iVector system
+	\item \emph{ovarunclassifier.py} trains and performs one-vs-all classification on the iVectors. Usage: \emph{-t <path\_to\_traindata> -e <path\_to\_development\_or\_test\_data> -f <0 or 1>}. The first time the script is used on a training set, it will find hyperplane parameters that best separate training data, and the regularization parameters that best explain the development data. Any subsequent calls to the script will use the models already found unless the \emph{-f} option is set to 1. The script will both show max-win identification results and produce score-vectors. Requires LIBLINEAR\footnote{\url{http://www.csie.ntu.edu.tw/~cjlin/liblinear/}}.
+	\item \emph{lrebackend.m} Uses the score-vectors from development and NIST data to create and test the Gaussian backend and plot DET-curves. Requires the FoCal Multiclass toolkit\footnote{\url{https://sites.google.com/site/nikobrummer/focal}}.
+\end{itemize}
+
+\section{Usage of iVector Program}
+
+The iVector program responsible for the subspace modeling is the only component written in C++. It requires the Boost libraries\footnote{\url{www.boost.org}} for threading and numeric algebra. While it only has been tested on Windows and Mac platforms it should be cross-compatible. To compile the program using \emph{g++} type: 
+\begin{table*}[!h]
+\begin{center}
+\begin{tabular}{p{0.9\textwidth}}
+	\emph{g++ -Wall -I <path\_to\_boost\_headers>  -DNDEBUG -o IVECT Document.cpp FeatureSpace.cpp iVectIO.cpp iVectMath.cpp iVectThread.cpp iVectTrain.cpp log.cpp main.cpp test.cpp Configuration.cpp -L<path\_to\_boost\_compiled\_libraries> -lboost\_thread -O3} 
+\end{tabular}
+\end{center}
+\end{table*}
+
+The program has a number of options. While some options can only be changed directly from the source code, the program can be launched with these parameters:
+\begin{itemize}
+	\item \emph{-i <dir>} sets the directory to read the file-lists that specify where the location and language of the training, development and test files. These files were created by the document vectorizer.
+	\item \emph{-o <dir>} sets the directory to save the total variability matrix and iVectors.
+	\item \emph{-C <num>} specifies the number of features or dimension of the input document vector.
+	\item \emph{-r <num>} sets the iVector dimension.
+	\item \emph{-s <num>} sets the seed used to initialize the total variability matrix.
+	\item \emph{-L <num>} specifies the column to read features from the document vector files. Usually \emph{1} should correspond to ordinary feature counts, and \emph{2} the square root of counts.
+	\item \emph{-t <num>} the number of threads used by the application.
+	\item \emph{-l <path>} skips training $\mathbf{T}$ and instead loads it from a file.
+\end{itemize}
+
+
+
+\subsection{Algorithms for Training the Total Variability Matrix}
 \label{ap:vanivecttrain}
 
-This is the standard training algorithm for the total variability matrix $\mathbf{T}$. The updates of iVectors or $\mathbf{T}$ may include checking the likelihoods before and after an update, and decrease the update step if needed.
+The standard training method for $\mathbf{T}$ is given in table \ref{algtrain}. The reset training would be quite similar, except that in step \ref{enumerateW} we would first reset the iVectors from both training and development set to zero before updating them.
 
 \begin{table}
-\begin{tabular}{ | p{12cm} | }
+\begin{tabular}{ | p{0.9\textwidth} | }
 \hline
 \\
-\textbf{Algorithm for standard iVector training}
+\textbf{Algorithm for Training $\mathbf{T}$}
 \\
-This algorithm computes the iVectors and trained matrix $t$ using a set of spoken document vectors from both training and devtest data with $C$ features. The dimension of the computed iVectors are given by parameter $r$.
+This algorithm computes the iVectors and trained matrix $\mathbf{T}$ using a set of spoken document vectors from both training and development data with $C$ features. The dimension of the computed iVectors are given by parameter $R$.
 \begin{enumerate}
   \item Calculate the mean vector, $\mathbf{m}$, from equation \ref{mest} 
-  \item Initialize $C$x$r$ matrix $\mathbf{T}$ with random numbers, and iVectors as zero
+  \item Initialize $C$x$R$ matrix $\mathbf{T}$ with random numbers, and iVectors as zero
   \item \label{enumerateW} Find new iVectors from both training and development set using equation \ref{ivectupdate}
   \item \label{stopcondition} Check likelihood of development data using equation \ref{iloglike}. If likelihood has:
   \begin{enumerate}
-    \item increased then continue
+    \item increased then continue to step \ref{enumerateT}
     \item decreased then return the last matrix $\mathbf{T}$ that did increase the likelihood.
   \end{enumerate}
-  \item \label{enumerateT} Find new matrix $\mathbf{T}$ using equation \ref{enumerateW} on only iVectors from the training set.
-
+  \item \label{enumerateT} Find new matrix $\mathbf{T}$ using equation \ref{enumerateW} with only iVectors from the training set on all rows. Loop to step \ref{enumerateW}
 \end{enumerate}
 \\
 \hline
 \end{tabular}
-\caption{Training algorithm for iVector system}
+\caption{Standard training algorithm for the total variability matrix.}
 \label{algtrain}
 \end{table}
+

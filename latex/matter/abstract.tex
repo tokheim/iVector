@@ -1,12 +1,25 @@
 %\selectlanguage{english}
 \begin{abstract}
-Todo: Skrive abstract intro og konklusjon. Forbedre tittler. Se over etter skrivefeil og rare formuleringer.
+\addcontentsline{toc}{chapter}{Abstract}
+The focus of this thesis is an fairly new approach to phonotactic language recognition, i.e. identifying a language from the sounds in an spoken utterance, known as iVector subspace modeling. The goal of the iVector is to compactly represent the discriminative information in a utterance so that further processing of the utterance is less computationally intensive. This might enable the system to be trained with more data, and thereby reach an higher performance. We present both the theory behind iVectors and experiments to better fit the iVector space to our development data. The final system got comparable result to our baseline PRLM system on the NIST LRE03 30 second evaluation set. 
+
 \end{abstract}
 
 \cleardoublepage
 \renewcommand{\abstractname}{Sammendrag}
 %\selectlanguage{norsk}
 \begin{abstract}
-tull
+\addcontentsline{toc}{chapter}{Sammendrag}
+
+Et automatisk språkidentifiseringssystem er et program som gjennkjenner språket som ble brukt i tale. I denne oppgaven redgjør vi for en tilnærming til et slikt system som bruker en såkalt iVektor underromsrepresentasjon av tale. Med denne representasjonen forkastes informasjon som ikke er nyttig for å gjenkjenne språket. Dette kan føre til raskere behandling av talen, noe som lar oss trene systemet med mer data og dermed oppnå høyere ytelse. Vi har også gjort forsøk på å få underrommet bedre tilpasset til data den ikke er trent fra. Det resulterende systemet oppnådde tilsvarende ytelse som mer tradisjonelle språkidentifiseringssystemer på segmenter med 30 sekunder tale fra NIST LRE03 testsettet.
 \end{abstract}
 %\selectlanguage{english}
+
+\cleardoublepage
+\renewcommand{\abstractname}{Preface}
+\begin{abstract}
+\addcontentsline{toc}{chapter}{Preface}
+This thesis is submitted to the Norwegian University of Science and Technology (NTNU) for partial fulfillment of the requirements for the degree of Master of Science. The work has been performed at the Department of Electronics and Telecommunications in the spring semester of 2012.
+
+I would like to thank my supervisor Professor Torbjørn Svendsen for sharing his valuable insight in language recognition systems, and my co-supervisor Mehdi Soufifar for sharing his expertise in iVector systems.
+\end{abstract}

@@ -1,10 +1,32 @@
+\chapter{Summary}
+
+We got perhaps the most reliable comparison of the iVector system's performance from the identification results, where the baseline's performance was unaffected by the badly normalized score-vectors. Although not necessarily statistically significant, the identification rate for the baseline system was slightly higher for 30 seconds.
+
+Resetting iVectors to zero during training of the total variability matrix seems to offer an interesting alternative to the standard training method to prevent over-training of the model, but it would not be surprising if the learning method is too naive for more complex data. It is possible that tweaking the standard training method to deliberately scale down the change in the iVectors from an update step could result in a trade-off between the two learning methods. I.e. the total variability matrix will at first be trained on iVectors that only portray the rudimentary characteristics of the utterance, but then gradually captures the finer details of the utterance in later iterations until over-training occurs. Even if this has the potential to result in a better subspace it could be time-consuming to experimentally find the best scaling-parameters. 
+
+A simpler solution that should in any case increase the performance might be to use more complex data. E.g. the less sparse document vectors we would get from using phoneme lattices. While the standard training method over-trained the total variability matrix after three iterations, the lattice-based iVector system in \cite{lrivector} needed six iterations to be over-fitted. We can't isolate this need for more iterations to just using lattices as that system used other training and development data. Still it seems like more complex data will make the total variability matrix more gradually adapt to the data, which in turn might give finer control over the bias and over-training of the model.
+
+
+%more gradually adapts to the data which in turn gives finer control over the bias and over-training of the model.
+
+
+
+%It should be possible 
+
+%The shortcomings of the standard training method might suggest that we need more complex data to realize the true performance of the subspace modelling. If using e.g. phoneme lattices in the document vectors would let the standard training method finer tune the bias and variance of the total variability matrix, the performance might increase by more than we would expect from just the added discriminative information in the document vectors.
+
+%rather than flaws to the subspace modelling itself
+
 \chapter{Conclusion}
 
-For this thesis we constructed an iVector language recognition system reaching a similar performance as the baseline PRLM system. Resetting iVectors to zero during training of the total variability matrix seems to offer an interesting alternative to the standard training method to prevent over-fitting of the model, but it would not be surprising if the learning method is too naive for data that is harder to over-fit. It is not known if the reset trained system also was over-fitted or perhaps too biased to perform optimally. 
+%For this thesis we constructed an iVector language recognition system reaching a similar performance as the baseline PRLM system. 
+
+While the final system performed similarly to other well-established techniques for language recognition, it did perhaps not quite reach the performance we would expect given the advantage of using a modern phoneme recognizer. We believe there to be two reasons for this. Some well known techniques to increase a systems performance were left out of scope, but our experiments also suggested that excisting training methods for iVector systems might be better suited for more complicated data. 
+
+%It is not known if the reset trained system also was over-fitted or perhaps too biased to perform optimally. 
 
 
-This suggests that there might have been a total variability matrix more suited for language recognition
-
+%This suggests that there might have been a total variability matrix more suited for language recognition
 
 
 %If we were to perform multiple updates of the iVectors in each iteration, the reset training should resemble the standard training more closely. 

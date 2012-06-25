@@ -1,4 +1,4 @@
-\chapter{$n$-gram Language Modeling}
+\chapter{Statistical Language Modeling}
 \label{sect:baselinetheory}
 
 We will here look at how the baseline system utilizes the phoneme sequences from the phone recognizer to construct language models, which then are used to differentiate languages with other phoneme sequences. This is the only module that the baseline system exclusively uses. Intuitively the best performing system will be determined by the total information loss from its modules, so the performance difference between the two systems will be determined by the information loss from assumptions made in this module versus the iVector specific modules. In section \ref{sect:basetrain} we will present how to train a model and use it to decode an utterance. In section \ref{sect:basesmooth} the concept of smoothing the language models will be presented to make the language model better fit unseen utterances.
@@ -12,7 +12,7 @@ Using Bayes rule, the probability that the utterance stems from language $l_i$, 
 \label{basebayes}
 p(l_i|S) = \frac{p(S|l_i) \cdot p(l_i)}{p(S)}.
 \end{equation}
-Since $p(S)$ is independent of the spoken language, it only serves as a constant to enforce that the probability of the utterance belonging to any language is $1$. The prior distribution of languages, $p(l_i)$, will depend on the application and can be set by the Gaussian beck-end discussed in section \ref{sect:backendscoring}. A suited score with no loss of information will be $p(S|l_i)$. An estimate of this score could be found by letting $p(S|l_i, \theta)$ equal the frequency the phoneme sequence appears in the training data for that language. Unfortunately the number of possible phoneme sequences grows exponentially with the sequence length, $N$. With an almost infinite number of parameters of probabilities to measure, it will be impossible to train. 
+Since $p(S)$ is independent of the spoken language, it only serves as a constant to enforce that the probability of the utterance belonging to any language is $1$. The prior distribution of languages, $p(l_i)$, will depend on the application and can be set by the Gaussian beck-end discussed in section \ref{sect:backendscoring}. A suited score with no loss of information will be $p(S|l_i)$. An estimate of this score could be found by letting $p(S|l_i, \theta)$ equal the frequency the phoneme sequence appears in the training data for that language. Unfortunately the number of possible phoneme sequences grows exponentially with the sequence length, $N$. With an almost infinite number of probabilities to measure, it will be impossible to train. 
 
 The probability of the phoneme sequence can also be written as chain of random events
 \begin{equation}
@@ -41,7 +41,7 @@ p(S|l_i, \theta) = \prod_{j=1}^Np(s_j|S_{j-n+1}^{j-1}, l_i, \theta).
 \end{equation}
 Since the first $n$ phonemes in equation \ref{basescore} has less than $n-1$ preceding phonemes, the transition probabilities given less than $n$ previous states has to be estimated as well.
 
-With $C_i(S_{j-n+1}^{j-1})$ draws from a multinomial distribution the variance in $p(s_j|S_{j-n+1}^j, l_i, \theta)$ will be
+With $C_i(S_{j-n+1}^{j-1})$ draws from a multinomial distribution the variance in our estimate for the conditional likelihood will be
 \begin{equation}
 \label{baselinevar}
 \operatorname{VAR}(p(s_j|S_{j-n+1}^j, l_i, \theta)) = \frac{p(s_j|S_{j-n+1}^{j-1}, l_i)(1-p(s_j|S_{j-n+1}^{j-1}, l_i))}{C_i(S_{j-n+1}^{j-1})}
@@ -51,22 +51,22 @@ With $C_i(S_{j-n+1}^{j-1})$ draws from a multinomial distribution the variance i
 \section{Model Smoothing}
 \label{sect:basesmooth}
 
-A problem with equation \ref{basescore} is that any trigram not observed in the training set will make the probability of observing the whole sequence zero.  Furthermore, the granularity of equation \ref{baselinetrain} is no more than $C_i(S_{j-n+1}^{j-1})$. This means that for rare events, the relative error between the true and estimated probabilities is unbounded. By estimating the probability of rare events with lower order $n$-grams, the granularity will increase.With only a few observation of an $n$-gram, it is unlikely that we will find useful dependencies between phonemes spaced far apart, making a high order Markov assumption unnecessary complicated. The method described is known as backoff smoothing \cite[p. 559]{talegk}. The smoothed probability, $\hat{p}$ of a $n$-gram will be given by
+A problem with equation \ref{basescore} is that any trigram not observed in the training set will make the probability of observing the whole sequence zero.  Furthermore, the granularity of equation \ref{baselinetrain} is no more than $C_i(S_{j-n+1}^{j-1})$. This means that for rare events, the relative error between the true and estimated probabilities is unbounded. By estimating the probability of rare events with lower order $n$-grams, the granularity will increase. With only a few observation of an $n$-gram, it is unlikely that we will find useful dependencies between phonemes spaced far apart, making a high order Markov assumption unnecessary complicated. The method described is known as backoff smoothing \cite[p. 559]{talegk}. The smoothed probability, $\hat{p}$ of a $n$-gram will be given by
 
 \begin{equation}
 \label{basesmooth}
 \hat{p}(s_j|S_{j-n+1}^{j-1}, l_i, \theta) = 
 \begin{cases}
-p(s_i|S_{j-n+1}^{j-1}, l_i, \theta) & \text{if $C_i(S_{j-n+1}^j > k_i)$} \\
-\alpha_i(S_{j-n+1}^{j-1})\hat{p}(s_j|S_{j-n+2}^{j-1}, l_i, \theta) & \text{if $C_i(S_{j-n+1}^j \leq k_i$)}
+p(s_i|S_{j-n+1}^{j-1}, l_i, \theta) & \text{if $C_i(S_{j-n+1}^j) > k_i$} \\
+\alpha_i(S_{j-n+1}^{j-1})\hat{p}(s_j|S_{j-n+2}^{j-1}, l_i, \theta) & \text{if $C_i(S_{j-n+1}^j) \leq k_i$}
 \end{cases}
 \end{equation}
 where $k_i$ is some possibly language dependent constant, and $\alpha_i(S_{j-n+1}^{j-1})$ is a constant that makes the sum of probabilities for any $n$-gram with a given history equal $1$. We find $\alpha_i$ by 
 \begin{align}
-\sum_{s_j:C_i(S_{j-n+1}^j \leq k} p(s_j | S_{j-n+1}^{j-1}, l_i, \theta)
-&= \sum_{s_j:C_i(S_{j-n+1}^j \leq k} \alpha_i(S_{j-n+1}^{j-1})\hat{p}(s_j | S_{j-n+2}^{j-1}, l_i, \theta) \nonumber \\
+\sum_{s_j:C_i(S_{j-n+1}^j) \leq k} p(s_j | S_{j-n+1}^{j-1}, l_i, \theta)
+&= \sum_{s_j:C_i(S_{j-n+1}^j) \leq k} \alpha_i(S_{j-n+1}^{j-1})\hat{p}(s_j | S_{j-n+2}^{j-1}, l_i, \theta) \nonumber \\
 \alpha_i(S_{j-n+1}^{j-1})
-&= \frac{\sum_{s_j:C_i(S_{j-n+1}^j \leq k}p(s_i|S_{j-n+1}^{j-1}, l_i, \theta)}{\sum_{s_j:C_i(S_{j-n+1}^j \leq k}\hat{p}(s_j | S_{j-n+2}^{j-1}, l_i, \theta)} \nonumber \\
-&=\frac{1-\sum_{s_j:C_i(S_{j-n+1}^j > k}p(s_i|S_{j-n+1}^{j-1}, l_i, \theta)}{1-\sum_{s_j:C_i(S_{j-n+1}^j > k}p(s_j | S_{j-n+2}^{j-1}, l_i, \theta)}
+&= \frac{\sum_{s_j:C_i(S_{j-n+1}^j) \leq k}p(s_i|S_{j-n+1}^{j-1}, l_i, \theta)}{\sum_{s_j:C_i(S_{j-n+1}^j) \leq k}\hat{p}(s_j | S_{j-n+2}^{j-1}, l_i, \theta)} \nonumber \\
+&=\frac{1-\sum_{s_j:C_i(S_{j-n+1}^j) > k}p(s_i|S_{j-n+1}^{j-1}, l_i, \theta)}{1-\sum_{s_j:C_i(S_{j-n+1}^j) > k}p(s_j | S_{j-n+2}^{j-1}, l_i, \theta)}
 \end{align}
-Since both the granularity and variance should be good for unigrams ($1$-grams), the values for $\alpha_i$ can be found iteratively for larger values of $n$ by assuming that the unigram frequency requires no smoothing. When much of the probability mass for a given context belongs to frequently seen events, $\alpha_i$ will likely penalize having to use lower order $n$-gram statistics which is a useful trait. 
+Since both the granularity and variance should be good for unigrams ($1$-grams), the values for $\alpha_i$ can be found iteratively for larger values of $n$ by assuming that the unigram frequency requires no smoothing.
